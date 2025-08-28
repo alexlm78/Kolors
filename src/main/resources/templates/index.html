@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Kolors Kombinations</title>
+      <style>
+         .color-box {
+            width: 60px;
+            height: 30px;
+            display: inline-block;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+         }
+         table {
+            border-collapse: collapse;
+         }
+         th,
+         td {
+            padding: 8px 12px;
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Combinaciones de Colores</h1>
+      <form th:action="@{/add}" method="post" th:object="${colorCombination}">
+         Nombre: <input type="text" th:field="*{name}" required /> HEX:
+         <input
+            type="text"
+            th:field="*{hex}"
+            maxlength="6"
+            pattern="[0-9A-Fa-f]{6}"
+            required
+         />
+         <button type="submit">Guardar</button>
+      </form>
+      <h2>Guardados</h2>
+      <table>
+         <tr>
+            <th>Color</th>
+            <th>Nombre</th>
+            <th>HEX</th>
+         </tr>
+         <tr th:each="color : ${colors}">
+            <td>
+               <span
+                  class="color-box"
+                  th:style="'background-color: #' + ${color.hex}"
+               ></span>
+            </td>
+            <td th:text="${color.name}"></td>
+            <td th:text="${color.hex}"></td>
+         </tr>
+      </table>
+   </body>
+</html>
