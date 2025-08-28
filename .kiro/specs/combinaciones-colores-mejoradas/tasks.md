@@ -14,7 +14,7 @@
   - Escribir tests de integración para repositorios
   - _Requisitos: 1.5, 6.1, 6.2_
 
-- [ ] 3. Desarrollar servicios de negocio para gestión de combinaciones
+- [x] 3. Desarrollar servicios de negocio para gestión de combinaciones
   - Implementar ColorCombinationService con operaciones CRUD
   - Crear lógica de validación de colores hexadecimales
   - Implementar manejo de errores y excepciones personalizadas
