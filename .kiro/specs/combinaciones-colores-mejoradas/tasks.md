@@ -7,7 +7,7 @@
   - Escribir tests unitarios para las entidades y validaciones
   - _Requisitos: 1.1, 1.2, 1.3, 1.4, 1.5, 3.1, 3.2_
 
-- [ ] 2. Implementar repositorios JPA con consultas personalizadas
+- [x] 2. Implementar repositorios JPA con consultas personalizadas
   - Crear ColorCombinationRepository con métodos de búsqueda
   - Crear ColorInCombinationRepository para gestión de colores individuales
   - Implementar consultas personalizadas para filtrado y búsqueda

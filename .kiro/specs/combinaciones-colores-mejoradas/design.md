@@ -2,7 +2,7 @@
 
 ## Visión General
 
-El diseño transforma la aplicación Kolors de un sistema de colores individuales a uno que maneja combinaciones de colores múltiples. La arquitectura mantiene la simplicidad del diseño actual basado en Spring Boot con JPA/Hibernate, pero introduce un nuevo modelo de datos que soporta relaciones uno-a-muchos entre combinaciones y colores individuales.
+El diseño transforma la aplicación Kolors de un sistema de colores individuales a uno que maneja combinaciones de colores múltiples de 2, 3 o 4 colores. La arquitectura mantiene la simplicidad del diseño actual basado en Spring Boot con JPA/Hibernate, pero introduce un nuevo modelo de datos que soporta relaciones uno-a-muchos entre combinaciones y colores individuales. El sistema prioriza la experiencia de usuario con interfaces responsivas, validación robusta y migración transparente de datos existentes.
 
 ## Arquitectura
 
@@ -16,18 +16,19 @@ El diseño transforma la aplicación Kolors de un sistema de colores individuale
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                                         │
                                                ┌─────────────────┐
-                                               │   H2 Database   │
-                                               │   (In-Memory)   │
+                                               │     sqlite      │
+                                               │   (local DB)    │
                                                └─────────────────┘
 ```
 
 ### Componentes Principales
 
-1. **Capa de Presentación**: Thymeleaf templates con JavaScript para interactividad dinámica
-2. **Capa de Control**: Spring MVC controllers para manejar requests HTTP
-3. **Capa de Servicio**: Servicios de negocio para lógica de aplicación
-4. **Capa de Persistencia**: Spring Data JPA repositories
-5. **Base de Datos**: H2 in-memory para desarrollo, preparada para migración a producción
+1. **Capa de Presentación**: Thymeleaf templates responsivos con JavaScript para interactividad dinámica y validación en tiempo real
+2. **Capa de Control**: Spring MVC controllers con manejo robusto de errores y validación
+3. **Capa de Servicio**: Servicios de negocio para lógica de aplicación y migración de datos
+4. **Capa de Persistencia**: Spring Data JPA repositories con consultas optimizadas
+5. **Base de Datos**: SQLite para desarrollo, preparada para migración a producción
+6. **Sistema de Migración**: Componentes especializados para transición de datos legacy
 
 ## Componentes e Interfaces
 
@@ -89,19 +90,26 @@ public class ColorInCombination {
 public class ColorCombinationController {
     
     @GetMapping("/")
-    public String index(Model model);
+    public String index(Model model, @RequestParam(required = false) String search,
+                       @RequestParam(required = false) Integer colorCount);
     
     @PostMapping("/create")
-    public String createCombination(@Valid @ModelAttribute ColorCombinationForm form);
+    public String createCombination(@Valid @ModelAttribute ColorCombinationForm form,
+                                   BindingResult result, Model model);
     
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model);
     
     @PostMapping("/{id}/update")
-    public String updateCombination(@PathVariable Long id, @Valid @ModelAttribute ColorCombinationForm form);
+    public String updateCombination(@PathVariable Long id, 
+                                   @Valid @ModelAttribute ColorCombinationForm form,
+                                   BindingResult result, Model model);
     
     @PostMapping("/{id}/delete")
-    public String deleteCombination(@PathVariable Long id);
+    public String deleteCombination(@PathVariable Long id, RedirectAttributes redirectAttributes);
+    
+    @GetMapping("/{id}/confirm-delete")
+    public String confirmDelete(@PathVariable Long id, Model model);
 }
 ```
 
@@ -128,10 +136,13 @@ public class ColorCombinationService {
     
     public ColorCombination createCombination(ColorCombinationForm form);
     public List<ColorCombination> findAllCombinations();
+    public List<ColorCombination> searchCombinations(String searchTerm, Integer colorCount);
     public Optional<ColorCombination> findById(Long id);
     public ColorCombination updateCombination(Long id, ColorCombinationForm form);
     public void deleteCombination(Long id);
     public boolean validateHexColors(List<String> hexValues);
+    public boolean validateColorCount(Integer colorCount, List<ColorForm> colors);
+    public ColorCombinationForm convertToForm(ColorCombination combination);
 }
 ```
 
@@ -154,7 +165,12 @@ public class MigrationService {
 public interface ColorCombinationRepository extends JpaRepository<ColorCombination, Long> {
     List<ColorCombination> findByNameContainingIgnoreCase(String name);
     List<ColorCombination> findByColorCount(Integer colorCount);
+    List<ColorCombination> findByNameContainingIgnoreCaseAndColorCount(String name, Integer colorCount);
     List<ColorCombination> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    List<ColorCombination> findAllByOrderByCreatedAtDesc();
+    
+    @Query("SELECT DISTINCT cc FROM ColorCombination cc JOIN cc.colors cic WHERE cic.hexValue = :hexValue")
+    List<ColorCombination> findByColorHexValue(@Param("hexValue") String hexValue);
 }
 ```
 
@@ -232,14 +248,17 @@ public class ColorForm {
 
 1. **Validación de Entrada**
    - Bean Validation con anotaciones JSR-303
-   - Validación personalizada para valores hexadecimales
+   - Validación personalizada para valores hexadecimales (exactamente 6 caracteres alfanuméricos)
    - Validación de consistencia entre colorCount y número de colores proporcionados
+   - Validación de nombres de combinación (mínimo 3 caracteres)
+   - Validación en tiempo real con JavaScript para retroalimentación inmediata
 
 2. **Excepciones de Negocio**
    ```java
    public class ColorCombinationNotFoundException extends RuntimeException
    public class InvalidColorFormatException extends RuntimeException
    public class MigrationException extends RuntimeException
+   public class InvalidColorCountException extends RuntimeException
    ```
 
 3. **Manejo Global de Excepciones**
@@ -251,17 +270,35 @@ public class ColorForm {
        
        @ExceptionHandler(ValidationException.class)
        public String handleValidation(Model model, Exception e);
+       
+       @ExceptionHandler(InvalidColorFormatException.class)
+       public String handleInvalidColorFormat(Model model, Exception e);
+       
+       @ExceptionHandler(Exception.class)
+       public String handleGenericError(Model model, Exception e);
    }
    ```
+
+4. **Validación de Formularios**
+   - Prevención de envío con campos incompletos
+   - Resaltado visual de campos con errores
+   - Mensajes de error específicos y contextuales
+   - Preservación de datos válidos durante corrección de errores
 
 ### Mensajes de Error Localizados
 
 ```properties
 # messages.properties
 error.combination.notfound=Combinación de colores no encontrada
-error.color.invalid.hex=Formato de color hexadecimal inválido: debe ser 6 caracteres (0-9, A-F)
+error.color.invalid.hex=Formato de color hexadecimal inválido: debe ser exactamente 6 caracteres (0-9, A-F)
 error.combination.name.required=El nombre de la combinación es obligatorio
+error.combination.name.minlength=El nombre debe tener al menos 3 caracteres
+error.combination.colorcount.required=Debe especificar el número de colores (2, 3 o 4)
+error.combination.colorcount.invalid=El número de colores debe ser 2, 3 o 4
+error.combination.colors.mismatch=El número de colores proporcionados no coincide con la cantidad seleccionada
 error.migration.failed=Error durante la migración de datos
+error.server.generic=Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo
+error.combination.delete.failed=No se pudo eliminar la combinación de colores
 ```
 
 ## Estrategia de Testing
@@ -333,6 +370,36 @@ public class TestDataConfiguration {
 }
 ```
 
+## Funcionalidad de Búsqueda y Filtrado
+
+### Capacidades de Búsqueda
+
+1. **Búsqueda por Nombre**
+   - Búsqueda case-insensitive por nombre de combinación
+   - Búsqueda parcial con coincidencias substring
+   - Resultados ordenados por relevancia y fecha de creación
+
+2. **Filtrado por Características**
+   - Filtro por número de colores (2, 3, o 4)
+   - Búsqueda por valores hexadecimales específicos
+   - Combinación de múltiples criterios de filtrado
+
+3. **Interfaz de Búsqueda**
+   ```java
+   @GetMapping("/search")
+   public String searchCombinations(@RequestParam(required = false) String name,
+                                   @RequestParam(required = false) Integer colorCount,
+                                   @RequestParam(required = false) String hexValue,
+                                   Model model);
+   ```
+
+### Implementación de Búsqueda
+
+- Uso de consultas JPA optimizadas con índices apropiados
+- Paginación para manejar grandes volúmenes de resultados
+- Búsqueda en tiempo real con JavaScript para mejor UX
+- Preservación de criterios de búsqueda durante navegación
+
 ## Consideraciones de Rendimiento
 
 ### Optimizaciones de Base de Datos
@@ -355,14 +422,31 @@ public class TestDataConfiguration {
 ### Optimizaciones de Frontend
 
 1. **JavaScript Dinámico**
-   - Carga dinámica de campos de color según selección
+   - Carga dinámica de campos de color según selección (2, 3 o 4 colores)
    - Validación en tiempo real de valores hexadecimales
    - Preview en vivo de combinaciones de colores
+   - Confirmación interactiva para eliminación de combinaciones
+   - Búsqueda y filtrado dinámico sin recarga de página
 
-2. **CSS Eficiente**
-   - Uso de CSS Grid/Flexbox para layouts responsivos
-   - Optimización de renderizado de colores
-   - Lazy loading de imágenes si se implementan previews complejos
+2. **CSS Responsivo**
+   - Uso de CSS Grid/Flexbox para layouts adaptativos
+   - Media queries para optimización móvil y desktop
+   - Campos de formulario optimizados para interacción táctil
+   - Visualización adaptativa de combinaciones según tamaño de pantalla
+   - Ajuste dinámico para cambios de orientación
+
+3. **Experiencia de Usuario**
+   - Vista previa visual clara de cada combinación con valores hexadecimales
+   - Organización clara en tabla/lista para múltiples combinaciones
+   - Formularios pre-llenados para edición
+   - Retroalimentación visual inmediata para validaciones
+
+4. **Diseño Responsivo**
+   - Adaptación automática a diferentes tamaños de pantalla
+   - Optimización específica para dispositivos móviles y tablets
+   - Campos de formulario fácilmente seleccionables en pantallas táctiles
+   - Visualización clara de combinaciones en pantallas pequeñas
+   - Navegación intuitiva en todos los dispositivos
 
 ## Migración y Compatibilidad
 
@@ -370,20 +454,30 @@ public class TestDataConfiguration {
 
 1. **Fase 1: Preparación**
    - Crear nuevas tablas sin afectar las existentes
-   - Implementar servicios de migración
+   - Implementar servicios de migración con validación robusta
    - Crear endpoint de migración con interfaz administrativa
+   - Implementar detección automática de datos legacy
 
 2. **Fase 2: Migración de Datos**
-   - Convertir colores individuales en combinaciones de un color
-   - Validar integridad de datos migrados
-   - Crear backup de datos originales
+   - Convertir automáticamente colores individuales en combinaciones de un color
+   - Validar integridad de datos migrados con verificaciones exhaustivas
+   - Crear backup automático de datos originales antes de migración
+   - Mantener datos originales intactos durante el proceso
 
 3. **Fase 3: Transición**
-   - Activar nueva funcionalidad
-   - Mantener acceso de solo lectura a datos legacy
-   - Monitorear rendimiento y errores
+   - Activar nueva funcionalidad manteniendo compatibilidad
+   - Proporcionar acceso continuo a datos migrados en nueva interfaz
+   - Monitorear rendimiento y errores con logging detallado
+   - Implementar rollback automático en caso de fallas
 
-4. **Fase 4: Limpieza**
-   - Eliminar código y tablas legacy después de período de gracia
-   - Optimizar esquema final
-   - Documentar cambios para futuros desarrolladores
+4. **Fase 4: Validación y Limpieza**
+   - Verificar que todos los datos legacy sean accesibles en el nuevo sistema
+   - Ejecutar pruebas de integridad post-migración
+   - Eliminar código y tablas legacy solo después de confirmación de éxito
+   - Documentar proceso completo para futuras referencias
+
+**Criterios de Éxito de Migración:**
+- Todos los colores individuales existentes convertidos exitosamente
+- Datos mostrados correctamente en nueva interfaz
+- Cero pérdida de datos durante el proceso
+- Funcionalidad completa disponible post-migración
