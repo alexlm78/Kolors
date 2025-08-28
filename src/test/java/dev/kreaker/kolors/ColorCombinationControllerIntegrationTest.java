@@ -102,11 +102,9 @@ class ColorCombinationControllerIntegrationTest {
             mockMvc.perform(get("/combinations/"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("combinations"))
-                .andExpect(model().attributeExists("combinationForm"))
-                .andExpect(model().attributeExists("statistics"));
+                .andExpect(model().attributeExists("combinationForm"));
             
             verify(colorCombinationService).searchCombinations(null, null);
-            verify(colorCombinationService).getStatistics();
         }
         
         @Test

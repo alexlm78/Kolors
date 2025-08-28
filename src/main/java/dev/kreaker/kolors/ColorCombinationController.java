@@ -73,10 +73,6 @@ public class ColorCombinationController {
                 model.addAttribute("combinationForm", new ColorCombinationForm());
             }
             
-            // Agregar estadísticas
-            ColorCombinationService.CombinationStatistics stats = colorCombinationService.getStatistics();
-            model.addAttribute("statistics", stats);
-            
             return "combinations/index";
             
         } catch (Exception e) {
@@ -343,10 +339,6 @@ public class ColorCombinationController {
             // Agregar combinaciones existentes
             List<ColorCombination> combinations = colorCombinationService.findAllCombinations();
             model.addAttribute("combinations", combinations);
-            
-            // Agregar estadísticas
-            ColorCombinationService.CombinationStatistics stats = colorCombinationService.getStatistics();
-            model.addAttribute("statistics", stats);
             
             // Agregar formulario con datos
             model.addAttribute("combinationForm", form);

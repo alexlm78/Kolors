@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+   <meta charset="UTF-8">
+</head>
+
+<body>
+   <!-- Combination List Fragment -->
+   <div th:fragment="combinationList" class="combinations-grid">
+      <div class="combination-card" th:each="combination : ${combinations}">
+         <div class="combination-name" th:text="${combination.name}">Nombre</div>
+         <div class="combination-meta">
+            <span th:text="${combination.colorCount}">2</span> colores •
+            <span th:text="${#temporals.format(combination.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+         </div>
+         <div class="combination-colors">
+            <div class="combination-color" th:each="color : ${combination.colors}"
+               th:style="'background-color: #' + ${color.hexValue}" th:data-hex="${'#' + color.hexValue}"
+               th:title="${'#' + color.hexValue}">
+            </div>
+         </div>
+         <div class="combination-actions">
+            <a th:href="@{/combinations/{id}(id=${combination.id})}" class="btn btn-secondary btn-sm">Ver</a>
+            <a th:href="@{/combinations/{id}/edit(id=${combination.id})}" class="btn btn-secondary btn-sm">Editar</a>
+            <a th:href="@{/combinations/{id}/confirm-delete(id=${combination.id})}"
+               class="btn btn-danger btn-sm">Eliminar</a>
+         </div>
+      </div>
+
+      <!-- Empty State -->
+      <div th:if="${combinations == null or combinations.empty}" class="empty-state"
+         style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+         <h3 style="color: #6c757d; margin-bottom: 10px;">No se encontraron combinaciones</h3>
+         <p style="color: #6c757d;">Intenta ajustar los filtros de búsqueda o crea una nueva combinación.</p>
+      </div>
+   </div>
+
+   <!-- Color Preview Fragment -->
+   <div th:fragment="colorPreview(hexValue)" class="color-preview-fragment">
+      <div class="color-box" th:style="'background-color: #' + ${hexValue}" th:title="${'#' + hexValue}"></div>
+      <span class="color-hex" th:text="${'#' + hexValue}">#000000</span>
+   </div>
+
+   <!-- Statistics Fragment -->
+   <div th:fragment="statistics" class="statistics" th:if="${statistics}">
+      <div class="stat-card">
+         <div class="stat-number" th:text="${statistics.totalCombinations}">0</div>
+         <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card">
+         <div class="stat-number" th:text="${statistics.twoColorCombinations}">0</div>
+         <div class="stat-label">2 Colores</div>
+      </div>
+      <div class="stat-card">
+         <div class="stat-number" th:text="${statistics.threeColorCombinations}">0</div>
+         <div class="stat-label">3 Colores</div>
+      </div>
+      <div class="stat-card">
+         <div class="stat-number" th:text="${statistics.fourColorCombinations}">0</div>
+         <div class="stat-label">4 Colores</div>
+      </div>
+   </div>
+
+   <!-- Search Form Fragment -->
+   <div th:fragment="searchForm" class="search-filters">
+      <form th:action="@{/combinations/}" method="get" id="searchForm">
+         <div class="search-row">
+            <div class="form-group">
+               <label for="search">Buscar por nombre</label>
+               <input type="text" name="search" th:value="${search}" class="form-control" id="search"
+                  placeholder="Buscar combinaciones...">
+            </div>
+            <div class="form-group">
+               <label for="colorCountFilter">Filtrar por número de colores</label>
+               <select name="colorCount" class="form-control" id="colorCountFilter">
+                  <option value="">Todos</option>
+                  <option value="2" th:selected="${colorCount == 2}">2 Colores</option>
+                  <option value="3" th:selected="${colorCount == 3}">3 Colores</option>
+                  <option value="4" th:selected="${colorCount == 4}">4 Colores</option>
+               </select>
+            </div>
+            <div class="form-group">
+               <label for="hexValue">Buscar por color (HEX)</label>
+               <input type="text" name="hexValue" th:value="${hexValue}" class="form-control" id="hexValue"
+                  placeholder="FF5733" maxlength="6">
+            </div>
+            <div class="form-group">
+               <button type="submit" class="btn btn-secondary">Buscar</button>
+            </div>
+         </div>
+      </form>
+   </div>
+
+   <!-- Alert Fragment -->
+   <div th:fragment="alerts">
+      <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+   </div>
+
+   <!-- Color Input Fragment -->
+   <div th:fragment="colorInput(position, colorForm)" class="color-field">
+      <span class="color-label" th:text="'Color ' + (${position} + 1) + ':'">Color 1:</span>
+      <div class="color-preview" th:id="'preview-' + ${position}"></div>
+      <input type="text" th:field="${colorForm.hexValue}" class="form-control color-input" placeholder="FF5733"
+         maxlength="6" th:data-position="${position}">
+      <input type="hidden" th:field="${colorForm.position}">
+      <div th:if="${#fields.hasErrors('hexValue')}" class="field-error" th:errors="${colorForm.hexValue}"></div>
+   </div>
+</body>
+
+</html>

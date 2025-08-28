@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Editar Combinación - Kolors</title>
+   <style>
+      * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+      }
+
+      body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         min-height: 100vh;
+         padding: 20px;
+      }
+
+      .container {
+         max-width: 800px;
+         margin: 0 auto;
+         background: white;
+         border-radius: 15px;
+         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+         overflow: hidden;
+      }
+
+      .header {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+         padding: 30px;
+         text-align: center;
+      }
+
+      .header h1 {
+         font-size: 2rem;
+         margin-bottom: 10px;
+         font-weight: 300;
+      }
+
+      .header p {
+         opacity: 0.9;
+         font-size: 1.1rem;
+      }
+
+      .content {
+         padding: 30px;
+      }
+
+      /* Navigation */
+      .nav-back {
+         margin-bottom: 20px;
+      }
+
+      .nav-back a {
+         color: #667eea;
+         text-decoration: none;
+         font-weight: 600;
+         display: inline-flex;
+         align-items: center;
+         gap: 8px;
+      }
+
+      .nav-back a:hover {
+         text-decoration: underline;
+      }
+
+      /* Alerts */
+      .alert {
+         padding: 15px;
+         margin-bottom: 20px;
+         border-radius: 8px;
+         font-weight: 500;
+      }
+
+      .alert-success {
+         background-color: #d4edda;
+         color: #155724;
+         border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+         background-color: #f8d7da;
+         color: #721c24;
+         border: 1px solid #f5c6cb;
+      }
+
+      /* Form Styles */
+      .form-section {
+         background: #f8f9fa;
+         padding: 25px;
+         border-radius: 10px;
+         margin-bottom: 30px;
+      }
+
+      .form-group {
+         margin-bottom: 20px;
+      }
+
+      .form-group label {
+         display: block;
+         margin-bottom: 8px;
+         font-weight: 600;
+         color: #495057;
+      }
+
+      .form-control {
+         width: 100%;
+         padding: 12px;
+         border: 2px solid #e9ecef;
+         border-radius: 8px;
+         font-size: 16px;
+         transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+         outline: none;
+         border-color: #667eea;
+         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .form-control.error {
+         border-color: #dc3545;
+      }
+
+      .color-count-display {
+         background: #667eea;
+         color: white;
+         padding: 10px 20px;
+         border-radius: 8px;
+         display: inline-block;
+         font-weight: 600;
+         margin-bottom: 20px;
+      }
+
+      /* Color Fields */
+      .color-fields {
+         margin-top: 20px;
+      }
+
+      .color-field {
+         display: flex;
+         align-items: center;
+         gap: 15px;
+         margin-bottom: 15px;
+         padding: 15px;
+         background: white;
+         border-radius: 8px;
+         border: 1px solid #e9ecef;
+      }
+
+      .color-preview {
+         width: 50px;
+         height: 50px;
+         border-radius: 8px;
+         border: 2px solid #e9ecef;
+         background: #f8f9fa;
+         transition: all 0.3s ease;
+      }
+
+      .color-input {
+         flex: 1;
+         max-width: 150px;
+      }
+
+      .color-label {
+         font-weight: 600;
+         color: #495057;
+         min-width: 80px;
+      }
+
+      /* Live Preview */
+      .live-preview {
+         margin-top: 20px;
+         padding: 20px;
+         background: white;
+         border-radius: 8px;
+         border: 1px solid #e9ecef;
+      }
+
+      .live-preview h3 {
+         margin-bottom: 15px;
+         color: #495057;
+      }
+
+      .preview-combination {
+         display: flex;
+         gap: 10px;
+         align-items: center;
+         margin-bottom: 10px;
+      }
+
+      .preview-color {
+         width: 60px;
+         height: 60px;
+         border-radius: 8px;
+         border: 2px solid #e9ecef;
+         background: #f8f9fa;
+         transition: all 0.3s ease;
+      }
+
+      .preview-name {
+         font-weight: 600;
+         color: #495057;
+         margin-left: 10px;
+      }
+
+      /* Button Styles */
+      .btn {
+         padding: 12px 25px;
+         border: none;
+         border-radius: 8px;
+         font-size: 16px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         text-decoration: none;
+         display: inline-block;
+         text-align: center;
+         margin-right: 10px;
+      }
+
+      .btn-primary {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+      }
+
+      .btn-primary:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+         background: #6c757d;
+         color: white;
+      }
+
+      .btn-secondary:hover {
+         background: #5a6268;
+      }
+
+      /* Error Messages */
+      .field-error {
+         color: #dc3545;
+         font-size: 0.875rem;
+         margin-top: 5px;
+      }
+
+      /* Current Combination Display */
+      .current-combination {
+         background: white;
+         padding: 20px;
+         border-radius: 10px;
+         border: 1px solid #e9ecef;
+         margin-bottom: 20px;
+      }
+
+      .current-combination h3 {
+         color: #495057;
+         margin-bottom: 15px;
+      }
+
+      .current-colors {
+         display: flex;
+         gap: 10px;
+         margin-bottom: 10px;
+      }
+
+      .current-color {
+         width: 50px;
+         height: 50px;
+         border-radius: 8px;
+         border: 2px solid #e9ecef;
+         position: relative;
+      }
+
+      .current-color::after {
+         content: attr(data-hex);
+         position: absolute;
+         bottom: -20px;
+         left: 50%;
+         transform: translateX(-50%);
+         font-size: 10px;
+         color: #6c757d;
+         white-space: nowrap;
+      }
+
+      .current-meta {
+         color: #6c757d;
+         font-size: 0.9rem;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+         .container {
+            margin: 10px;
+            border-radius: 10px;
+         }
+
+         .header {
+            padding: 20px;
+         }
+
+         .header h1 {
+            font-size: 1.5rem;
+         }
+
+         .content {
+            padding: 20px;
+         }
+
+         .color-field {
+            flex-direction: column;
+            text-align: center;
+         }
+
+         .btn {
+            width: 100%;
+            margin-bottom: 10px;
+            margin-right: 0;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div class="container">
+      <div class="header">
+         <h1>Editar Combinación</h1>
+         <p>Modifica los colores y el nombre de tu combinación</p>
+      </div>
+
+      <div class="content">
+         <!-- Navigation -->
+         <div class="nav-back">
+            <a th:href="@{/combinations/}">← Volver a combinaciones</a>
+         </div>
+
+         <!-- Success/Error Messages -->
+         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+         <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+         <!-- Current Combination Display -->
+         <div class="current-combination" th:if="${combination}">
+            <h3>Combinación Actual</h3>
+            <div class="current-colors">
+               <div class="current-color" th:each="color : ${combination.colors}"
+                  th:style="'background-color: #' + ${color.hexValue}" th:data-hex="${'#' + color.hexValue}">
+               </div>
+            </div>
+            <div class="current-meta">
+               <strong th:text="${combination.name}">Nombre</strong> •
+               <span th:text="${combination.colorCount}">2</span> colores •
+               Creada el <span
+                  th:text="${#temporals.format(combination.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
+            </div>
+         </div>
+
+         <!-- Edit Form -->
+         <div class="form-section">
+            <form th:action="@{/combinations/{id}/update(id=${combination.id})}" method="post"
+               th:object="${combinationForm}" id="editForm">
+
+               <!-- Name Field -->
+               <div class="form-group">
+                  <label for="name">Nombre de la Combinación</label>
+                  <input type="text" th:field="*{name}" class="form-control" id="name"
+                     placeholder="Ej: Atardecer tropical, Océano profundo..." maxlength="100">
+                  <div th:if="${#fields.hasErrors('name')}" class="field-error" th:errors="*{name}"></div>
+               </div>
+
+               <!-- Color Count Display (Read-only) -->
+               <div class="form-group">
+                  <label>Número de Colores</label>
+                  <div class="color-count-display" th:text="${combinationForm.colorCount + ' Colores'}">2 Colores</div>
+                  <input type="hidden" th:field="*{colorCount}">
+                  <div th:if="${#fields.hasErrors('colorCount')}" class="field-error" th:errors="*{colorCount}"></div>
+               </div>
+
+               <!-- Color Fields -->
+               <div class="color-fields">
+                  <h3>Colores de la Combinación</h3>
+                  <div class="color-field" th:each="color, iterStat : *{colors}">
+                     <span class="color-label" th:text="'Color ' + (${iterStat.index} + 1) + ':'">Color 1:</span>
+                     <div class="color-preview" th:id="'preview-' + ${iterStat.index}"></div>
+                     <input type="text" th:field="*{colors[__${iterStat.index}__].hexValue}"
+                        class="form-control color-input" th:placeholder="${'FF5733'}" maxlength="6"
+                        th:data-position="${iterStat.index}">
+                     <input type="hidden" th:field="*{colors[__${iterStat.index}__].position}">
+                     <div th:if="${#fields.hasErrors('colors[__' + iterStat.index + '__].hexValue')}"
+                        class="field-error" th:errors="*{colors[__${iterStat.index}__].hexValue}"></div>
+                  </div>
+               </div>
+
+               <!-- Live Preview -->
+               <div class="live-preview" id="livePreview">
+                  <h3>Vista Previa</h3>
+                  <div class="preview-combination">
+                     <div id="livePreviewColors"></div>
+                     <span class="preview-name" id="livePreviewName">Nombre de la combinación</span>
+                  </div>
+               </div>
+
+               <!-- Action Buttons -->
+               <div style="margin-top: 30px;">
+                  <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                  <a th:href="@{/combinations/}" class="btn btn-secondary">Cancelar</a>
+               </div>
+            </form>
+         </div>
+      </div>
+   </div>
+
+   <script>
+      document.addEventListener('DOMContentLoaded', function () {
+         const nameInput = document.getElementById('name');
+         const livePreview = document.getElementById('livePreview');
+         const colorInputs = document.querySelectorAll('.color-input');
+
+         // Initialize previews with current values
+         colorInputs.forEach((input, index) => {
+            const value = input.value;
+            if (value && value.length === 6) {
+               updateColorPreview(index, value);
+            }
+         });
+
+         // Initial live preview update
+         updateLivePreview();
+
+         // Color input validation and preview
+         document.addEventListener('input', function (e) {
+            if (e.target.classList.contains('color-input')) {
+               const input = e.target;
+               const position = parseInt(input.dataset.position);
+               const value = input.value.toUpperCase();
+
+               // Validate hex format
+               const isValid = /^[0-9A-F]{0,6}$/.test(value);
+
+               if (isValid) {
+                  input.value = value;
+                  input.classList.remove('error');
+
+                  // Update preview
+                  if (value.length === 6) {
+                     updateColorPreview(position, value);
+                  } else {
+                     clearColorPreview(position);
+                  }
+               } else {
+                  input.classList.add('error');
+               }
+
+               updateLivePreview();
+            }
+
+            if (e.target.id === 'name') {
+               updateLivePreview();
+            }
+         });
+
+         function updateColorPreview(position, hexValue) {
+            const preview = document.getElementById('preview-' + position);
+            if (preview) {
+               preview.style.backgroundColor = '#' + hexValue;
+               preview.style.borderColor = '#' + hexValue;
+            }
+         }
+
+         function clearColorPreview(position) {
+            const preview = document.getElementById('preview-' + position);
+            if (preview) {
+               preview.style.backgroundColor = '#f8f9fa';
+               preview.style.borderColor = '#e9ecef';
+            }
+         }
+
+         function updateLivePreview() {
+            const name = nameInput.value.trim();
+            const validColors = [];
+
+            colorInputs.forEach(input => {
+               const value = input.value.trim();
+               if (value.length === 6 && /^[0-9A-F]{6}$/.test(value)) {
+                  validColors.push(value);
+               }
+            });
+
+            if (name && validColors.length > 0) {
+               livePreview.style.display = 'block';
+
+               // Update preview name
+               document.getElementById('livePreviewName').textContent = name;
+
+               // Update preview colors
+               const previewColorsContainer = document.getElementById('livePreviewColors');
+               previewColorsContainer.innerHTML = '';
+
+               validColors.forEach(color => {
+                  const colorDiv = document.createElement('div');
+                  colorDiv.className = 'preview-color';
+                  colorDiv.style.backgroundColor = '#' + color;
+                  colorDiv.title = '#' + color;
+                  previewColorsContainer.appendChild(colorDiv);
+               });
+            } else {
+               livePreview.style.display = 'none';
+            }
+         }
+
+         // Form validation
+         document.getElementById('editForm').addEventListener('submit', function (e) {
+            const name = nameInput.value.trim();
+
+            if (!name || name.length < 3) {
+               e.preventDefault();
+               alert('El nombre debe tener al menos 3 caracteres');
+               nameInput.focus();
+               return;
+            }
+
+            let validColorCount = 0;
+            let hasErrors = false;
+
+            colorInputs.forEach((input, index) => {
+               const value = input.value.trim();
+               if (!value || value.length !== 6 || !/^[0-9A-F]{6}$/.test(value)) {
+                  e.preventDefault();
+                  alert(`Color ${index + 1} tiene formato inválido. Use 6 caracteres hexadecimales (0-9, A-F)`);
+                  input.focus();
+                  hasErrors = true;
+                  return;
+               }
+               validColorCount++;
+            });
+
+            if (hasErrors) return;
+
+            if (validColorCount !== colorInputs.length) {
+               e.preventDefault();
+               alert('Debe completar todos los colores');
+               return;
+            }
+         });
+      });
+   </script>
+</body>
+
+</html>

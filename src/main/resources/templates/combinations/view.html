@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title th:text="${combination.name + ' - Kolors'}">Combinación - Kolors</title>
+   <style>
+      * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+      }
+
+      body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         min-height: 100vh;
+         padding: 20px;
+      }
+
+      .container {
+         max-width: 800px;
+         margin: 0 auto;
+         background: white;
+         border-radius: 15px;
+         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+         overflow: hidden;
+      }
+
+      .header {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+         padding: 30px;
+         text-align: center;
+      }
+
+      .header h1 {
+         font-size: 2rem;
+         margin-bottom: 10px;
+         font-weight: 300;
+      }
+
+      .header p {
+         opacity: 0.9;
+         font-size: 1.1rem;
+      }
+
+      .content {
+         padding: 30px;
+      }
+
+      /* Navigation */
+      .nav-back {
+         margin-bottom: 20px;
+      }
+
+      .nav-back a {
+         color: #667eea;
+         text-decoration: none;
+         font-weight: 600;
+         display: inline-flex;
+         align-items: center;
+         gap: 8px;
+      }
+
+      .nav-back a:hover {
+         text-decoration: underline;
+      }
+
+      /* Combination Display */
+      .combination-display {
+         background: #f8f9fa;
+         padding: 30px;
+         border-radius: 15px;
+         margin-bottom: 30px;
+         text-align: center;
+      }
+
+      .combination-name {
+         font-size: 2.5rem;
+         font-weight: 700;
+         color: #495057;
+         margin-bottom: 20px;
+      }
+
+      .combination-meta {
+         color: #6c757d;
+         font-size: 1.1rem;
+         margin-bottom: 30px;
+      }
+
+      .combination-colors {
+         display: flex;
+         justify-content: center;
+         gap: 20px;
+         margin-bottom: 30px;
+         flex-wrap: wrap;
+      }
+
+      .color-display {
+         text-align: center;
+      }
+
+      .color-box {
+         width: 120px;
+         height: 120px;
+         border-radius: 15px;
+         border: 3px solid #e9ecef;
+         margin-bottom: 15px;
+         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+         transition: all 0.3s ease;
+         cursor: pointer;
+         position: relative;
+      }
+
+      .color-box:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .color-info {
+         text-align: center;
+      }
+
+      .color-hex {
+         font-size: 1.2rem;
+         font-weight: 700;
+         color: #495057;
+         margin-bottom: 5px;
+         font-family: 'Courier New', monospace;
+      }
+
+      .color-position {
+         color: #6c757d;
+         font-size: 0.9rem;
+      }
+
+      /* Color Palette Preview */
+      .palette-preview {
+         background: white;
+         padding: 25px;
+         border-radius: 10px;
+         border: 1px solid #e9ecef;
+         margin-bottom: 30px;
+      }
+
+      .palette-preview h3 {
+         color: #495057;
+         margin-bottom: 20px;
+         text-align: center;
+      }
+
+      .palette-strip {
+         height: 100px;
+         border-radius: 10px;
+         display: flex;
+         overflow: hidden;
+         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .palette-color {
+         flex: 1;
+         transition: all 0.3s ease;
+         cursor: pointer;
+         position: relative;
+      }
+
+      .palette-color:hover {
+         flex: 1.2;
+      }
+
+      .palette-color::after {
+         content: attr(data-hex);
+         position: absolute;
+         bottom: 10px;
+         left: 50%;
+         transform: translateX(-50%);
+         background: rgba(0, 0, 0, 0.7);
+         color: white;
+         padding: 5px 10px;
+         border-radius: 5px;
+         font-size: 0.8rem;
+         font-family: 'Courier New', monospace;
+         opacity: 0;
+         transition: opacity 0.3s ease;
+      }
+
+      .palette-color:hover::after {
+         opacity: 1;
+      }
+
+      /* Color Details */
+      .color-details {
+         background: white;
+         padding: 25px;
+         border-radius: 10px;
+         border: 1px solid #e9ecef;
+         margin-bottom: 30px;
+      }
+
+      .color-details h3 {
+         color: #495057;
+         margin-bottom: 20px;
+      }
+
+      .color-detail-item {
+         display: flex;
+         align-items: center;
+         gap: 20px;
+         padding: 15px;
+         background: #f8f9fa;
+         border-radius: 8px;
+         margin-bottom: 15px;
+      }
+
+      .color-detail-preview {
+         width: 60px;
+         height: 60px;
+         border-radius: 8px;
+         border: 2px solid #e9ecef;
+         flex-shrink: 0;
+      }
+
+      .color-detail-info {
+         flex: 1;
+      }
+
+      .color-detail-hex {
+         font-size: 1.1rem;
+         font-weight: 700;
+         color: #495057;
+         font-family: 'Courier New', monospace;
+         margin-bottom: 5px;
+      }
+
+      .color-detail-position {
+         color: #6c757d;
+         font-size: 0.9rem;
+      }
+
+      .copy-button {
+         background: #667eea;
+         color: white;
+         border: none;
+         padding: 8px 15px;
+         border-radius: 5px;
+         cursor: pointer;
+         font-size: 0.9rem;
+         transition: all 0.3s ease;
+      }
+
+      .copy-button:hover {
+         background: #5a67d8;
+      }
+
+      .copy-button.copied {
+         background: #28a745;
+      }
+
+      /* Action Buttons */
+      .action-buttons {
+         display: flex;
+         gap: 15px;
+         justify-content: center;
+         flex-wrap: wrap;
+      }
+
+      .btn {
+         padding: 12px 25px;
+         border: none;
+         border-radius: 8px;
+         font-size: 16px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         text-decoration: none;
+         display: inline-block;
+         text-align: center;
+      }
+
+      .btn-primary {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+      }
+
+      .btn-primary:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+         background: #6c757d;
+         color: white;
+      }
+
+      .btn-secondary:hover {
+         background: #5a6268;
+      }
+
+      .btn-danger {
+         background: #dc3545;
+         color: white;
+      }
+
+      .btn-danger:hover {
+         background: #c82333;
+      }
+
+      /* Toast Notification */
+      .toast {
+         position: fixed;
+         top: 20px;
+         right: 20px;
+         background: #28a745;
+         color: white;
+         padding: 15px 20px;
+         border-radius: 8px;
+         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+         transform: translateX(400px);
+         transition: transform 0.3s ease;
+         z-index: 1000;
+      }
+
+      .toast.show {
+         transform: translateX(0);
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+         .container {
+            margin: 10px;
+            border-radius: 10px;
+         }
+
+         .header {
+            padding: 20px;
+         }
+
+         .header h1 {
+            font-size: 1.5rem;
+         }
+
+         .content {
+            padding: 20px;
+         }
+
+         .combination-name {
+            font-size: 2rem;
+         }
+
+         .combination-colors {
+            gap: 15px;
+         }
+
+         .color-box {
+            width: 100px;
+            height: 100px;
+         }
+
+         .color-detail-item {
+            flex-direction: column;
+            text-align: center;
+         }
+
+         .action-buttons {
+            flex-direction: column;
+         }
+
+         .btn {
+            width: 100%;
+         }
+      }
+
+      @media (max-width: 480px) {
+         .combination-colors {
+            flex-direction: column;
+            align-items: center;
+         }
+
+         .color-box {
+            width: 80px;
+            height: 80px;
+         }
+
+         .palette-strip {
+            height: 80px;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div class="container">
+      <div class="header">
+         <h1>Detalles de Combinación</h1>
+         <p>Visualiza y gestiona tu combinación de colores</p>
+      </div>
+
+      <div class="content">
+         <!-- Navigation -->
+         <div class="nav-back">
+            <a th:href="@{/combinations/}">← Volver a combinaciones</a>
+         </div>
+
+         <!-- Main Combination Display -->
+         <div class="combination-display">
+            <h1 class="combination-name" th:text="${combination.name}">Nombre de la Combinación</h1>
+            <div class="combination-meta">
+               <span th:text="${combination.colorCount}">2</span> colores •
+               Creada el <span
+                  th:text="${#temporals.format(combination.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
+            </div>
+
+            <div class="combination-colors">
+               <div class="color-display" th:each="color : ${combination.colors}">
+                  <div class="color-box" th:style="'background-color: #' + ${color.hexValue}"
+                     th:onclick="'copyToClipboard(\'#' + ${color.hexValue} + '\')'">
+                  </div>
+                  <div class="color-info">
+                     <div class="color-hex" th:text="'#' + ${color.hexValue}">#FF5733</div>
+                     <div class="color-position" th:text="'Color ' + ${color.position}">Color 1</div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <!-- Palette Preview -->
+         <div class="palette-preview">
+            <h3>Vista de Paleta</h3>
+            <div class="palette-strip">
+               <div class="palette-color" th:each="color : ${combination.colors}"
+                  th:style="'background-color: #' + ${color.hexValue}" th:data-hex="'#' + ${color.hexValue}"
+                  th:onclick="'copyToClipboard(\'#' + ${color.hexValue} + '\')'">
+               </div>
+            </div>
+         </div>
+
+         <!-- Color Details -->
+         <div class="color-details">
+            <h3>Detalles de Colores</h3>
+            <div class="color-detail-item" th:each="color : ${combination.colors}">
+               <div class="color-detail-preview" th:style="'background-color: #' + ${color.hexValue}"></div>
+               <div class="color-detail-info">
+                  <div class="color-detail-hex" th:text="'#' + ${color.hexValue}">#FF5733</div>
+                  <div class="color-detail-position"
+                     th:text="'Posición ' + ${color.position} + ' de ' + ${combination.colorCount}">Posición 1 de 2
+                  </div>
+               </div>
+               <button class="copy-button" th:onclick="'copyToClipboard(\'#' + ${color.hexValue} + '\', this)'">
+                  Copiar
+               </button>
+            </div>
+         </div>
+
+         <!-- Action Buttons -->
+         <div class="action-buttons">
+            <a th:href="@{/combinations/{id}/edit(id=${combination.id})}" class="btn btn-primary">Editar Combinación</a>
+            <a th:href="@{/combinations/{id}/confirm-delete(id=${combination.id})}" class="btn btn-danger">Eliminar
+               Combinación</a>
+            <a th:href="@{/combinations/}" class="btn btn-secondary">Volver a Lista</a>
+         </div>
+      </div>
+   </div>
+
+   <!-- Toast Notification -->
+   <div id="toast" class="toast">
+      Color copiado al portapapeles
+   </div>
+
+   <script>
+      function copyToClipboard(text, button) {
+         navigator.clipboard.writeText(text).then(function () {
+            showToast();
+
+            if (button) {
+               const originalText = button.textContent;
+               button.textContent = '¡Copiado!';
+               button.classList.add('copied');
+
+               setTimeout(() => {
+                  button.textContent = originalText;
+                  button.classList.remove('copied');
+               }, 2000);
+            }
+         }).catch(function (err) {
+            console.error('Error al copiar: ', err);
+
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+
+            try {
+               document.execCommand('copy');
+               showToast();
+
+               if (button) {
+                  const originalText = button.textContent;
+                  button.textContent = '¡Copiado!';
+                  button.classList.add('copied');
+
+                  setTimeout(() => {
+                     button.textContent = originalText;
+                     button.classList.remove('copied');
+                  }, 2000);
+               }
+            } catch (err) {
+               console.error('Fallback copy failed: ', err);
+               alert('No se pudo copiar el color. Selecciona y copia manualmente: ' + text);
+            }
+
+            document.body.removeChild(textArea);
+         });
+      }
+
+      function showToast() {
+         const toast = document.getElementById('toast');
+         toast.classList.add('show');
+
+         setTimeout(() => {
+            toast.classList.remove('show');
+         }, 3000);
+      }
+
+      // Add click handlers to color boxes for better UX
+      document.addEventListener('DOMContentLoaded', function () {
+         const colorBoxes = document.querySelectorAll('.color-box');
+         colorBoxes.forEach(box => {
+            box.style.cursor = 'pointer';
+            box.title = 'Haz clic para copiar el color';
+         });
+
+         const paletteColors = document.querySelectorAll('.palette-color');
+         paletteColors.forEach(color => {
+            color.style.cursor = 'pointer';
+            color.title = 'Haz clic para copiar el color';
+         });
+      });
+   </script>
+</body>
+
+</html>

@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Kolors - Combinaciones de Colores</title>
+   <style>
+      * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+      }
+
+      body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         min-height: 100vh;
+         padding: 20px;
+      }
+
+      .container {
+         max-width: 1200px;
+         margin: 0 auto;
+         background: white;
+         border-radius: 15px;
+         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+         overflow: hidden;
+      }
+
+      .header {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+         padding: 30px;
+         text-align: center;
+      }
+
+      .header h1 {
+         font-size: 2.5rem;
+         margin-bottom: 10px;
+         font-weight: 300;
+      }
+
+      .header p {
+         opacity: 0.9;
+         font-size: 1.1rem;
+      }
+
+      .content {
+         padding: 30px;
+      }
+
+      /* Alerts */
+      .alert {
+         padding: 15px;
+         margin-bottom: 20px;
+         border-radius: 8px;
+         font-weight: 500;
+      }
+
+      .alert-success {
+         background-color: #d4edda;
+         color: #155724;
+         border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+         background-color: #f8d7da;
+         color: #721c24;
+         border: 1px solid #f5c6cb;
+      }
+
+      /* Form Styles */
+      .form-section {
+         background: #f8f9fa;
+         padding: 25px;
+         border-radius: 10px;
+         margin-bottom: 30px;
+      }
+
+      .form-section h2 {
+         color: #495057;
+         margin-bottom: 20px;
+         font-size: 1.5rem;
+      }
+
+      .form-group {
+         margin-bottom: 20px;
+      }
+
+      .form-group label {
+         display: block;
+         margin-bottom: 8px;
+         font-weight: 600;
+         color: #495057;
+      }
+
+      .form-control {
+         width: 100%;
+         padding: 12px;
+         border: 2px solid #e9ecef;
+         border-radius: 8px;
+         font-size: 16px;
+         transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+         outline: none;
+         border-color: #667eea;
+         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .form-control.error {
+         border-color: #dc3545;
+      }
+
+      .color-count-selector {
+         display: flex;
+         gap: 10px;
+         margin-bottom: 20px;
+      }
+
+      .color-count-btn {
+         padding: 10px 20px;
+         border: 2px solid #e9ecef;
+         background: white;
+         border-radius: 8px;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         font-weight: 600;
+      }
+
+      .color-count-btn:hover {
+         border-color: #667eea;
+         background: #f8f9ff;
+      }
+
+      .color-count-btn.active {
+         background: #667eea;
+         color: white;
+         border-color: #667eea;
+      }
+
+      /* Dynamic Color Fields */
+      .color-fields {
+         display: none;
+         margin-top: 20px;
+      }
+
+      .color-fields.active {
+         display: block;
+      }
+
+      .color-field {
+         display: flex;
+         align-items: center;
+         gap: 15px;
+         margin-bottom: 15px;
+         padding: 15px;
+         background: white;
+         border-radius: 8px;
+         border: 1px solid #e9ecef;
+      }
+
+      .color-preview {
+         width: 50px;
+         height: 50px;
+         border-radius: 8px;
+         border: 2px solid #e9ecef;
+         background: #f8f9fa;
+         transition: all 0.3s ease;
+      }
+
+      .color-input {
+         flex: 1;
+         max-width: 150px;
+      }
+
+      .color-label {
+         font-weight: 600;
+         color: #495057;
+         min-width: 80px;
+      }
+
+      /* Live Preview */
+      .live-preview {
+         margin-top: 20px;
+         padding: 20px;
+         background: white;
+         border-radius: 8px;
+         border: 1px solid #e9ecef;
+      }
+
+      .live-preview h3 {
+         margin-bottom: 15px;
+         color: #495057;
+      }
+
+      .preview-combination {
+         display: flex;
+         gap: 10px;
+         align-items: center;
+         margin-bottom: 10px;
+      }
+
+      .preview-color {
+         width: 60px;
+         height: 60px;
+         border-radius: 8px;
+         border: 2px solid #e9ecef;
+         background: #f8f9fa;
+         transition: all 0.3s ease;
+      }
+
+      .preview-name {
+         font-weight: 600;
+         color: #495057;
+         margin-left: 10px;
+      }
+
+      /* Button Styles */
+      .btn {
+         padding: 12px 25px;
+         border: none;
+         border-radius: 8px;
+         font-size: 16px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         text-decoration: none;
+         display: inline-block;
+         text-align: center;
+      }
+
+      .btn-primary {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+      }
+
+      .btn-primary:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+         background: #6c757d;
+         color: white;
+      }
+
+      .btn-danger {
+         background: #dc3545;
+         color: white;
+      }
+
+      .btn-sm {
+         padding: 8px 15px;
+         font-size: 14px;
+      }
+
+      /* Combinations List */
+      .combinations-section {
+         margin-top: 30px;
+      }
+
+      .combinations-section h2 {
+         color: #495057;
+         margin-bottom: 20px;
+         font-size: 1.5rem;
+      }
+
+      .search-filters {
+         background: #f8f9fa;
+         padding: 20px;
+         border-radius: 10px;
+         margin-bottom: 20px;
+      }
+
+      .search-row {
+         display: flex;
+         gap: 15px;
+         align-items: end;
+      }
+
+      .search-row .form-group {
+         flex: 1;
+      }
+
+      .combinations-grid {
+         display: grid;
+         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+         gap: 20px;
+      }
+
+      .combination-card {
+         background: white;
+         border: 1px solid #e9ecef;
+         border-radius: 10px;
+         padding: 20px;
+         transition: all 0.3s ease;
+      }
+
+      .combination-card:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .combination-name {
+         font-size: 1.2rem;
+         font-weight: 600;
+         color: #495057;
+         margin-bottom: 15px;
+      }
+
+      .combination-colors {
+         display: flex;
+         gap: 8px;
+         margin-bottom: 15px;
+      }
+
+      .combination-color {
+         width: 40px;
+         height: 40px;
+         border-radius: 6px;
+         border: 1px solid #e9ecef;
+         position: relative;
+      }
+
+      .combination-color::after {
+         content: attr(data-hex);
+         position: absolute;
+         bottom: -20px;
+         left: 50%;
+         transform: translateX(-50%);
+         font-size: 10px;
+         color: #6c757d;
+         white-space: nowrap;
+      }
+
+      .combination-actions {
+         display: flex;
+         gap: 10px;
+         margin-top: 15px;
+      }
+
+      .combination-meta {
+         font-size: 0.9rem;
+         color: #6c757d;
+         margin-bottom: 10px;
+      }
+
+      /* Statistics */
+      .statistics {
+         display: flex;
+         gap: 20px;
+         margin-bottom: 20px;
+      }
+
+      .stat-card {
+         background: white;
+         padding: 20px;
+         border-radius: 10px;
+         border: 1px solid #e9ecef;
+         text-align: center;
+         flex: 1;
+      }
+
+      .stat-number {
+         font-size: 2rem;
+         font-weight: 700;
+         color: #667eea;
+      }
+
+      .stat-label {
+         color: #6c757d;
+         font-size: 0.9rem;
+      }
+
+      /* Error Messages */
+      .field-error {
+         color: #dc3545;
+         font-size: 0.875rem;
+         margin-top: 5px;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+         .container {
+            margin: 10px;
+            border-radius: 10px;
+         }
+
+         .header {
+            padding: 20px;
+         }
+
+         .header h1 {
+            font-size: 2rem;
+         }
+
+         .content {
+            padding: 20px;
+         }
+
+         .search-row {
+            flex-direction: column;
+         }
+
+         .color-count-selector {
+            justify-content: center;
+         }
+
+         .color-field {
+            flex-direction: column;
+            text-align: center;
+         }
+
+         .combinations-grid {
+            grid-template-columns: 1fr;
+         }
+
+         .statistics {
+            flex-direction: column;
+         }
+
+         .combination-actions {
+            justify-content: center;
+         }
+      }
+
+      @media (max-width: 480px) {
+         .header h1 {
+            font-size: 1.5rem;
+         }
+
+         .color-count-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+         }
+
+         .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div class="container">
+      <div class="header">
+         <h1>Kolors</h1>
+         <p>Crea y gestiona tus combinaciones de colores perfectas</p>
+      </div>
+
+      <div class="content">
+         <!-- Success/Error Messages -->
+         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+         <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+         <!-- Create New Combination Form -->
+         <div class="form-section">
+            <h2>Crear Nueva Combinación</h2>
+            <form th:action="@{/combinations/create}" method="post" id="combinationForm">
+
+               <!-- Name Field -->
+               <div class="form-group">
+                  <label for="name">Nombre de la Combinación</label>
+                  <input type="text" name="name" class="form-control" id="name"
+                     placeholder="Ej: Atardecer tropical, Océano profundo..." maxlength="100" required>
+               </div>
+
+               <!-- Color Count Selector -->
+               <div class="form-group">
+                  <label>Número de Colores</label>
+                  <div class="color-count-selector">
+                     <button type="button" class="color-count-btn" data-count="2">2 Colores</button>
+                     <button type="button" class="color-count-btn" data-count="3">3 Colores</button>
+                     <button type="button" class="color-count-btn" data-count="4">4 Colores</button>
+                  </div>
+                  <input type="hidden" name="colorCount" id="colorCount" required>
+               </div>
+
+               <!-- Dynamic Color Fields -->
+               <div id="colorFields2" class="color-fields">
+                  <h3>Colores de la Combinación</h3>
+                  <div class="color-field">
+                     <span class="color-label">Color 1:</span>
+                     <div class="color-preview" id="preview-0"></div>
+                     <input type="text" name="colors[0].hexValue" class="form-control color-input" placeholder="FF5733"
+                        maxlength="6" data-position="0">
+                     <input type="hidden" name="colors[0].position" value="1">
+                  </div>
+                  <div class="color-field">
+                     <span class="color-label">Color 2:</span>
+                     <div class="color-preview" id="preview-1"></div>
+                     <input type="text" name="colors[1].hexValue" class="form-control color-input" placeholder="33C3FF"
+                        maxlength="6" data-position="1">
+                     <input type="hidden" name="colors[1].position" value="2">
+                  </div>
+               </div>
+
+               <div id="colorFields3" class="color-fields">
+                  <h3>Colores de la Combinación</h3>
+                  <div class="color-field">
+                     <span class="color-label">Color 1:</span>
+                     <div class="color-preview" id="preview3-0"></div>
+                     <input type="text" name="colors[0].hexValue" class="form-control color-input" placeholder="FF5733"
+                        maxlength="6" data-position="0">
+                     <input type="hidden" name="colors[0].position" value="1">
+                  </div>
+                  <div class="color-field">
+                     <span class="color-label">Color 2:</span>
+                     <div class="color-preview" id="preview3-1"></div>
+                     <input type="text" name="colors[1].hexValue" class="form-control color-input" placeholder="33C3FF"
+                        maxlength="6" data-position="1">
+                     <input type="hidden" name="colors[1].position" value="2">
+                  </div>
+                  <div class="color-field">
+                     <span class="color-label">Color 3:</span>
+                     <div class="color-preview" id="preview3-2"></div>
+                     <input type="text" name="colors[2].hexValue" class="form-control color-input" placeholder="FFD700"
+                        maxlength="6" data-position="2">
+                     <input type="hidden" name="colors[2].position" value="3">
+                  </div>
+               </div>
+
+               <div id="colorFields4" class="color-fields">
+                  <h3>Colores de la Combinación</h3>
+                  <div class="color-field">
+                     <span class="color-label">Color 1:</span>
+                     <div class="color-preview" id="preview4-0"></div>
+                     <input type="text" name="colors[0].hexValue" class="form-control color-input" placeholder="FF5733"
+                        maxlength="6" data-position="0">
+                     <input type="hidden" name="colors[0].position" value="1">
+                  </div>
+                  <div class="color-field">
+                     <span class="color-label">Color 2:</span>
+                     <div class="color-preview" id="preview4-1"></div>
+                     <input type="text" name="colors[1].hexValue" class="form-control color-input" placeholder="33C3FF"
+                        maxlength="6" data-position="1">
+                     <input type="hidden" name="colors[1].position" value="2">
+                  </div>
+                  <div class="color-field">
+                     <span class="color-label">Color 3:</span>
+                     <div class="color-preview" id="preview4-2"></div>
+                     <input type="text" name="colors[2].hexValue" class="form-control color-input" placeholder="FFD700"
+                        maxlength="6" data-position="2">
+                     <input type="hidden" name="colors[2].position" value="3">
+                  </div>
+                  <div class="color-field">
+                     <span class="color-label">Color 4:</span>
+                     <div class="color-preview" id="preview4-3"></div>
+                     <input type="text" name="colors[3].hexValue" class="form-control color-input" placeholder="8A2BE2"
+                        maxlength="6" data-position="3">
+                     <input type="hidden" name="colors[3].position" value="4">
+                  </div>
+               </div>
+
+               <!-- Live Preview -->
+               <div class="live-preview" id="livePreview" style="display: none;">
+                  <h3>Vista Previa</h3>
+                  <div class="preview-combination">
+                     <div id="livePreviewColors"></div>
+                     <span class="preview-name" id="livePreviewName">Nombre de la combinación</span>
+                  </div>
+               </div>
+
+               <!-- Submit Button -->
+               <button type="submit" class="btn btn-primary">Crear Combinación</button>
+            </form>
+         </div>
+
+         <!-- Search and Filter Section -->
+         <div class="combinations-section">
+            <h2>Combinaciones Guardadas</h2>
+
+            <!-- Statistics -->
+            <div class="statistics" th:if="${totalCombinations != null}">
+               <div class="stat-card">
+                  <div class="stat-number" th:text="${totalCombinations}">0</div>
+                  <div class="stat-label">Total Combinaciones</div>
+               </div>
+            </div>
+
+            <!-- Search Filters -->
+            <div class="search-filters">
+               <form th:action="@{/combinations/}" method="get" id="searchForm">
+                  <div class="search-row">
+                     <div class="form-group">
+                        <label for="search">Buscar por nombre</label>
+                        <input type="text" name="search" th:value="${search}" class="form-control" id="search"
+                           placeholder="Buscar combinaciones...">
+                     </div>
+                     <div class="form-group">
+                        <label for="colorCountFilter">Filtrar por número de colores</label>
+                        <select name="colorCount" class="form-control" id="colorCountFilter">
+                           <option value="">Todos</option>
+                           <option value="2" th:selected="${colorCount == 2}">2 Colores</option>
+                           <option value="3" th:selected="${colorCount == 3}">3 Colores</option>
+                           <option value="4" th:selected="${colorCount == 4}">4 Colores</option>
+                        </select>
+                     </div>
+                     <div class="form-group">
+                        <label for="hexValue">Buscar por color (HEX)</label>
+                        <input type="text" name="hexValue" th:value="${hexValue}" class="form-control" id="hexValue"
+                           placeholder="FF5733" maxlength="6">
+                     </div>
+                     <div class="form-group">
+                        <button type="submit" class="btn btn-secondary">Buscar</button>
+                     </div>
+                  </div>
+               </form>
+            </div>
+
+            <!-- Combinations Grid -->
+            <div class="combinations-grid" th:if="${combinations != null and !combinations.empty}">
+               <div class="combination-card" th:each="combination : ${combinations}">
+                  <div class="combination-name" th:text="${combination.name}">Nombre</div>
+                  <div class="combination-meta">
+                     <span th:text="${combination.colorCount}">2</span> colores •
+                     <span th:text="${#temporals.format(combination.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                  </div>
+                  <div class="combination-colors">
+                     <div class="combination-color" th:each="color : ${combination.colors}"
+                        th:style="'background-color: #' + ${color.hexValue}" th:data-hex="${'#' + color.hexValue}">
+                     </div>
+                  </div>
+                  <div class="combination-actions">
+                     <a th:href="@{/combinations/{id}(id=${combination.id})}" class="btn btn-secondary btn-sm">Ver</a>
+                     <a th:href="@{/combinations/{id}/edit(id=${combination.id})}"
+                        class="btn btn-secondary btn-sm">Editar</a>
+                     <a th:href="@{/combinations/{id}/confirm-delete(id=${combination.id})}"
+                        class="btn btn-danger btn-sm">Eliminar</a>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${combinations == null or combinations.empty}" class="text-center" style="padding: 40px;">
+               <h3 style="color: #6c757d; margin-bottom: 10px;">No hay combinaciones guardadas</h3>
+               <p style="color: #6c757d;">Crea tu primera combinación de colores usando el formulario de arriba.</p>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <script>
+      // Dynamic form functionality
+      document.addEventListener('DOMContentLoaded', function () {
+         const colorCountButtons = document.querySelectorAll('.color-count-btn');
+         const colorCountInput = document.getElementById('colorCount');
+         const colorFieldsContainers = document.querySelectorAll('.color-fields');
+         const livePreview = document.getElementById('livePreview');
+         const nameInput = document.getElementById('name');
+
+         // Initialize form state
+         let currentColorCount = 2;
+
+         // Color count selection
+         colorCountButtons.forEach(button => {
+            button.addEventListener('click', function (e) {
+               e.preventDefault();
+               const count = parseInt(this.dataset.count);
+               selectColorCount(count);
+            });
+         });
+
+         function selectColorCount(count) {
+            currentColorCount = count;
+            colorCountInput.value = count;
+
+            // Update button states
+            colorCountButtons.forEach(btn => {
+               btn.classList.remove('active');
+               if (parseInt(btn.dataset.count) === count) {
+                  btn.classList.add('active');
+               }
+            });
+
+            // Show appropriate color fields
+            colorFieldsContainers.forEach(container => {
+               container.classList.remove('active');
+            });
+
+            const activeContainer = document.getElementById('colorFields' + count);
+            if (activeContainer) {
+               activeContainer.classList.add('active');
+            }
+
+            updateLivePreview();
+         }
+
+         // Initialize with 2 colors
+         selectColorCount(2);
+
+         // Color input validation and preview
+         document.addEventListener('input', function (e) {
+            if (e.target.classList.contains('color-input')) {
+               const input = e.target;
+               const position = input.dataset.position;
+               const value = input.value.toUpperCase();
+
+               // Validate hex format
+               const isValid = /^[0-9A-F]{0,6}$/.test(value);
+
+               if (isValid) {
+                  input.value = value;
+                  input.classList.remove('error');
+
+                  // Update preview
+                  if (value.length === 6) {
+                     updateColorPreview(position, value);
+                  } else {
+                     clearColorPreview(position);
+                  }
+               } else {
+                  input.classList.add('error');
+               }
+
+               updateLivePreview();
+            }
+
+            if (e.target.id === 'name') {
+               updateLivePreview();
+            }
+         });
+
+         function updateColorPreview(position, hexValue) {
+            const previews = document.querySelectorAll(`[id*="preview"][id*="-${position}"], #preview-${position}`);
+            previews.forEach(preview => {
+               if (preview) {
+                  preview.style.backgroundColor = '#' + hexValue;
+                  preview.style.borderColor = '#' + hexValue;
+               }
+            });
+         }
+
+         function clearColorPreview(position) {
+            const previews = document.querySelectorAll(`[id*="preview"][id*="-${position}"], #preview-${position}`);
+            previews.forEach(preview => {
+               if (preview) {
+                  preview.style.backgroundColor = '#f8f9fa';
+                  preview.style.borderColor = '#e9ecef';
+               }
+            });
+         }
+
+         function updateLivePreview() {
+            const name = nameInput.value.trim();
+            const activeContainer = document.querySelector('.color-fields.active');
+
+            if (!activeContainer) return;
+
+            const colorInputs = activeContainer.querySelectorAll('.color-input');
+            const validColors = [];
+
+            colorInputs.forEach(input => {
+               const value = input.value.trim();
+               if (value.length === 6 && /^[0-9A-F]{6}$/.test(value)) {
+                  validColors.push(value);
+               }
+            });
+
+            if (name && validColors.length > 0) {
+               livePreview.style.display = 'block';
+
+               // Update preview name
+               document.getElementById('livePreviewName').textContent = name;
+
+               // Update preview colors
+               const previewColorsContainer = document.getElementById('livePreviewColors');
+               previewColorsContainer.innerHTML = '';
+
+               validColors.forEach(color => {
+                  const colorDiv = document.createElement('div');
+                  colorDiv.className = 'preview-color';
+                  colorDiv.style.backgroundColor = '#' + color;
+                  colorDiv.title = '#' + color;
+                  previewColorsContainer.appendChild(colorDiv);
+               });
+            } else {
+               livePreview.style.display = 'none';
+            }
+         }
+
+         // Form validation
+         document.getElementById('combinationForm').addEventListener('submit', function (e) {
+            const name = nameInput.value.trim();
+            const colorCount = parseInt(colorCountInput.value);
+
+            if (!name || name.length < 3) {
+               e.preventDefault();
+               alert('El nombre debe tener al menos 3 caracteres');
+               nameInput.focus();
+               return;
+            }
+
+            if (!colorCount || colorCount < 2 || colorCount > 4) {
+               e.preventDefault();
+               alert('Debe seleccionar entre 2 y 4 colores');
+               return;
+            }
+
+            const activeContainer = document.querySelector('.color-fields.active');
+            if (!activeContainer) {
+               e.preventDefault();
+               alert('Error en el formulario');
+               return;
+            }
+
+            const colorInputs = activeContainer.querySelectorAll('.color-input');
+            let validColorCount = 0;
+
+            for (let i = 0; i < colorCount; i++) {
+               const input = colorInputs[i];
+               if (!input) continue;
+
+               const value = input.value.trim();
+               if (!value || value.length !== 6 || !/^[0-9A-F]{6}$/.test(value)) {
+                  e.preventDefault();
+                  alert(`Color ${i + 1} tiene formato inválido. Use 6 caracteres hexadecimales (0-9, A-F)`);
+                  input.focus();
+                  return;
+               }
+               validColorCount++;
+            }
+
+            if (validColorCount !== colorCount) {
+               e.preventDefault();
+               alert('Debe completar todos los colores');
+               return;
+            }
+         });
+
+         // Search functionality
+         const searchForm = document.getElementById('searchForm');
+         const searchInput = document.getElementById('search');
+         const colorCountFilter = document.getElementById('colorCountFilter');
+         const hexValueInput = document.getElementById('hexValue');
+
+         // Auto-submit search on input change (debounced)
+         let searchTimeout;
+         function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+               searchForm.submit();
+            }, 500);
+         }
+
+         searchInput.addEventListener('input', debounceSearch);
+         colorCountFilter.addEventListener('change', () => searchForm.submit());
+
+         // Hex value validation in search
+         hexValueInput.addEventListener('input', function (e) {
+            const value = e.target.value.toUpperCase();
+            const isValid = /^[0-9A-F]{0,6}$/.test(value);
+
+            if (isValid) {
+               e.target.value = value;
+               e.target.classList.remove('error');
+               if (value.length === 6) {
+                  debounceSearch();
+               }
+            } else {
+               e.target.classList.add('error');
+            }
+         });
+      });
+   </script>
+</body>
+
+</html>

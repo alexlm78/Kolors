@@ -3,7 +3,9 @@ package dev.kreaker.kolors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class KolorKontroller {
@@ -15,9 +17,8 @@ public class KolorKontroller {
 
    @GetMapping("/")
    public String index(Model model) {
-      model.addAttribute("colors", repo.findAll());
-      model.addAttribute("colorCombination", new KolorKombination());
-      return "index";
+      // Redirect to new combinations interface
+      return "redirect:/combinations/";
    }
 
    @PostMapping("/add")

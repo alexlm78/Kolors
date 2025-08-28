@@ -29,7 +29,7 @@
   - Escribir tests de integración con MockMvc
   - _Requisitos: 1.1, 1.2, 1.3, 1.4, 1.5, 3.1, 3.2, 3.3, 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 5. Desarrollar interfaz de usuario dinámica con Thymeleaf
+- [x] 5. Desarrollar interfaz de usuario dinámica con Thymeleaf
   - Crear template principal para mostrar lista de combinaciones
   - Implementar formulario dinámico que se adapte al número de colores seleccionado
   - Agregar JavaScript para interactividad y validación en tiempo real
