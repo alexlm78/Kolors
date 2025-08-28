@@ -36,7 +36,7 @@
   - Implementar vista previa en vivo de combinaciones de colores
   - _Requisitos: 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 6. Implementar funcionalidad de edición de combinaciones
+- [x] 6. Implementar funcionalidad de edición de combinaciones
   - Crear formulario de edición pre-llenado con datos existentes
   - Implementar lógica de actualización en el servicio
   - Agregar validación para cambios en combinaciones existentes

@@ -147,6 +147,7 @@ public class ColorCombinationService {
     /**
      * Actualiza una combinación existente
      */
+    @Transactional
     public ColorCombination updateCombination(Long id, ColorCombinationForm form) {
         logger.info("Actualizando combinación ID: {} con datos: {}", id, form.getName());
         
@@ -160,7 +161,10 @@ public class ColorCombinationService {
         existingCombination.setName(form.getName());
         existingCombination.setColorCount(form.getColorCount());
         
-        // Limpiar colores existentes
+        // Eliminar colores existentes de la base de datos primero
+        colorInCombinationRepository.deleteByCombinationId(existingCombination.getId());
+        
+        // Limpiar la colección en memoria
         existingCombination.getColors().clear();
         
         // Agregar nuevos colores
