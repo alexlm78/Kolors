@@ -1,6 +1,6 @@
 # Plan de Implementación
 
-- [ ] 1. Crear nuevas entidades JPA y modelos de datos
+- [x] 1. Crear nuevas entidades JPA y modelos de datos
   - Implementar la entidad ColorCombination con anotaciones JPA apropiadas
   - Implementar la entidad ColorInCombination con relación ManyToOne
   - Crear DTOs y forms para validación (ColorCombinationForm, ColorForm)
