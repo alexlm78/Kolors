@@ -43,7 +43,7 @@
   - Crear tests para flujo completo de edición
   - _Requisitos: 6.1, 6.2, 6.4_
 
-- [ ] 7. Desarrollar funcionalidad de eliminación con confirmación
+- [x] 7. Desarrollar funcionalidad de eliminación con confirmación
   - Implementar endpoint de eliminación con confirmación
   - Crear modal o página de confirmación para eliminación
   - Agregar manejo de errores para eliminación fallida
