@@ -50,7 +50,16 @@
   - Escribir tests para casos de eliminación exitosa y fallida
   - _Requisitos: 6.1, 6.3, 6.4_
 
-- [ ] 8. Crear sistema de migración de datos existentes
+- [x] 8. Migrar configuración de base de datos de H2 a SQLite
+  - Actualizar dependencias en build.gradle para incluir SQLite JDBC driver
+  - Modificar application.properties para configuración SQLite
+  - Ajustar entidades JPA para compatibilidad con SQLite (GenerationType, tipos de datos)
+  - Crear script de migración de datos de H2 a SQLite si es necesario
+  - Actualizar tests para usar SQLite en lugar de H2
+  - Verificar que todas las consultas JPA funcionen correctamente con SQLite
+  - _Requisitos: Configuración de base de datos, compatibilidad SQLite_
+
+- [ ] 9. Crear sistema de migración de datos existentes
   - Implementar MigrationService para convertir colores individuales
   - Crear MigrationController con endpoint administrativo
   - Desarrollar lógica para detectar y migrar datos legacy
@@ -58,7 +67,7 @@
   - Escribir tests para diferentes escenarios de migración
   - _Requisitos: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 9. Implementar manejo global de errores y validación
+- [ ] 10. Implementar manejo global de errores y validación
   - Crear GlobalExceptionHandler con @ControllerAdvice
   - Implementar manejo específico para excepciones de negocio
   - Crear mensajes de error localizados en español
@@ -66,14 +75,14 @@
   - Escribir tests para diferentes tipos de errores
   - _Requisitos: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 10. Optimizar interfaz para dispositivos móviles
+- [ ] 11. Optimizar interfaz para dispositivos móviles
   - Implementar CSS responsivo con media queries
   - Optimizar formularios para interacción táctil
   - Ajustar visualización de combinaciones para pantallas pequeñas
   - Probar funcionalidad en diferentes tamaños de pantalla
   - _Requisitos: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 11. Agregar funcionalidad de búsqueda y filtrado
+- [ ] 12. Agregar funcionalidad de búsqueda y filtrado
   - Implementar búsqueda por nombre de combinación
   - Crear filtros por número de colores (2, 3, 4)
   - Agregar búsqueda por valores hexadecimales específicos
@@ -81,21 +90,21 @@
   - Escribir tests para diferentes criterios de búsqueda
   - _Requisitos: 2.1, 2.2, 2.3_
 
-- [ ] 12. Crear tests end-to-end y de integración completos
+- [ ] 13. Crear tests end-to-end y de integración completos
   - Escribir tests de integración que cubran flujos completos de usuario
   - Crear tests para migración de datos con diferentes escenarios
   - Implementar tests de rendimiento para operaciones críticas
   - Agregar tests de validación de UI con diferentes navegadores
   - _Requisitos: Todos los requisitos - validación completa_
 
-- [ ] 13. Optimizar rendimiento y agregar índices de base de datos
+- [ ] 14. Optimizar rendimiento y agregar índices de base de datos
   - Crear índices estratégicos para consultas frecuentes
   - Implementar lazy loading apropiado para relaciones
   - Optimizar consultas N+1 con @EntityGraph donde sea necesario
   - Agregar métricas de rendimiento y logging
   - _Requisitos: 2.1, 2.2, 2.3, 6.1, 6.2_
 
-- [ ] 14. Finalizar migración y limpieza de código legacy
+- [ ] 15. Finalizar migración y limpieza de código legacy
   - Ejecutar migración completa de datos de producción
   - Verificar integridad y completitud de datos migrados
   - Remover código y tablas legacy después del período de gracia

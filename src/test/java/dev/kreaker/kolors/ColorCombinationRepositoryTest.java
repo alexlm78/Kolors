@@ -12,13 +12,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.TestPropertySource;
 
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@TestPropertySource(properties = {
+        "spring.datasource.url=jdbc:sqlite::memory:",
+        "spring.datasource.driver-class-name=org.sqlite.JDBC",
+        "spring.jpa.database-platform=org.hibernate.community.dialect.SQLiteDialect",
+        "spring.jpa.hibernate.ddl-auto=create-drop"
+})
 class ColorCombinationRepositoryTest {
 
     @Autowired
@@ -115,7 +124,7 @@ class ColorCombinationRepositoryTest {
         // Results should be ordered by creation date descending
         for (int i = 0; i < results.size() - 1; i++) {
             assertTrue(results.get(i).getCreatedAt().isAfter(results.get(i + 1).getCreatedAt()) ||
-                      results.get(i).getCreatedAt().isEqual(results.get(i + 1).getCreatedAt()));
+                    results.get(i).getCreatedAt().isEqual(results.get(i + 1).getCreatedAt()));
         }
     }
 
@@ -243,7 +252,7 @@ class ColorCombinationRepositoryTest {
         assertEquals(2, results.size());
         // Should be ordered by creation date descending
         assertTrue(results.get(0).getCreatedAt().isAfter(results.get(1).getCreatedAt()) ||
-                  results.get(0).getCreatedAt().isEqual(results.get(1).getCreatedAt()));
+                results.get(0).getCreatedAt().isEqual(results.get(1).getCreatedAt()));
     }
 
     @Test

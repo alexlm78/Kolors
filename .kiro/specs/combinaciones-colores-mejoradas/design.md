@@ -27,7 +27,7 @@ El diseño transforma la aplicación Kolors de un sistema de colores individuale
 2. **Capa de Control**: Spring MVC controllers con manejo robusto de errores y validación
 3. **Capa de Servicio**: Servicios de negocio para lógica de aplicación y migración de datos
 4. **Capa de Persistencia**: Spring Data JPA repositories con consultas optimizadas
-5. **Base de Datos**: SQLite para desarrollo, preparada para migración a producción
+5. **Base de Datos**: SQLite para desarrollo y producción ligera, con configuración específica para Spring Boot
 6. **Sistema de Migración**: Componentes especializados para transición de datos legacy
 
 ## Componentes e Interfaces
@@ -183,28 +183,79 @@ public interface ColorInCombinationRepository extends JpaRepository<ColorInCombi
 }
 ```
 
+## Configuración de Base de Datos
+
+### Configuración SQLite
+
+La aplicación utilizará SQLite como base de datos principal con las siguientes configuraciones:
+
+#### Dependencias Maven/Gradle
+```gradle
+implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
+```
+
+#### Configuración Spring Boot (application.properties)
+```properties
+# SQLite Database Configuration
+spring.datasource.url=jdbc:sqlite:kolors.db
+spring.datasource.driver-class-name=org.sqlite.JDBC
+spring.datasource.username=
+spring.datasource.password=
+
+# JPA/Hibernate Configuration for SQLite
+spring.jpa.database-platform=org.hibernate.community.dialect.SQLiteDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
+
+# SQLite specific settings
+spring.jpa.properties.hibernate.connection.handling_mode=delayed_acquisition_and_release_after_transaction
+```
+
+#### Configuración de Entidades para SQLite
+```java
+@Entity
+public class ColorCombination {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    // SQLite no soporta TIMESTAMP con DEFAULT, usar @CreationTimestamp
+    @CreationTimestamp
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+    
+    // Resto de campos...
+}
+```
+
 ## Modelos de Datos
 
 ### Esquema de Base de Datos
 
 ```sql
--- Nueva tabla principal
+-- SQLite Schema - Nueva tabla principal
 CREATE TABLE color_combination (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     color_count INTEGER NOT NULL CHECK (color_count BETWEEN 2 AND 4)
 );
 
--- Nueva tabla de colores en combinación
+-- SQLite Schema - Nueva tabla de colores en combinación
 CREATE TABLE color_in_combination (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     hex_value VARCHAR(6) NOT NULL,
     position INTEGER NOT NULL CHECK (position BETWEEN 1 AND 4),
-    combination_id BIGINT NOT NULL,
+    combination_id INTEGER NOT NULL,
     FOREIGN KEY (combination_id) REFERENCES color_combination(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_position_per_combination (combination_id, position)
+    UNIQUE (combination_id, position)
 );
+
+-- Índices para optimización
+CREATE INDEX idx_combination_name ON color_combination(name);
+CREATE INDEX idx_combination_created_at ON color_combination(created_at);
+CREATE INDEX idx_color_hex ON color_in_combination(hex_value);
 
 -- Tabla legacy (se mantendrá temporalmente)
 -- kolor_kombination (existente)
