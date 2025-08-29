@@ -415,7 +415,7 @@
             <div class="combination-colors">
                <div class="color-display" th:each="color : ${combination.colors}">
                   <div class="color-box" th:style="'background-color: #' + ${color.hexValue}"
-                     th:onclick="'copyToClipboard(\'#' + ${color.hexValue} + '\')'">
+                     th:data-hex="${color.hexValue}" onclick="copyToClipboard('#' + this.dataset.hex)">
                   </div>
                   <div class="color-info">
                      <div class="color-hex" th:text="'#' + ${color.hexValue}">#FF5733</div>
@@ -431,7 +431,7 @@
             <div class="palette-strip">
                <div class="palette-color" th:each="color : ${combination.colors}"
                   th:style="'background-color: #' + ${color.hexValue}" th:data-hex="'#' + ${color.hexValue}"
-                  th:onclick="'copyToClipboard(\'#' + ${color.hexValue} + '\')'">
+                  onclick="copyToClipboard(this.dataset.hex)">
                </div>
             </div>
          </div>
@@ -447,7 +447,8 @@
                      th:text="'Posición ' + ${color.position} + ' de ' + ${combination.colorCount}">Posición 1 de 2
                   </div>
                </div>
-               <button class="copy-button" th:onclick="'copyToClipboard(\'#' + ${color.hexValue} + '\', this)'">
+               <button class="copy-button" th:data-hex="${color.hexValue}"
+                  onclick="copyToClipboard('#' + this.dataset.hex, this)">
                   Copiar
                </button>
             </div>

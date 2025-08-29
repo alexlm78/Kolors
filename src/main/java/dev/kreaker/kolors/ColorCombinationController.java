@@ -99,7 +99,14 @@ public class ColorCombinationController {
             // Si hay errores de validación, volver al formulario
             if (result.hasErrors()) {
                 logger.warn("Errores de validación al crear combinación: {}", result.getAllErrors());
-                return addFormDataAndReturnIndex(model, form, "Errores en el formulario. Por favor, corrija los datos.");
+                
+                // Crear mensaje detallado de errores
+                StringBuilder errorMessage = new StringBuilder("Errores de validación: ");
+                result.getAllErrors().forEach(error -> {
+                    errorMessage.append(error.getDefaultMessage()).append("; ");
+                });
+                
+                return addFormDataAndReturnIndex(model, form, errorMessage.toString());
             }
             
             // Crear la combinación
