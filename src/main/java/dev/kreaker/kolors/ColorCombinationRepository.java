@@ -14,27 +14,27 @@ import org.springframework.stereotype.Repository;
 public interface ColorCombinationRepository extends JpaRepository<ColorCombination, Long> {
     
     /**
-     * Busca combinaciones por nombre (case insensitive)
+     * Searches combinations by name (case insensitive)
      */
     List<ColorCombination> findByNameContainingIgnoreCase(String name);
     
     /**
-     * Busca combinaciones por número exacto de colores
+     * Searches combinations by exact number of colors
      */
     List<ColorCombination> findByColorCount(Integer colorCount);
     
     /**
-     * Busca combinaciones creadas en un rango de fechas
+     * Searches combinations created within a date range
      */
     List<ColorCombination> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
     
     /**
-     * Busca combinaciones ordenadas por fecha de creación (más recientes primero)
+     * Searches combinations ordered by creation date (most recent first)
      */
     List<ColorCombination> findAllByOrderByCreatedAtDesc();
     
     /**
-     * Busca combinaciones que contengan un color específico (por valor hex)
+     * Searches combinations containing a specific color (by hex value)
      */
     @Query("SELECT DISTINCT cc FROM ColorCombination cc " +
            "JOIN cc.colors cic " +
@@ -42,27 +42,27 @@ public interface ColorCombinationRepository extends JpaRepository<ColorCombinati
     List<ColorCombination> findByContainingHexValue(@Param("hexValue") String hexValue);
     
     /**
-     * Busca combinaciones con paginación y ordenamiento por nombre
+     * Searches combinations with pagination and ordering by name
      */
     Page<ColorCombination> findAllByOrderByNameAsc(Pageable pageable);
     
     /**
-     * Busca combinaciones por nombre con paginación
+     * Searches combinations by name with pagination
      */
     Page<ColorCombination> findByNameContainingIgnoreCaseOrderByCreatedAtDesc(String name, Pageable pageable);
     
     /**
-     * Busca combinaciones por número de colores con paginación
+     * Searches combinations by number of colors with pagination
      */
     Page<ColorCombination> findByColorCountOrderByCreatedAtDesc(Integer colorCount, Pageable pageable);
     
     /**
-     * Cuenta combinaciones por número de colores
+     * Counts combinations by number of colors
      */
     long countByColorCount(Integer colorCount);
     
     /**
-     * Busca combinaciones que contengan todos los colores especificados
+     * Searches combinations containing all specified colors
      */
     @Query("SELECT cc FROM ColorCombination cc " +
            "WHERE cc.id IN (" +
@@ -75,24 +75,24 @@ public interface ColorCombinationRepository extends JpaRepository<ColorCombinati
                                                         @Param("colorCount") long colorCount);
     
     /**
-     * Busca combinaciones creadas después de una fecha específica
+     * Searches combinations created after a specific date
      */
     List<ColorCombination> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime date);
     
     /**
-     * Busca las combinaciones más populares (por ahora solo las más recientes)
-     * En el futuro se podría agregar un campo de popularidad o uso
+     * Searches the most popular combinations (for now only the most recent)
+     * In the future a popularity or usage field could be added
      */
     @Query("SELECT cc FROM ColorCombination cc ORDER BY cc.createdAt DESC")
     List<ColorCombination> findMostRecent(Pageable pageable);
     
     /**
-     * Verifica si existe una combinación con el mismo nombre (case insensitive)
+     * Checks if a combination with the same name exists (case insensitive)
      */
     boolean existsByNameIgnoreCase(String name);
     
     /**
-     * Busca combinaciones similares por nombre y número de colores
+     * Searches similar combinations by name and number of colors
      */
     @Query("SELECT cc FROM ColorCombination cc " +
            "WHERE LOWER(cc.name) LIKE LOWER(CONCAT('%', :namePattern, '%')) " +

@@ -16,8 +16,8 @@ import dev.kreaker.kolors.service.ColorCombinationService;
 import jakarta.validation.ValidationException;
 
 /**
- * Manejo global de excepciones para la aplicación
- * Proporciona manejo centralizado de errores con mensajes amigables al usuario
+ * Global exception handling for the application
+ * Provides centralized error handling with user-friendly messages
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -31,27 +31,27 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * Maneja excepciones cuando no se encuentra una combinación de colores
+     * Handles exceptions when a color combination is not found
      */
     @ExceptionHandler(ColorCombinationNotFoundException.class)
     public String handleColorCombinationNotFound(ColorCombinationNotFoundException e, 
                                                 Model model, 
                                                 RedirectAttributes redirectAttributes) {
-        logger.warn("Combinación de colores no encontrada: {}", e.getMessage());
+        logger.warn("Color combination not found: {}", e.getMessage());
         
-        redirectAttributes.addFlashAttribute("error", "Combinación de colores no encontrada");
+        redirectAttributes.addFlashAttribute("error", "Color combination not found");
         return "redirect:/combinations/";
     }
     
     /**
-     * Maneja excepciones de validación de combinaciones de colores
+     * Handles color combination validation exceptions
      */
     @ExceptionHandler(ColorCombinationValidationException.class)
     public String handleColorCombinationValidation(ColorCombinationValidationException e, 
                                                   Model model) {
-        logger.warn("Error de validación en combinación de colores: {}", e.getMessage());
+        logger.warn("Validation error in color combination: {}", e.getMessage());
         
-        // Agregar datos necesarios para mostrar la página
+        // Add necessary data to display the page
         try {
             List<ColorCombination> combinations = colorCombinationService.findAllCombinations();
             ColorCombinationService.CombinationStatistics stats = colorCombinationService.getStatistics();
@@ -62,40 +62,40 @@ public class GlobalExceptionHandler {
             model.addAttribute("combinationForm", new ColorCombinationForm());
             
         } catch (Exception ex) {
-            logger.error("Error al cargar datos para página de error", ex);
+            logger.error("Error loading data for error page", ex);
             model.addAttribute("combinations", List.of());
             model.addAttribute("combinationForm", new ColorCombinationForm());
         }
         
-        // Agregar errores de validación
+        // Add validation errors
         List<String> validationErrors = e.getValidationErrors();
-        model.addAttribute("error", "Errores de validación: " + String.join(", ", validationErrors));
+        model.addAttribute("error", "Validation errors: " + String.join(", ", validationErrors));
         model.addAttribute("validationErrors", validationErrors);
         
         return "combinations/index";
     }
     
     /**
-     * Maneja excepciones de formato de color inválido
+     * Handles invalid color format exceptions
      */
     @ExceptionHandler(InvalidColorFormatException.class)
     public String handleInvalidColorFormat(InvalidColorFormatException e, 
                                          Model model, 
                                          RedirectAttributes redirectAttributes) {
-        logger.warn("Formato de color inválido: {}", e.getMessage());
+        logger.warn("Invalid color format: {}", e.getMessage());
         
         redirectAttributes.addFlashAttribute("error", e.getMessage());
         return "redirect:/combinations/";
     }
     
     /**
-     * Maneja excepciones de validación general (Bean Validation)
+     * Handles general validation exceptions (Bean Validation)
      */
     @ExceptionHandler(ValidationException.class)
     public String handleValidation(ValidationException e, Model model) {
-        logger.warn("Error de validación: {}", e.getMessage());
+        logger.warn("Validation error: {}", e.getMessage());
         
-        // Agregar datos necesarios para mostrar la página
+        // Add necessary data to display the page
         try {
             List<ColorCombination> combinations = colorCombinationService.findAllCombinations();
             ColorCombinationService.CombinationStatistics stats = colorCombinationService.getStatistics();
@@ -106,70 +106,70 @@ public class GlobalExceptionHandler {
             model.addAttribute("combinationForm", new ColorCombinationForm());
             
         } catch (Exception ex) {
-            logger.error("Error al cargar datos para página de error", ex);
+            logger.error("Error loading data for error page", ex);
             model.addAttribute("combinations", List.of());
             model.addAttribute("combinationForm", new ColorCombinationForm());
         }
         
-        model.addAttribute("error", "Error de validación: " + e.getMessage());
+        model.addAttribute("error", "Validation error: " + e.getMessage());
         return "combinations/index";
     }
     
     /**
-     * Maneja excepciones de base de datos y persistencia
+     * Handles database and persistence exceptions
      */
     @ExceptionHandler({org.springframework.dao.DataAccessException.class, 
                       org.springframework.transaction.TransactionException.class})
     public String handleDatabaseError(Exception e, Model model, RedirectAttributes redirectAttributes) {
-        logger.error("Error de base de datos", e);
+        logger.error("Database error", e);
         
         redirectAttributes.addFlashAttribute("error", 
-            "Error de base de datos. Por favor, inténtelo de nuevo más tarde.");
+            "Database error. Please try again later.");
         return "redirect:/combinations/";
     }
     
     /**
-     * Maneja excepciones de argumentos ilegales
+     * Handles illegal argument exceptions
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public String handleIllegalArgument(IllegalArgumentException e, 
                                        Model model, 
                                        RedirectAttributes redirectAttributes) {
-        logger.warn("Argumento ilegal: {}", e.getMessage());
+        logger.warn("Illegal argument: {}", e.getMessage());
         
         redirectAttributes.addFlashAttribute("error", 
-            "Datos inválidos proporcionados: " + e.getMessage());
+            "Invalid data provided: " + e.getMessage());
         return "redirect:/combinations/";
     }
     
     /**
-     * Maneja todas las demás excepciones no específicas
+     * Handles all other non-specific exceptions
      */
     @ExceptionHandler(Exception.class)
     public String handleGenericError(Exception e, Model model, RedirectAttributes redirectAttributes) {
-        logger.error("Error inesperado en la aplicación", e);
+        logger.error("Unexpected error in the application", e);
         
         redirectAttributes.addFlashAttribute("error", 
-            "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo.");
+            "An unexpected error has occurred. Please try again.");
         return "redirect:/combinations/";
     }
     
     /**
-     * Maneja errores de tiempo de ejecución específicos
+     * Handles specific runtime errors
      */
     @ExceptionHandler(RuntimeException.class)
     public String handleRuntimeError(RuntimeException e, Model model, RedirectAttributes redirectAttributes) {
-        logger.error("Error de tiempo de ejecución", e);
+        logger.error("Runtime error", e);
         
-        // Si es una excepción específica que ya manejamos, no la procesamos aquí
+        // If it's a specific exception we already handle, don't process it here
         if (e instanceof ColorCombinationNotFoundException || 
             e instanceof ColorCombinationValidationException ||
             e instanceof InvalidColorFormatException) {
-            throw e; // Re-lanzar para que sea manejada por el handler específico
+            throw e; // Re-throw to be handled by specific handler
         }
         
         redirectAttributes.addFlashAttribute("error", 
-            "Error del sistema. Por favor, contacte al administrador si el problema persiste.");
+            "System error. Please contact the administrator if the problem persists.");
         return "redirect:/combinations/";
     }
 }

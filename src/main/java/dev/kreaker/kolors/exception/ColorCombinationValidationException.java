@@ -3,7 +3,7 @@ package dev.kreaker.kolors.exception;
 import java.util.List;
 
 /**
- * Excepción lanzada cuando la validación de una combinación de colores falla
+ * Exception thrown when color combination validation fails
  */
 public class ColorCombinationValidationException extends RuntimeException {
     
@@ -20,7 +20,7 @@ public class ColorCombinationValidationException extends RuntimeException {
     }
     
     public ColorCombinationValidationException(List<String> validationErrors) {
-        super("Errores de validación: " + String.join(", ", validationErrors));
+        super("Validation errors: " + String.join(", ", validationErrors));
         this.validationErrors = validationErrors;
     }
     

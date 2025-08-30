@@ -52,9 +52,9 @@ class ColorCombinationServiceTest {
     
     @BeforeEach
     void setUp() {
-        // Crear formulario válido
+        // Create valid form
         validForm = new ColorCombinationForm();
-        validForm.setName("Combinación de Prueba");
+        validForm.setName("Test Combination");
         validForm.setColorCount(3);
         validForm.setColors(Arrays.asList(
             new ColorForm("FF0000", 1),
@@ -62,8 +62,8 @@ class ColorCombinationServiceTest {
             new ColorForm("0000FF", 3)
         ));
         
-        // Crear combinación válida
-        validCombination = new ColorCombination("Combinación de Prueba", 3);
+        // Create valid combination
+        validCombination = new ColorCombination("Test Combination", 3);
         validCombination.setId(1L);
         validCombination.setCreatedAt(LocalDateTime.now());
         validCombination.addColor(new ColorInCombination("FF0000", 1));
@@ -103,7 +103,7 @@ class ColorCombinationServiceTest {
             // When & Then
             assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
                 .isInstanceOf(ColorCombinationValidationException.class)
-                .hasMessageContaining("El nombre debe tener al menos 3 caracteres");
+                .hasMessageContaining("Name must have at least 3 characters");
             
             verify(colorCombinationRepository, never()).save(any());
         }
@@ -112,12 +112,12 @@ class ColorCombinationServiceTest {
         @DisplayName("Should throw validation exception with invalid color count")
         void shouldThrowValidationExceptionWithInvalidColorCount() {
             // Given
-            validForm.setColorCount(5); // Fuera del rango válido
+            validForm.setColorCount(5); // Outside valid range
             
             // When & Then
             assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
                 .isInstanceOf(ColorCombinationValidationException.class)
-                .hasMessageContaining("El número de colores debe ser entre 2 y 4");
+                .hasMessageContaining("Must specify between 2 and 4 colors");
             
             verify(colorCombinationRepository, never()).save(any());
         }
@@ -126,12 +126,12 @@ class ColorCombinationServiceTest {
         @DisplayName("Should throw validation exception with invalid hex color")
         void shouldThrowValidationExceptionWithInvalidHexColor() {
             // Given
-            validForm.getColors().get(0).setHexValue("INVALID"); // Formato inválido
+            validForm.getColors().get(0).setHexValue("INVALID"); // Invalid format
             
             // When & Then
             assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
                 .isInstanceOf(ColorCombinationValidationException.class)
-                .hasMessageContaining("formato hexadecimal inválido");
+                .hasMessageContaining("invalid hexadecimal format");
             
             verify(colorCombinationRepository, never()).save(any());
         }

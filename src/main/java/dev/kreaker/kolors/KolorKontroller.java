@@ -23,7 +23,7 @@ public class KolorKontroller {
 
    @PostMapping("/add")
    public String addColor(@ModelAttribute KolorKombination colorCombination) {
-      // Validar que el hex tenga 6 caracteres y sea válido
+      // Validate that hex has 6 characters and is valid
       if (colorCombination.getHex() != null && colorCombination.getHex().matches("^[0-9A-Fa-f]{6}$")) {
          repo.save(colorCombination);
       }

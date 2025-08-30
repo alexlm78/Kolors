@@ -1,24 +1,25 @@
 package dev.kreaker.kolors;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class ColorCombinationForm {
     
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
+    @NotBlank(message = "Name is required")
+    @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
     private String name;
     
-    @NotNull(message = "Debe especificar el número de colores")
-    @Min(value = 2, message = "Mínimo 2 colores")
-    @Max(value = 4, message = "Máximo 4 colores")
+    @NotNull(message = "Must specify the number of colors")
+    @Min(value = 2, message = "Minimum 2 colors")
+    @Max(value = 4, message = "Maximum 4 colors")
     private Integer colorCount;
     
     @Valid
@@ -87,18 +88,18 @@ public class ColorCombinationForm {
         List<String> errors = new ArrayList<>();
         
         if (name == null || name.trim().length() < 3) {
-            errors.add("El nombre debe tener al menos 3 caracteres");
+            errors.add("Name must have at least 3 characters");
         }
         if (colorCount == null || colorCount < 2 || colorCount > 4) {
-            errors.add("Debe especificar entre 2 y 4 colores");
+            errors.add("Must specify between 2 and 4 colors");
         }
         if (colors == null || colors.size() != colorCount) {
-            errors.add("El número de colores no coincide con el especificado");
+            errors.add("Number of colors does not match specified count");
         } else {
             for (int i = 0; i < colors.size(); i++) {
                 ColorForm color = colors.get(i);
                 if (!color.isValidHex()) {
-                    errors.add("Color " + (i + 1) + " tiene formato hexadecimal inválido");
+                    errors.add("Color " + (i + 1) + " has invalid hexadecimal format");
                 }
             }
         }

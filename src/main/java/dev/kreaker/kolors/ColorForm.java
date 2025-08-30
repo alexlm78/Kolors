@@ -8,8 +8,8 @@ import jakarta.validation.constraints.Pattern;
 
 public class ColorForm {
     
-    @NotBlank(message = "El valor hexadecimal es obligatorio")
-    @Pattern(regexp = "^[0-9A-Fa-f]{6}$", message = "Formato hexadecimal inválido: debe ser 6 caracteres (0-9, A-F)")
+    @NotBlank(message = "Hexadecimal value is required")
+    @Pattern(regexp = "^[0-9A-Fa-f]{6}$", message = "Invalid hexadecimal format: must be 6 characters (0-9, A-F)")
     private String hexValue;
     
     @NotNull(message = "La posición es obligatoria")

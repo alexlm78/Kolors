@@ -1,18 +1,22 @@
 package dev.kreaker.kolors;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 
 class ColorCombinationFormTest {
 
@@ -78,7 +82,7 @@ class ColorCombinationFormTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("El nombre es obligatorio")));
+                .anyMatch(v -> v.getMessage().contains("Name is required")));
         
         // Given - name too short
         form.setName("ab");
@@ -89,7 +93,7 @@ class ColorCombinationFormTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("debe tener entre 3 y 100 caracteres")));
+                .anyMatch(v -> v.getMessage().contains("Name must be between 3 and 100 characters")));
         
         // Given - name too long
         form.setName("a".repeat(101));
@@ -100,7 +104,7 @@ class ColorCombinationFormTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("debe tener entre 3 y 100 caracteres")));
+                .anyMatch(v -> v.getMessage().contains("Name must be between 3 and 100 characters")));
     }
 
     @Test
@@ -116,7 +120,7 @@ class ColorCombinationFormTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("Debe especificar el número de colores")));
+                .anyMatch(v -> v.getMessage().contains("Must specify the number of colors")));
         
         // Given - colorCount too low
         form.setColorCount(1);
@@ -127,7 +131,7 @@ class ColorCombinationFormTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("Mínimo 2 colores")));
+                .anyMatch(v -> v.getMessage().contains("Minimum 2 colors")));
         
         // Given - colorCount too high
         form.setColorCount(5);
@@ -138,7 +142,7 @@ class ColorCombinationFormTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("Máximo 4 colores")));
+                .anyMatch(v -> v.getMessage().contains("Maximum 4 colors")));
     }
 
     @Test
@@ -159,7 +163,7 @@ class ColorCombinationFormTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("Formato hexadecimal inválido")));
+                .anyMatch(v -> v.getMessage().contains("Invalid hexadecimal format")));
     }
 
     @Test
@@ -241,8 +245,8 @@ class ColorCombinationFormTest {
         
         // Then
         assertFalse(errors.isEmpty());
-        assertTrue(errors.stream().anyMatch(e -> e.contains("nombre debe tener al menos 3 caracteres")));
-        assertTrue(errors.stream().anyMatch(e -> e.contains("entre 2 y 4 colores")));
+        assertTrue(errors.stream().anyMatch(e -> e.contains("Name must have at least 3 characters")));
+        assertTrue(errors.stream().anyMatch(e -> e.contains("Must specify between 2 and 4 colors")));
         
         // Given - valid form
         form.setName("Valid Name");

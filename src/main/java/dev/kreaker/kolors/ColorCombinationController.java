@@ -21,8 +21,8 @@ import dev.kreaker.kolors.service.ColorCombinationService;
 import jakarta.validation.Valid;
 
 /**
- * Controlador principal para gestión de combinaciones de colores
- * Maneja todas las operaciones CRUD y búsqueda de combinaciones
+ * Main controller for color combination management
+ * Handles all CRUD operations and combination search
  */
 @Controller
 @RequestMapping("/combinations")
@@ -38,7 +38,7 @@ public class ColorCombinationController {
     }
     
     /**
-     * Página principal - lista todas las combinaciones con búsqueda y filtrado
+     * Main page - lists all combinations with search and filtering
      */
     @GetMapping({"", "/"})
     public String index(Model model, 
@@ -48,27 +48,27 @@ public class ColorCombinationController {
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "10") int size) {
         
-        logger.debug("Accediendo a página principal - búsqueda: '{}', colores: {}, hex: '{}', página: {}", 
+        logger.debug("Accessing main page - search: '{}', colors: {}, hex: '{}', page: {}", 
                     search, colorCount, hexValue, page);
         
         try {
             List<ColorCombination> combinations;
             
-            // Aplicar filtros de búsqueda
+            // Apply search filters
             if (hexValue != null && !hexValue.trim().isEmpty()) {
                 combinations = colorCombinationService.findByHexValue(hexValue.trim());
             } else {
                 combinations = colorCombinationService.searchCombinations(search, colorCount);
             }
             
-            // Agregar datos al modelo
+            // Add data to model
             model.addAttribute("combinations", combinations);
             model.addAttribute("search", search);
             model.addAttribute("colorCount", colorCount);
             model.addAttribute("hexValue", hexValue);
             model.addAttribute("totalCombinations", combinations.size());
             
-            // Agregar formulario vacío para crear nueva combinación
+            // Add empty form to create new combination
             if (!model.containsAttribute("combinationForm")) {
                 model.addAttribute("combinationForm", new ColorCombinationForm());
             }
@@ -76,8 +76,8 @@ public class ColorCombinationController {
             return "combinations/index";
             
         } catch (Exception e) {
-            logger.error("Error al cargar página principal", e);
-            model.addAttribute("error", "Error al cargar las combinaciones de colores");
+            logger.error("Error loading main page", e);
+            model.addAttribute("error", "Error loading color combinations");
             model.addAttribute("combinations", List.of());
             model.addAttribute("combinationForm", new ColorCombinationForm());
             return "combinations/index";
@@ -85,7 +85,7 @@ public class ColorCombinationController {
     }
     
     /**
-     * Crear nueva combinación de colores
+     * Create new color combination
      */
     @PostMapping("/create")
     public String createCombination(@Valid @ModelAttribute("combinationForm") ColorCombinationForm form,
@@ -93,15 +93,15 @@ public class ColorCombinationController {
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
         
-        logger.info("Intentando crear nueva combinación: {}", form.getName());
+        logger.info("Attempting to create new combination: {}", form.getName());
         
         try {
-            // Si hay errores de validación, volver al formulario
+            // If there are validation errors, return to form
             if (result.hasErrors()) {
-                logger.warn("Errores de validación al crear combinación: {}", result.getAllErrors());
+                logger.warn("Validation errors when creating combination: {}", result.getAllErrors());
                 
-                // Crear mensaje detallado de errores
-                StringBuilder errorMessage = new StringBuilder("Errores de validación: ");
+                // Create detailed error message
+                StringBuilder errorMessage = new StringBuilder("Validation errors: ");
                 result.getAllErrors().forEach(error -> {
                     errorMessage.append(error.getDefaultMessage()).append("; ");
                 });
@@ -109,37 +109,37 @@ public class ColorCombinationController {
                 return addFormDataAndReturnIndex(model, form, errorMessage.toString());
             }
             
-            // Crear la combinación
+            // Create the combination
             ColorCombination savedCombination = colorCombinationService.createCombination(form);
             
-            // Mensaje de éxito
+            // Success message
             redirectAttributes.addFlashAttribute("success", 
-                "Combinación '" + savedCombination.getName() + "' creada exitosamente");
+                "Combination '" + savedCombination.getName() + "' created successfully");
             
-            logger.info("Combinación creada exitosamente: {} (ID: {})", 
+            logger.info("Combination created successfully: {} (ID: {})", 
                        savedCombination.getName(), savedCombination.getId());
             
             return "redirect:/combinations/";
             
         } catch (ColorCombinationValidationException e) {
-            logger.warn("Error de validación al crear combinación: {}", e.getMessage());
-            model.addAttribute("error", "Errores de validación: " + String.join(", ", e.getValidationErrors()));
+            logger.warn("Validation error when creating combination: {}", e.getMessage());
+            model.addAttribute("error", "Validation errors: " + String.join(", ", e.getValidationErrors()));
             return addFormDataAndReturnIndex(model, form, null);
             
         } catch (Exception e) {
-            logger.error("Error inesperado al crear combinación", e);
-            model.addAttribute("error", "Error inesperado al crear la combinación. Por favor, inténtelo de nuevo.");
+            logger.error("Unexpected error when creating combination", e);
+            model.addAttribute("error", "Unexpected error when creating the combination. Please try again.");
             return addFormDataAndReturnIndex(model, form, null);
         }
     }
     
     /**
-     * Mostrar formulario de edición
+     * Show edit form
      */
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         
-        logger.debug("Mostrando formulario de edición para combinación ID: {}", id);
+        logger.debug("Showing edit form for combination ID: {}", id);
         
         try {
             ColorCombination combination = colorCombinationService.getById(id);
@@ -152,19 +152,19 @@ public class ColorCombinationController {
             return "combinations/edit";
             
         } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combinación no encontrada para edición: {}", id);
-            redirectAttributes.addFlashAttribute("error", "Combinación no encontrada");
+            logger.warn("Combination not found for editing: {}", id);
+            redirectAttributes.addFlashAttribute("error", "Combination not found");
             return "redirect:/combinations/";
             
         } catch (Exception e) {
-            logger.error("Error al cargar formulario de edición para ID: " + id, e);
-            redirectAttributes.addFlashAttribute("error", "Error al cargar la combinación para edición");
+            logger.error("Error loading edit form for ID: " + id, e);
+            redirectAttributes.addFlashAttribute("error", "Error loading combination for editing");
             return "redirect:/combinations/";
         }
     }
     
     /**
-     * Actualizar combinación existente
+     * Update existing combination
      */
     @PostMapping("/{id}/update")
     public String updateCombination(@PathVariable Long id,
@@ -173,63 +173,63 @@ public class ColorCombinationController {
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
         
-        logger.info("Intentando actualizar combinación ID: {} con nombre: {}", id, form.getName());
+        logger.info("Attempting to update combination ID: {} with name: {}", id, form.getName());
         
         try {
-            // Si hay errores de validación, volver al formulario de edición
+            // If there are validation errors, return to edit form
             if (result.hasErrors()) {
-                logger.warn("Errores de validación al actualizar combinación ID {}: {}", id, result.getAllErrors());
+                logger.warn("Validation errors when updating combination ID {}: {}", id, result.getAllErrors());
                 ColorCombination combination = colorCombinationService.getById(id);
                 model.addAttribute("combination", combination);
                 model.addAttribute("isEditing", true);
-                model.addAttribute("error", "Errores en el formulario. Por favor, corrija los datos.");
+                model.addAttribute("error", "Form errors. Please correct the data.");
                 return "combinations/edit";
             }
             
-            // Actualizar la combinación
+            // Update the combination
             ColorCombination updatedCombination = colorCombinationService.updateCombination(id, form);
             
-            // Mensaje de éxito
+            // Success message
             redirectAttributes.addFlashAttribute("success", 
-                "Combinación '" + updatedCombination.getName() + "' actualizada exitosamente");
+                "Combination '" + updatedCombination.getName() + "' updated successfully");
             
-            logger.info("Combinación actualizada exitosamente: {} (ID: {})", 
+            logger.info("Combination updated successfully: {} (ID: {})", 
                        updatedCombination.getName(), updatedCombination.getId());
             
             return "redirect:/combinations/";
             
         } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combinación no encontrada para actualización: {}", id);
-            redirectAttributes.addFlashAttribute("error", "Combinación no encontrada");
+            logger.warn("Combination not found for update: {}", id);
+            redirectAttributes.addFlashAttribute("error", "Combination not found");
             return "redirect:/combinations/";
             
         } catch (ColorCombinationValidationException e) {
-            logger.warn("Error de validación al actualizar combinación ID {}: {}", id, e.getMessage());
+            logger.warn("Validation error when updating combination ID {}: {}", id, e.getMessage());
             try {
                 ColorCombination combination = colorCombinationService.getById(id);
                 model.addAttribute("combination", combination);
                 model.addAttribute("isEditing", true);
-                model.addAttribute("error", "Errores de validación: " + String.join(", ", e.getValidationErrors()));
+                model.addAttribute("error", "Validation errors: " + String.join(", ", e.getValidationErrors()));
                 return "combinations/edit";
             } catch (Exception ex) {
-                redirectAttributes.addFlashAttribute("error", "Error de validación: " + e.getMessage());
+                redirectAttributes.addFlashAttribute("error", "Validation error: " + e.getMessage());
                 return "redirect:/combinations/";
             }
             
         } catch (Exception e) {
-            logger.error("Error inesperado al actualizar combinación ID: " + id, e);
-            redirectAttributes.addFlashAttribute("error", "Error inesperado al actualizar la combinación");
+            logger.error("Unexpected error when updating combination ID: " + id, e);
+            redirectAttributes.addFlashAttribute("error", "Unexpected error when updating the combination");
             return "redirect:/combinations/";
         }
     }
     
     /**
-     * Mostrar página de confirmación de eliminación
+     * Show delete confirmation page
      */
     @GetMapping("/{id}/confirm-delete")
     public String confirmDelete(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         
-        logger.debug("Mostrando confirmación de eliminación para combinación ID: {}", id);
+        logger.debug("Showing delete confirmation for combination ID: {}", id);
         
         try {
             ColorCombination combination = colorCombinationService.getById(id);
@@ -237,58 +237,58 @@ public class ColorCombinationController {
             return "combinations/confirm-delete";
             
         } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combinación no encontrada para eliminación: {}", id);
-            redirectAttributes.addFlashAttribute("error", "Combinación no encontrada");
+            logger.warn("Combination not found for deletion: {}", id);
+            redirectAttributes.addFlashAttribute("error", "Combination not found");
             return "redirect:/combinations/";
             
         } catch (Exception e) {
-            logger.error("Error al cargar confirmación de eliminación para ID: " + id, e);
-            redirectAttributes.addFlashAttribute("error", "Error al cargar la combinación");
+            logger.error("Error loading delete confirmation for ID: " + id, e);
+            redirectAttributes.addFlashAttribute("error", "Error loading the combination");
             return "redirect:/combinations/";
         }
     }
     
     /**
-     * Eliminar combinación de colores
+     * Delete color combination
      */
     @PostMapping("/{id}/delete")
     public String deleteCombination(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         
-        logger.info("Intentando eliminar combinación ID: {}", id);
+        logger.info("Attempting to delete combination ID: {}", id);
         
         try {
-            // Obtener nombre antes de eliminar para el mensaje
+            // Get name before deleting for the message
             ColorCombination combination = colorCombinationService.getById(id);
             String combinationName = combination.getName();
             
-            // Eliminar la combinación
+            // Delete the combination
             colorCombinationService.deleteCombination(id);
             
-            // Mensaje de éxito
+            // Success message
             redirectAttributes.addFlashAttribute("success", 
-                "Combinación '" + combinationName + "' eliminada exitosamente");
+                "Combination '" + combinationName + "' deleted successfully");
             
-            logger.info("Combinación eliminada exitosamente: {} (ID: {})", combinationName, id);
+            logger.info("Combination deleted successfully: {} (ID: {})", combinationName, id);
             
         } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combinación no encontrada para eliminación: {}", id);
-            redirectAttributes.addFlashAttribute("error", "Combinación no encontrada");
+            logger.warn("Combination not found for deletion: {}", id);
+            redirectAttributes.addFlashAttribute("error", "Combination not found");
             
         } catch (Exception e) {
-            logger.error("Error inesperado al eliminar combinación ID: " + id, e);
-            redirectAttributes.addFlashAttribute("error", "Error al eliminar la combinación. Por favor, inténtelo de nuevo.");
+            logger.error("Unexpected error when deleting combination ID: " + id, e);
+            redirectAttributes.addFlashAttribute("error", "Error deleting the combination. Please try again.");
         }
         
         return "redirect:/combinations/";
     }
     
     /**
-     * Ver detalles de una combinación específica
+     * View details of a specific combination
      */
     @GetMapping("/{id}")
     public String viewCombination(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         
-        logger.debug("Mostrando detalles de combinación ID: {}", id);
+        logger.debug("Showing combination details for ID: {}", id);
         
         try {
             ColorCombination combination = colorCombinationService.getById(id);
@@ -296,13 +296,13 @@ public class ColorCombinationController {
             return "combinations/view";
             
         } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combinación no encontrada para visualización: {}", id);
-            redirectAttributes.addFlashAttribute("error", "Combinación no encontrada");
+            logger.warn("Combination not found for viewing: {}", id);
+            redirectAttributes.addFlashAttribute("error", "Combination not found");
             return "redirect:/combinations/";
             
         } catch (Exception e) {
-            logger.error("Error al cargar detalles de combinación ID: " + id, e);
-            redirectAttributes.addFlashAttribute("error", "Error al cargar los detalles de la combinación");
+            logger.error("Error loading combination details for ID: " + id, e);
+            redirectAttributes.addFlashAttribute("error", "Error loading combination details");
             return "redirect:/combinations/";
         }
     }
@@ -316,7 +316,7 @@ public class ColorCombinationController {
                                    @RequestParam(required = false) String hexValue,
                                    Model model) {
         
-        logger.debug("Búsqueda AJAX - término: '{}', colores: {}, hex: '{}'", term, colorCount, hexValue);
+        logger.debug("AJAX search - term: '{}', colors: {}, hex: '{}'", term, colorCount, hexValue);
         
         try {
             List<ColorCombination> combinations;
@@ -331,27 +331,27 @@ public class ColorCombinationController {
             return "combinations/fragments/combination-list :: combinationList";
             
         } catch (Exception e) {
-            logger.error("Error en búsqueda AJAX", e);
+            logger.error("Error in AJAX search", e);
             model.addAttribute("combinations", List.of());
-            model.addAttribute("error", "Error en la búsqueda");
+            model.addAttribute("error", "Search error");
             return "combinations/fragments/combination-list :: combinationList";
         }
     }
     
     /**
-     * Método auxiliar para agregar datos del formulario y retornar a la página principal
+     * Helper method to add form data and return to main page
      */
     private String addFormDataAndReturnIndex(Model model, ColorCombinationForm form, String errorMessage) {
         try {
-            // Agregar combinaciones existentes
+            // Add existing combinations
             List<ColorCombination> combinations = colorCombinationService.findAllCombinations();
             model.addAttribute("combinations", combinations);
             
-            // Agregar formulario con datos
+            // Add form with data
             model.addAttribute("combinationForm", form);
             model.addAttribute("totalCombinations", combinations.size());
             
-            // Agregar mensaje de error si se proporciona
+            // Add error message if provided
             if (errorMessage != null) {
                 model.addAttribute("error", errorMessage);
             }
@@ -359,21 +359,21 @@ public class ColorCombinationController {
             return "combinations/index";
             
         } catch (Exception e) {
-            logger.error("Error al cargar datos para formulario", e);
+            logger.error("Error loading data for form", e);
             model.addAttribute("combinations", List.of());
             model.addAttribute("combinationForm", form != null ? form : new ColorCombinationForm());
-            model.addAttribute("error", "Error al cargar los datos");
+            model.addAttribute("error", "Error loading data");
             return "combinations/index";
         }
     }
     
     /**
-     * Manejo de errores específico del controlador
+     * Controller-specific error handling
      */
     @ModelAttribute
     public void addCommonAttributes(Model model) {
-        // Agregar atributos comunes que siempre están disponibles
-        model.addAttribute("pageTitle", "Gestión de Combinaciones de Colores");
+        // Add common attributes that are always available
+        model.addAttribute("pageTitle", "Color Combination Management");
         model.addAttribute("colorCountOptions", List.of(2, 3, 4));
     }
 }

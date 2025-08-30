@@ -1,7 +1,7 @@
 package dev.kreaker.kolors.exception;
 
 /**
- * Excepción lanzada cuando no se encuentra una combinación de colores específica
+ * Exception thrown when a specific color combination is not found
  */
 public class ColorCombinationNotFoundException extends RuntimeException {
     
@@ -14,6 +14,6 @@ public class ColorCombinationNotFoundException extends RuntimeException {
     }
     
     public ColorCombinationNotFoundException(Long id) {
-        super("Combinación de colores no encontrada con ID: " + id);
+        super("Color combination not found with ID: " + id);
     }
 }

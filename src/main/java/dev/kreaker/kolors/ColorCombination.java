@@ -1,15 +1,26 @@
 package dev.kreaker.kolors;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "color_combination")
@@ -19,8 +30,8 @@ public class ColorCombination {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
+    @NotBlank(message = "Name is required")
+    @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
     @Column(nullable = false, length = 100)
     private String name;
 
@@ -31,9 +42,9 @@ public class ColorCombination {
     @OneToMany(mappedBy = "combination", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ColorInCombination> colors = new ArrayList<>();
 
-    @NotNull(message = "Debe especificar el número de colores")
-    @Min(value = 2, message = "Mínimo 2 colores")
-    @Max(value = 4, message = "Máximo 4 colores")
+    @NotNull(message = "Must specify the number of colors")
+    @Min(value = 2, message = "Minimum 2 colors")
+    @Max(value = 4, message = "Maximum 4 colors")
     @Column(nullable = false, name = "color_count")
     private Integer colorCount;
 

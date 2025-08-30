@@ -1,17 +1,21 @@
 package dev.kreaker.kolors;
 
+import java.time.LocalDateTime;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-
-import java.time.LocalDateTime;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class ColorCombinationTest {
 
@@ -89,7 +93,7 @@ class ColorCombinationTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("debe tener entre 3 y 100 caracteres")));
+                .anyMatch(v -> v.getMessage().contains("Name must be between 3 and 100 characters")));
         
         // Given - name too long
         colorCombination.setName("a".repeat(101));
@@ -100,7 +104,7 @@ class ColorCombinationTest {
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("debe tener entre 3 y 100 caracteres")));
+                .anyMatch(v -> v.getMessage().contains("Name must be between 3 and 100 characters")));
     }
 
     @Test

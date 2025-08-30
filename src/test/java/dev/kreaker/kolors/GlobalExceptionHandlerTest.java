@@ -43,7 +43,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe manejar ColorCombinationNotFoundException")
+    @DisplayName("Should handle ColorCombinationNotFoundException")
     void shouldHandleColorCombinationNotFoundException() {
         // Given
         ColorCombinationNotFoundException exception = new ColorCombinationNotFoundException(1L);
@@ -56,7 +56,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe manejar ColorCombinationValidationException")
+    @DisplayName("Should handle ColorCombinationValidationException")
     void shouldHandleColorCombinationValidationException() {
         // Given
         List<String> validationErrors = Arrays.asList("Error 1", "Error 2");
@@ -75,7 +75,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe manejar InvalidColorFormatException")
+    @DisplayName("Should handle InvalidColorFormatException")
     void shouldHandleInvalidColorFormatException() {
         // Given
         InvalidColorFormatException exception = InvalidColorFormatException.forHexValue("INVALID");
@@ -88,7 +88,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe manejar excepciones genéricas")
+    @DisplayName("Should handle generic exceptions")
     void shouldHandleGenericExceptions() {
         // Given
         Exception exception = new Exception("Generic error");
@@ -101,7 +101,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe manejar errores de base de datos")
+    @DisplayName("Should handle database errors")
     void shouldHandleDatabaseErrors() {
         // Given
         org.springframework.dao.DataAccessException exception = 
@@ -115,7 +115,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe manejar argumentos ilegales")
+    @DisplayName("Should handle illegal arguments")
     void shouldHandleIllegalArgumentException() {
         // Given
         IllegalArgumentException exception = new IllegalArgumentException("Invalid argument");
@@ -128,7 +128,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe re-lanzar excepciones específicas en RuntimeException handler")
+    @DisplayName("Should rethrow specific exceptions in RuntimeException handler")
     void shouldRethrowSpecificExceptionsInRuntimeHandler() {
         // Given
         ColorCombinationNotFoundException specificException = new ColorCombinationNotFoundException(1L);
@@ -142,7 +142,7 @@ class GlobalExceptionHandlerTest {
     }
     
     @Test
-    @DisplayName("Debe manejar RuntimeException genérica")
+    @DisplayName("Should handle generic RuntimeException")
     void shouldHandleGenericRuntimeException() {
         // Given
         RuntimeException exception = new RuntimeException("Generic runtime error");

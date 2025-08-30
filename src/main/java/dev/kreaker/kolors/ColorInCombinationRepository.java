@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 public interface ColorInCombinationRepository extends JpaRepository<ColorInCombination, Long> {
     
     /**
-     * Busca todos los colores de una combinación específica ordenados por posición
+     * Finds all colors of a specific combination ordered by position
      */
     List<ColorInCombination> findByCombinationIdOrderByPosition(Long combinationId);
     
@@ -28,17 +28,17 @@ public interface ColorInCombinationRepository extends JpaRepository<ColorInCombi
     List<ColorInCombination> findByHexValueIgnoreCase(String hexValue);
     
     /**
-     * Busca un color específico en una combinación por posición
+     * Finds a specific color in a combination by position
      */
     Optional<ColorInCombination> findByCombinationIdAndPosition(Long combinationId, Integer position);
     
     /**
-     * Busca colores en una combinación específica
+     * Finds colors in a specific combination
      */
     List<ColorInCombination> findByCombination(ColorCombination combination);
     
     /**
-     * Cuenta cuántos colores tiene una combinación específica
+     * Counts how many colors a specific combination has
      */
     long countByCombinationId(Long combinationId);
     
@@ -48,12 +48,12 @@ public interface ColorInCombinationRepository extends JpaRepository<ColorInCombi
     List<ColorInCombination> findByPositionBetween(Integer startPosition, Integer endPosition);
     
     /**
-     * Verifica si existe un color en una posición específica de una combinación
+     * Verifies if a color exists in a specific position of a combination
      */
     boolean existsByCombinationIdAndPosition(Long combinationId, Integer position);
     
     /**
-     * Verifica si existe un valor hexadecimal específico en una combinación
+     * Verifies if a specific hexadecimal value exists in a combination
      */
     boolean existsByCombinationIdAndHexValue(Long combinationId, String hexValue);
     

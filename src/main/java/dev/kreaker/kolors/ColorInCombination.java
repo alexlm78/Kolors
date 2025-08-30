@@ -25,14 +25,14 @@ public class ColorInCombination {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank(message = "El valor hexadecimal es obligatorio")
-    @Pattern(regexp = "^[0-9A-Fa-f]{6}$", message = "Formato hexadecimal inválido: debe ser 6 caracteres (0-9, A-F)")
+    @NotBlank(message = "Hexadecimal value is required")
+    @Pattern(regexp = "^[0-9A-Fa-f]{6}$", message = "Invalid hexadecimal format: must be 6 characters (0-9, A-F)")
     @Column(nullable = false, length = 6, name = "hex_value")
     private String hexValue;
     
-    @NotNull(message = "La posición es obligatoria")
-    @Min(value = 1, message = "La posición mínima es 1")
-    @Max(value = 4, message = "La posición máxima es 4")
+    @NotNull(message = "Position is required")
+    @Min(value = 1, message = "Minimum position is 1")
+    @Max(value = 4, message = "Maximum position is 4")
     @Column(nullable = false)
     private Integer position;
     

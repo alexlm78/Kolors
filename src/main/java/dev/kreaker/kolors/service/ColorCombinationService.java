@@ -25,8 +25,8 @@ import dev.kreaker.kolors.exception.ColorCombinationValidationException;
 import dev.kreaker.kolors.exception.InvalidColorFormatException;
 
 /**
- * Servicio de negocio para gestión de combinaciones de colores
- * Proporciona operaciones CRUD y validación de datos
+ * Business service for color combination management
+ * Provides CRUD operations and data validation
  */
 @Service
 @Transactional
@@ -46,18 +46,18 @@ public class ColorCombinationService {
     }
     
     /**
-     * Crea una nueva combinación de colores
+     * Creates a new color combination
      */
     public ColorCombination createCombination(ColorCombinationForm form) {
-        logger.info("Creando nueva combinación de colores: {}", form.getName());
+        logger.info("Creating new color combination: {}", form.getName());
         
-        // Validar el formulario
+        // Validate the form
         validateForm(form);
         
-        // Crear la entidad
+        // Create the entity
         ColorCombination combination = new ColorCombination(form.getName(), form.getColorCount());
         
-        // Agregar colores
+        // Add colors
         if (form.getColors() != null) {
             for (ColorForm colorForm : form.getColors()) {
                 ColorInCombination color = new ColorInCombination(
@@ -68,37 +68,37 @@ public class ColorCombinationService {
             }
         }
         
-        // Guardar en base de datos
+        // Save to database
         ColorCombination savedCombination = colorCombinationRepository.save(combination);
-        logger.info("Combinación creada exitosamente con ID: {}", savedCombination.getId());
+        logger.info("Color combination created successfully with ID: {}", savedCombination.getId());
         
         return savedCombination;
     }
     
     /**
-     * Obtiene todas las combinaciones de colores
+     * Gets all color combinations
      */
     @Transactional(readOnly = true)
     public List<ColorCombination> findAllCombinations() {
-        logger.debug("Obteniendo todas las combinaciones de colores");
+        logger.debug("Getting all color combinations");
         return colorCombinationRepository.findAllByOrderByCreatedAtDesc();
     }
     
     /**
-     * Obtiene todas las combinaciones con paginación
+     * Gets all combinations with pagination
      */
     @Transactional(readOnly = true)
     public Page<ColorCombination> findAllCombinations(Pageable pageable) {
-        logger.debug("Obteniendo combinaciones con paginación: {}", pageable);
+        logger.debug("Getting combinations with pagination: {}", pageable);
         return colorCombinationRepository.findAllByOrderByNameAsc(pageable);
     }
     
     /**
-     * Busca combinaciones por criterios específicos
+     * Searches combinations by specific criteria
      */
     @Transactional(readOnly = true)
     public List<ColorCombination> searchCombinations(String searchTerm, Integer colorCount) {
-        logger.debug("Buscando combinaciones - término: '{}', número de colores: {}", searchTerm, colorCount);
+        logger.debug("Searching combinations - term: '{}', color count: {}", searchTerm, colorCount);
         
         if (searchTerm != null && !searchTerm.trim().isEmpty() && colorCount != null) {
             return colorCombinationRepository.findSimilarCombinations(searchTerm.trim(), colorCount);
@@ -112,11 +112,11 @@ public class ColorCombinationService {
     }
     
     /**
-     * Busca combinaciones que contengan un color específico
+     * Searches combinations containing a specific color
      */
     @Transactional(readOnly = true)
     public List<ColorCombination> findByHexValue(String hexValue) {
-        logger.debug("Buscando combinaciones que contengan el color: {}", hexValue);
+        logger.debug("Searching combinations containing color: {}", hexValue);
         
         if (!isValidHexColor(hexValue)) {
             throw InvalidColorFormatException.forHexValue(hexValue);
@@ -126,48 +126,48 @@ public class ColorCombinationService {
     }
     
     /**
-     * Obtiene una combinación por ID
+     * Gets a combination by ID
      */
     @Transactional(readOnly = true)
     public Optional<ColorCombination> findById(Long id) {
-        logger.debug("Buscando combinación por ID: {}", id);
+        logger.debug("Searching combination by ID: {}", id);
         return colorCombinationRepository.findById(id);
     }
     
     /**
-     * Obtiene una combinación por ID o lanza excepción si no existe
+     * Gets a combination by ID or throws exception if not found
      */
     @Transactional(readOnly = true)
     public ColorCombination getById(Long id) {
-        logger.debug("Obteniendo combinación por ID: {}", id);
+        logger.debug("Getting combination by ID: {}", id);
         return colorCombinationRepository.findById(id)
                 .orElseThrow(() -> new ColorCombinationNotFoundException(id));
     }
     
     /**
-     * Actualiza una combinación existente
+     * Updates an existing combination
      */
     @Transactional
     public ColorCombination updateCombination(Long id, ColorCombinationForm form) {
-        logger.info("Actualizando combinación ID: {} con datos: {}", id, form.getName());
+        logger.info("Updating combination ID: {} with data: {}", id, form.getName());
         
-        // Validar el formulario
+        // Validate the form
         validateForm(form);
         
-        // Obtener la combinación existente
+        // Get the existing combination
         ColorCombination existingCombination = getById(id);
         
-        // Actualizar datos básicos
+        // Update basic data
         existingCombination.setName(form.getName());
         existingCombination.setColorCount(form.getColorCount());
         
-        // Eliminar colores existentes de la base de datos primero
+        // Delete existing colors from database first
         colorInCombinationRepository.deleteByCombinationId(existingCombination.getId());
         
-        // Limpiar la colección en memoria
+        // Clear the in-memory collection
         existingCombination.getColors().clear();
         
-        // Agregar nuevos colores
+        // Add new colors
         if (form.getColors() != null) {
             for (ColorForm colorForm : form.getColors()) {
                 ColorInCombination color = new ColorInCombination(
@@ -178,38 +178,38 @@ public class ColorCombinationService {
             }
         }
         
-        // Guardar cambios
+        // Save changes
         ColorCombination updatedCombination = colorCombinationRepository.save(existingCombination);
-        logger.info("Combinación actualizada exitosamente: {}", updatedCombination.getId());
+        logger.info("Combination updated successfully: {}", updatedCombination.getId());
         
         return updatedCombination;
     }
     
     /**
-     * Elimina una combinación de colores
+     * Deletes a color combination
      */
     public void deleteCombination(Long id) {
-        logger.info("Eliminando combinación ID: {}", id);
+        logger.info("Deleting combination ID: {}", id);
         
-        // Verificar que existe
+        // Verify it exists
         if (!colorCombinationRepository.existsById(id)) {
             throw new ColorCombinationNotFoundException(id);
         }
         
-        // Eliminar (los colores se eliminan automáticamente por cascade)
+        // Delete (colors are automatically deleted by cascade)
         colorCombinationRepository.deleteById(id);
-        logger.info("Combinación eliminada exitosamente: {}", id);
+        logger.info("Combination deleted successfully: {}", id);
     }
     
     /**
-     * Valida si un color hexadecimal es válido
+     * Validates if a hexadecimal color is valid
      */
     public boolean isValidHexColor(String hexValue) {
         return hexValue != null && HEX_COLOR_PATTERN.matcher(hexValue).matches();
     }
     
     /**
-     * Valida una lista de colores hexadecimales
+     * Validates a list of hexadecimal colors
      */
     public boolean validateHexColors(List<String> hexValues) {
         if (hexValues == null || hexValues.isEmpty()) {
@@ -220,7 +220,7 @@ public class ColorCombinationService {
     }
     
     /**
-     * Valida que el número de colores coincida con la lista de colores
+     * Validates that the number of colors matches the color list
      */
     public boolean validateColorCount(Integer colorCount, List<ColorForm> colors) {
         if (colorCount == null || colors == null) {
@@ -235,7 +235,7 @@ public class ColorCombinationService {
     }
     
     /**
-     * Convierte una entidad a formulario
+     * Converts an entity to form
      */
     @Transactional(readOnly = true)
     public ColorCombinationForm convertToForm(ColorCombination combination) {
@@ -247,7 +247,7 @@ public class ColorCombinationService {
     }
     
     /**
-     * Verifica si existe una combinación con el mismo nombre
+     * Checks if a combination with the same name exists
      */
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
@@ -255,11 +255,11 @@ public class ColorCombinationService {
     }
     
     /**
-     * Obtiene estadísticas de combinaciones
+     * Gets combination statistics
      */
     @Transactional(readOnly = true)
     public CombinationStatistics getStatistics() {
-        logger.debug("Obteniendo estadísticas de combinaciones");
+        logger.debug("Getting combination statistics");
         
         long totalCombinations = colorCombinationRepository.count();
         long combinationsWith2Colors = colorCombinationRepository.countByColorCount(2);
@@ -275,72 +275,72 @@ public class ColorCombinationService {
     }
     
     /**
-     * Obtiene las combinaciones más recientes
+     * Gets the most recent combinations
      */
     @Transactional(readOnly = true)
     public List<ColorCombination> getRecentCombinations(int limit) {
-        logger.debug("Obteniendo {} combinaciones más recientes", limit);
+        logger.debug("Getting {} most recent combinations", limit);
         return colorCombinationRepository.findMostRecent(
             org.springframework.data.domain.PageRequest.of(0, limit)
         );
     }
     
     /**
-     * Valida un formulario de combinación completo
+     * Validates a complete combination form
      */
     private void validateForm(ColorCombinationForm form) {
         List<String> errors = new ArrayList<>();
         
-        // Validar nombre
+        // Validate name
         if (form.getName() == null || form.getName().trim().length() < 3) {
-            errors.add("El nombre debe tener al menos 3 caracteres");
+            errors.add("Name must have at least 3 characters");
         }
         
-        // Validar número de colores
+        // Validate color count
         if (form.getColorCount() == null || form.getColorCount() < 2 || form.getColorCount() > 4) {
-            errors.add("El número de colores debe ser entre 2 y 4");
+            errors.add("Color count must be between 2 and 4");
         }
         
-        // Validar lista de colores
+        // Validate color list
         if (form.getColors() == null || form.getColors().isEmpty()) {
-            errors.add("Debe proporcionar al menos un color");
+            errors.add("At least one color must be provided");
         } else {
-            // Validar que el número de colores coincida PRIMERO
+            // Validate that color count matches FIRST
             if (form.getColorCount() != null && form.getColors().size() != form.getColorCount()) {
-                errors.add("El número de colores proporcionados (" + form.getColors().size() + 
-                          ") no coincide con el especificado (" + form.getColorCount() + ")");
+                errors.add("Number of colors provided (" + form.getColors().size() + 
+                          ") does not match specified count (" + form.getColorCount() + ")");
             } else {
-                // Solo validar formato de colores si el número coincide
+                // Only validate color format if count matches
                 for (int i = 0; i < form.getColors().size(); i++) {
                     ColorForm color = form.getColors().get(i);
                     if (color.getHexValue() == null || !isValidHexColor(color.getHexValue())) {
-                        errors.add("Color en posición " + (i + 1) + " tiene formato hexadecimal inválido");
+                        errors.add("Color at position " + (i + 1) + " has invalid hexadecimal format");
                     }
                     if (color.getPosition() == null || color.getPosition() < 1 || color.getPosition() > 4) {
-                        errors.add("Color en posición " + (i + 1) + " tiene posición inválida");
+                        errors.add("Color at position " + (i + 1) + " has invalid position");
                     }
                 }
                 
-                // Validar posiciones únicas solo si el número coincide
+                // Validate unique positions only if count matches
                 List<Integer> positions = form.getColors().stream()
                         .map(ColorForm::getPosition)
                         .filter(pos -> pos != null)
                         .collect(Collectors.toList());
                 
                 if (positions.size() != positions.stream().distinct().count()) {
-                    errors.add("Las posiciones de los colores deben ser únicas");
+                    errors.add("Color positions must be unique");
                 }
             }
         }
         
-        // Lanzar excepción si hay errores
+        // Throw exception if there are errors
         if (!errors.isEmpty()) {
             throw new ColorCombinationValidationException(errors);
         }
     }
     
     /**
-     * Clase interna para estadísticas
+     * Inner class for statistics
      */
     public static class CombinationStatistics {
         private final long totalCombinations;
