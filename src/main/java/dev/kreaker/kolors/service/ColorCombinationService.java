@@ -37,12 +37,15 @@ public class ColorCombinationService {
 
     private final ColorCombinationRepository colorCombinationRepository;
     private final ColorInCombinationRepository colorInCombinationRepository;
+    private final ColorPositionService colorPositionService;
 
     @Autowired
     public ColorCombinationService(ColorCombinationRepository colorCombinationRepository,
-            ColorInCombinationRepository colorInCombinationRepository) {
+            ColorInCombinationRepository colorInCombinationRepository,
+            ColorPositionService colorPositionService) {
         this.colorCombinationRepository = colorCombinationRepository;
         this.colorInCombinationRepository = colorInCombinationRepository;
+        this.colorPositionService = colorPositionService;
     }
 
     /**
@@ -326,6 +329,105 @@ public class ColorCombinationService {
         if (!errors.isEmpty()) {
             throw new ColorCombinationValidationException(errors);
         }
+    }
+
+    /**
+     * Adds a color to an existing combination
+     */
+    public ColorCombination addColorToCombination(Long combinationId, ColorForm colorForm) {
+        logger.info("Adding color to combination ID: {}", combinationId);
+
+        // Validate inputs
+        if (combinationId == null) {
+            throw new IllegalArgumentException("Combination ID cannot be null");
+        }
+        if (colorForm == null || colorForm.getHexValue() == null) {
+            throw new IllegalArgumentException("Color form and hex value cannot be null");
+        }
+        if (!isValidHexColor(colorForm.getHexValue())) {
+            throw new InvalidColorFormatException("Invalid hexadecimal color format: " + colorForm.getHexValue());
+        }
+
+        // Get the existing combination
+        ColorCombination combination = colorCombinationRepository.findById(combinationId)
+                .orElseThrow(() -> new ColorCombinationNotFoundException("Combination not found with ID: " + combinationId));
+
+        // Get the next available position
+        Integer nextPosition = combination.getNextAvailablePosition();
+
+        // Create and add the new color
+        ColorInCombination newColor = new ColorInCombination(
+                colorForm.getHexValue().toUpperCase(),
+                nextPosition
+        );
+        combination.addColor(newColor);
+
+        // Save and return
+        ColorCombination savedCombination = colorCombinationRepository.save(combination);
+        logger.info("Color added successfully to combination ID: {}, new color count: {}",
+                combinationId, savedCombination.getColorCount());
+
+        return savedCombination;
+    }
+
+    /**
+     * Removes a color from an existing combination at a specific position
+     */
+    public ColorCombination removeColorFromCombination(Long combinationId, Integer position) {
+        logger.info("Removing color at position {} from combination ID: {}", position, combinationId);
+
+        // Validate inputs
+        if (combinationId == null) {
+            throw new IllegalArgumentException("Combination ID cannot be null");
+        }
+        if (position == null || position < 1) {
+            throw new IllegalArgumentException("Position must be a positive integer");
+        }
+
+        // Get the existing combination
+        ColorCombination combination = colorCombinationRepository.findById(combinationId)
+                .orElseThrow(() -> new ColorCombinationNotFoundException("Combination not found with ID: " + combinationId));
+
+        // Check if combination has more than one color (cannot remove the last color)
+        if (combination.getColors().size() <= 1) {
+            throw new ColorCombinationValidationException("Cannot remove the last color from a combination");
+        }
+
+        // Find and remove the color at the specified position
+        boolean colorRemoved = combination.getColors().removeIf(color -> color.getPosition().equals(position));
+
+        if (!colorRemoved) {
+            throw new ColorCombinationNotFoundException("No color found at position " + position + " in combination " + combinationId);
+        }
+
+        // Reorder positions and update color count
+        combination.getColors().sort((c1, c2) -> c1.getPosition().compareTo(c2.getPosition()));
+        for (int i = 0; i < combination.getColors().size(); i++) {
+            combination.getColors().get(i).setPosition(i + 1);
+        }
+        combination.setColorCount(combination.getColors().size());
+
+        // Save and return
+        ColorCombination savedCombination = colorCombinationRepository.save(combination);
+        logger.info("Color removed successfully from combination ID: {}, new color count: {}",
+                combinationId, savedCombination.getColorCount());
+
+        return savedCombination;
+    }
+
+    /**
+     * Reorders color positions after a color removal to ensure sequential
+     * positions
+     */
+    public void reorderColorsAfterRemoval(Long combinationId, Integer removedPosition) {
+        colorPositionService.reorderPositionsAfterRemoval(combinationId, removedPosition);
+    }
+
+    /**
+     * Validates that a combination has at least the minimum required colors
+     */
+    public boolean validateMinimumColors(List<ColorForm> colors) {
+        return colors != null && !colors.isEmpty();
     }
 
     /**
