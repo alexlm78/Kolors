@@ -37,14 +37,14 @@ import dev.kreaker.kolors.exception.ColorCombinationValidationException;
 import dev.kreaker.kolors.service.ColorCombinationService;
 
 /**
- * Tests de integración para ColorCombinationController
- * Enfocados en la lógica del controlador sin requerir templates
+ * Tests de integración para ColorCombinationController Enfocados en la lógica
+ * del controlador sin requerir templates
  */
 @SpringBootTest
 @AutoConfigureWebMvc
 @TestPropertySource(locations = "classpath:application-test.properties", properties = {
-        "spring.thymeleaf.enabled=false",
-        "spring.main.web-application-type=servlet"
+    "spring.thymeleaf.enabled=false",
+    "spring.main.web-application-type=servlet"
 })
 @DisplayName("ColorCombinationController Integration Tests")
 class ColorCombinationControllerIntegrationTest {
@@ -74,9 +74,9 @@ class ColorCombinationControllerIntegrationTest {
         testCombination.addColor(new ColorInCombination("FFD23F", 3));
 
         // Create test form
-        testForm = new ColorCombinationForm("Ocean Breeze", 2);
-        testForm.getColors().add(new ColorForm("0077BE", 1));
-        testForm.getColors().add(new ColorForm("87CEEB", 2));
+        testForm = new ColorCombinationForm("Ocean Breeze");
+        testForm.addColor("0077BE");
+        testForm.addColor("87CEEB");
 
         // List of test combinations
         testCombinations = Arrays.asList(testCombination);

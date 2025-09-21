@@ -35,10 +35,10 @@ class ColorCombinationTest {
         // Given
         String name = "Test Combination";
         Integer colorCount = 3;
-        
+
         // When
         ColorCombination combination = new ColorCombination(name, colorCount);
-        
+
         // Then
         assertNotNull(combination);
         assertEquals(name, combination.getName());
@@ -53,10 +53,10 @@ class ColorCombinationTest {
     void shouldSetCreatedAtAutomatically() {
         // Given
         LocalDateTime before = LocalDateTime.now().minusSeconds(1);
-        
+
         // When
         ColorCombination combination = new ColorCombination("Test", 2);
-        
+
         // Then
         LocalDateTime after = LocalDateTime.now().plusSeconds(1);
         assertNotNull(combination.getCreatedAt());
@@ -69,15 +69,15 @@ class ColorCombinationTest {
     void shouldValidateNameIsNotBlank() {
         // Given
         colorCombination.setName("");
-        colorCombination.setColorCount(2);
-        
+        colorCombination.setColorCount(1);
+
         // When
         Set<ConstraintViolation<ColorCombination>> violations = validator.validate(colorCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("El nombre es obligatorio")));
+                .anyMatch(v -> v.getMessage().contains("Name is required")));
     }
 
     @Test
@@ -86,21 +86,21 @@ class ColorCombinationTest {
         // Given - name too short
         colorCombination.setName("ab");
         colorCombination.setColorCount(2);
-        
+
         // When
         Set<ConstraintViolation<ColorCombination>> violations = validator.validate(colorCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getMessage().contains("Name must be between 3 and 100 characters")));
-        
+
         // Given - name too long
         colorCombination.setName("a".repeat(101));
-        
+
         // When
         violations = validator.validate(colorCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
@@ -113,41 +113,40 @@ class ColorCombinationTest {
         // Given
         colorCombination.setName("Valid Name");
         colorCombination.setColorCount(null);
-        
+
         // When
         Set<ConstraintViolation<ColorCombination>> violations = validator.validate(colorCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("Debe especificar el número de colores")));
+                .anyMatch(v -> v.getMessage().contains("Must have at least one color")));
     }
 
     @Test
     @DisplayName("Should validate colorCount range")
     void shouldValidateColorCountRange() {
-        // Given - colorCount too low
+        // Given - colorCount too low (0 colors)
         colorCombination.setName("Valid Name");
-        colorCombination.setColorCount(1);
-        
+        colorCombination.setColorCount(0);
+
         // When
         Set<ConstraintViolation<ColorCombination>> violations = validator.validate(colorCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("Mínimo 2 colores")));
-        
-        // Given - colorCount too high
-        colorCombination.setColorCount(5);
-        
+                .anyMatch(v -> v.getMessage().contains("Minimum 1 color")));
+
+        // Given - valid colorCount (1 color is now valid)
+        colorCombination.setColorCount(1);
+
         // When
         violations = validator.validate(colorCombination);
-        
-        // Then
-        assertFalse(violations.isEmpty());
+
+        // Then - should be valid now (no violations for colorCount)
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("Máximo 4 colores")));
+                .noneMatch(v -> v.getMessage().contains("Minimum 1 color")));
     }
 
     @Test
@@ -156,10 +155,10 @@ class ColorCombinationTest {
         // Given
         colorCombination.setName("Valid Combination");
         colorCombination.setColorCount(3);
-        
+
         // When
         Set<ConstraintViolation<ColorCombination>> violations = validator.validate(colorCombination);
-        
+
         // Then
         assertTrue(violations.isEmpty());
     }
@@ -171,11 +170,11 @@ class ColorCombinationTest {
         ColorCombination combination = new ColorCombination("Test", 2);
         ColorInCombination color1 = new ColorInCombination("FF0000", 1);
         ColorInCombination color2 = new ColorInCombination("00FF00", 2);
-        
+
         // When
         combination.addColor(color1);
         combination.addColor(color2);
-        
+
         // Then
         assertEquals(2, combination.getColors().size());
         assertEquals(combination, color1.getCombination());
@@ -191,10 +190,10 @@ class ColorCombinationTest {
         ColorInCombination color2 = new ColorInCombination("00FF00", 2);
         combination.addColor(color1);
         combination.addColor(color2);
-        
+
         // When
         combination.removeColor(color1);
-        
+
         // Then
         assertEquals(1, combination.getColors().size());
         assertNull(color1.getCombination());
@@ -206,10 +205,10 @@ class ColorCombinationTest {
     void shouldHaveMeaningfulToStringRepresentation() {
         // Given
         ColorCombination combination = new ColorCombination("Test Combination", 3);
-        
+
         // When
         String toString = combination.toString();
-        
+
         // Then
         assertNotNull(toString);
         assertTrue(toString.contains("Test Combination"));

@@ -16,7 +16,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -42,9 +41,8 @@ public class ColorCombination {
     @OneToMany(mappedBy = "combination", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ColorInCombination> colors = new ArrayList<>();
 
-    @NotNull(message = "Must specify the number of colors")
-    @Min(value = 2, message = "Minimum 2 colors")
-    @Max(value = 4, message = "Maximum 4 colors")
+    @NotNull(message = "Must have at least one color")
+    @Min(value = 1, message = "Minimum 1 color")
     @Column(nullable = false, name = "color_count")
     private Integer colorCount;
 
@@ -56,7 +54,13 @@ public class ColorCombination {
     public ColorCombination(String name, Integer colorCount) {
         this();
         this.name = name;
-        this.colorCount = colorCount;
+        this.colorCount = colorCount != null ? Math.max(colorCount, 1) : 1;
+    }
+
+    public ColorCombination(String name) {
+        this();
+        this.name = name;
+        this.colorCount = 1; // Default to 1 color, will be updated when colors are added
     }
 
     // Getters and Setters
@@ -90,9 +94,12 @@ public class ColorCombination {
 
     public void setColors(List<ColorInCombination> colors) {
         this.colors = colors;
-        // Ensure bidirectional relationship
+        // Ensure bidirectional relationship and update color count
         if (colors != null) {
             colors.forEach(color -> color.setCombination(this));
+            this.colorCount = colors.size();
+        } else {
+            this.colorCount = 0;
         }
     }
 
@@ -104,15 +111,52 @@ public class ColorCombination {
         this.colorCount = colorCount;
     }
 
-    // Helper methods
+    // Helper methods for dynamic color management
     public void addColor(ColorInCombination color) {
-        colors.add(color);
-        color.setCombination(this);
+        if (color != null) {
+            colors.add(color);
+            color.setCombination(this);
+            updateColorCount();
+        }
     }
 
     public void removeColor(ColorInCombination color) {
-        colors.remove(color);
-        color.setCombination(null);
+        if (color != null && colors.remove(color)) {
+            color.setCombination(null);
+            updateColorCount();
+            reorderPositions();
+        }
+    }
+
+    public void addColorAtPosition(String hexValue, Integer position) {
+        ColorInCombination color = new ColorInCombination(hexValue, position, this);
+        colors.add(color);
+        updateColorCount();
+    }
+
+    public void removeColorAtPosition(Integer position) {
+        colors.removeIf(color -> color.getPosition().equals(position));
+        updateColorCount();
+        reorderPositions();
+    }
+
+    private void updateColorCount() {
+        this.colorCount = colors.size();
+    }
+
+    private void reorderPositions() {
+        // Reorder positions to be sequential (1, 2, 3, ...)
+        colors.sort((c1, c2) -> c1.getPosition().compareTo(c2.getPosition()));
+        for (int i = 0; i < colors.size(); i++) {
+            colors.get(i).setPosition(i + 1);
+        }
+    }
+
+    public Integer getNextAvailablePosition() {
+        return colors.stream()
+                .mapToInt(ColorInCombination::getPosition)
+                .max()
+                .orElse(0) + 1;
     }
 
     @PrePersist
@@ -124,11 +168,11 @@ public class ColorCombination {
 
     @Override
     public String toString() {
-        return "ColorCombination{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", colorCount=" + colorCount +
-                ", createdAt=" + createdAt +
-                '}';
+        return "ColorCombination{"
+                + "id=" + id
+                + ", name='" + name + '\''
+                + ", colorCount=" + colorCount
+                + ", createdAt=" + createdAt
+                + '}';
     }
 }
