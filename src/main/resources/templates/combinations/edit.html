@@ -293,6 +293,47 @@
          font-size: 0.9rem;
       }
 
+      /* Dynamic Color Management */
+      .color-actions {
+         display: flex;
+         gap: 10px;
+         margin-top: 15px;
+         padding: 15px;
+         background: #f8f9fa;
+         border-radius: 8px;
+      }
+
+      .remove-color-btn {
+         background: #dc3545;
+         color: white;
+         border: none;
+         border-radius: 50%;
+         width: 30px;
+         height: 30px;
+         cursor: pointer;
+         font-size: 16px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         transition: all 0.3s ease;
+      }
+
+      .remove-color-btn:hover {
+         background: #c82333;
+         transform: scale(1.1);
+      }
+
+      .remove-color-btn:disabled {
+         background: #6c757d;
+         cursor: not-allowed;
+         transform: none;
+      }
+
+      .btn-sm {
+         padding: 8px 15px;
+         font-size: 14px;
+      }
+
       /* Responsive Design */
       @media (max-width: 768px) {
          .container {
@@ -372,26 +413,42 @@
                   <div th:if="${#fields.hasErrors('name')}" class="field-error" th:errors="*{name}"></div>
                </div>
 
-               <!-- Color Count Display (Read-only) -->
+               <!-- Dynamic Color Management -->
                <div class="form-group">
-                  <label>Número de Colores</label>
-                  <div class="color-count-display" th:text="${combinationForm.colorCount + ' Colores'}">2 Colores</div>
-                  <input type="hidden" th:field="*{colorCount}">
-                  <div th:if="${#fields.hasErrors('colorCount')}" class="field-error" th:errors="*{colorCount}"></div>
-               </div>
+                  <label>Colores de la Combinación</label>
+                  <div class="color-count-display">
+                     <span id="colorCountDisplay" th:text="${combinationForm.colorCount}">2</span> Colores
+                  </div>
 
-               <!-- Color Fields -->
-               <div class="color-fields">
-                  <h3>Colores de la Combinación</h3>
-                  <div class="color-field" th:each="color, iterStat : *{colors}">
-                     <span class="color-label" th:text="'Color ' + (${iterStat.index} + 1) + ':'">Color 1:</span>
-                     <div class="color-preview" th:id="'preview-' + ${iterStat.index}"></div>
-                     <input type="text" th:field="*{colors[__${iterStat.index}__].hexValue}"
-                        class="form-control color-input" th:placeholder="${'FF5733'}" maxlength="6"
-                        th:data-position="${iterStat.index}">
-                     <input type="hidden" th:field="*{colors[__${iterStat.index}__].position}">
-                     <div th:if="${#fields.hasErrors('colors[__' + iterStat.index + '__].hexValue')}"
-                        class="field-error" th:errors="*{colors[__${iterStat.index}__].hexValue}"></div>
+                  <div id="dynamicColorFields">
+                     <!-- Existing colors will be loaded here -->
+                     <div class="color-field" th:each="color, iterStat : *{colors}" th:data-position="${color.position}">
+                        <span class="color-label" th:text="'Color ' + ${color.position} + ':'">Color 1:</span>
+                        <div class="color-preview" th:id="'preview-' + ${iterStat.index}"></div>
+                        <input type="text"
+                               th:field="*{colors[__${iterStat.index}__].hexValue}"
+                               class="form-control color-input"
+                               placeholder="FF5733"
+                               maxlength="6"
+                               th:data-position="${color.position}"
+                               th:data-index="${iterStat.index}">
+                        <input type="hidden" th:field="*{colors[__${iterStat.index}__].position}">
+                        <button type="button"
+                                class="remove-color-btn"
+                                th:onclick="'removeExistingColor(' + ${combination.id} + ', ' + ${color.position} + ', this)'"
+                                th:disabled="${combinationForm.colorCount == 1}">×</button>
+                        <div th:if="${#fields.hasErrors('colors[__' + iterStat.index + '__].hexValue')}"
+                             class="field-error" th:errors="*{colors[__${iterStat.index}__].hexValue}"></div>
+                     </div>
+                  </div>
+
+                  <div class="color-actions">
+                     <button type="button" class="btn btn-secondary btn-sm" id="addColorBtn">
+                        + Agregar Color
+                     </button>
+                     <button type="button" class="btn btn-secondary btn-sm" id="addColorAjaxBtn">
+                        + Agregar Color (AJAX)
+                     </button>
                   </div>
                </div>
 
@@ -418,69 +475,237 @@
       document.addEventListener('DOMContentLoaded', function () {
          const nameInput = document.getElementById('name');
          const livePreview = document.getElementById('livePreview');
-         const colorInputs = document.querySelectorAll('.color-input');
+         const dynamicColorFields = document.getElementById('dynamicColorFields');
+         const addColorBtn = document.getElementById('addColorBtn');
+         const addColorAjaxBtn = document.getElementById('addColorAjaxBtn');
+         const colorCountDisplay = document.getElementById('colorCountDisplay');
+
+         let colorIndex = 1000; // Start high to avoid conflicts with existing colors
 
          // Initialize previews with current values
-         colorInputs.forEach((input, index) => {
+         const existingInputs = document.querySelectorAll('.color-input');
+         existingInputs.forEach((input, index) => {
             const value = input.value;
             if (value && value.length === 6) {
-               updateColorPreview(index, value);
+               updateColorPreview(input.dataset.index, value);
             }
+            setupColorInput(input);
          });
 
          // Initial live preview update
          updateLivePreview();
 
-         // Color input validation and preview
-         document.addEventListener('input', function (e) {
-            if (e.target.classList.contains('color-input')) {
-               const input = e.target;
-               const position = parseInt(input.dataset.position);
-               const value = input.value.toUpperCase();
+         // Add color button (form-based)
+         addColorBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            addColorField();
+         });
 
-               // Validate hex format
+         // Add color button (AJAX-based)
+         addColorAjaxBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            addColorViaAjax();
+         });
+
+         // Add new color field (for form submission)
+         function addColorField(hexValue = '') {
+            const currentCount = getCurrentColorCount();
+            const newPosition = currentCount + 1;
+            const fieldIndex = colorIndex++;
+
+            const colorField = document.createElement('div');
+            colorField.className = 'color-field';
+            colorField.dataset.position = newPosition;
+            colorField.innerHTML = `
+               <span class="color-label">Color ${newPosition}:</span>
+               <div class="color-preview" id="preview-${fieldIndex}"></div>
+               <input type="text"
+                      name="colors[${currentCount}].hexValue"
+                      class="form-control color-input"
+                      placeholder="FF5733"
+                      maxlength="6"
+                      data-position="${newPosition}"
+                      data-index="${fieldIndex}"
+                      value="${hexValue}">
+               <input type="hidden"
+                      name="colors[${currentCount}].position"
+                      value="${newPosition}">
+               <button type="button"
+                       class="remove-color-btn"
+                       onclick="removeColorField(this)">×</button>
+            `;
+
+            dynamicColorFields.appendChild(colorField);
+
+            // Set up event listeners for the new input
+            const colorInput = colorField.querySelector('.color-input');
+            setupColorInput(colorInput);
+
+            // If hex value provided, update preview
+            if (hexValue && hexValue.length === 6) {
+               updateColorPreview(fieldIndex, hexValue);
+            }
+
+            updateColorCountDisplay();
+            updateLivePreview();
+         }
+
+         // Add color via AJAX
+         function addColorViaAjax() {
+            const combinationId = getCombinationId();
+            const hexValue = prompt('Ingrese el valor hexadecimal del color (sin #):');
+
+            if (!hexValue) return;
+
+            if (!/^[0-9A-Fa-f]{6}$/.test(hexValue)) {
+               alert('Formato inválido. Use 6 caracteres hexadecimales (0-9, A-F)');
+               return;
+            }
+
+            fetch(`/api/combinations/${combinationId}/colors`, {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+               },
+               body: JSON.stringify({
+                  hexValue: hexValue.toUpperCase(),
+                  position: getCurrentColorCount() + 1
+               })
+            })
+            .then(response => response.json())
+            .then(data => {
+               if (data.success) {
+                  alert('Color agregado exitosamente');
+                  location.reload(); // Reload to show updated combination
+               } else {
+                  alert('Error: ' + data.message);
+               }
+            })
+            .catch(error => {
+               console.error('Error:', error);
+               alert('Error al agregar el color');
+            });
+         }
+
+         // Remove color field (form-based)
+         window.removeColorField = function(button) {
+            const colorField = button.closest('.color-field');
+            colorField.remove();
+            reorderColorFields();
+            updateColorCountDisplay();
+            updateLivePreview();
+         };
+
+         // Remove existing color (AJAX-based)
+         window.removeExistingColor = function(combinationId, position, button) {
+            if (getCurrentColorCount() <= 1) {
+               alert('No se puede eliminar el último color');
+               return;
+            }
+
+            if (!confirm(`¿Está seguro de eliminar el color en la posición ${position}?`)) {
+               return;
+            }
+
+            fetch(`/api/combinations/${combinationId}/colors/${position}`, {
+               method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+               if (data.success) {
+                  alert('Color eliminado exitosamente');
+                  location.reload(); // Reload to show updated combination
+               } else {
+                  alert('Error: ' + data.message);
+               }
+            })
+            .catch(error => {
+               console.error('Error:', error);
+               alert('Error al eliminar el color');
+            });
+         };
+
+         // Reorder color fields after removal
+         function reorderColorFields() {
+            const fields = dynamicColorFields.querySelectorAll('.color-field');
+            fields.forEach((field, index) => {
+               const position = index + 1;
+               const label = field.querySelector('.color-label');
+               const hexInput = field.querySelector('input[type="text"]');
+               const positionInput = field.querySelector('input[type="hidden"]');
+
+               // Update labels and names
+               label.textContent = `Color ${position}:`;
+               hexInput.name = `colors[${index}].hexValue`;
+               hexInput.dataset.position = position;
+               positionInput.name = `colors[${index}].position`;
+               positionInput.value = position;
+               field.dataset.position = position;
+            });
+         }
+
+         // Set up color input event listeners
+         function setupColorInput(input) {
+            input.addEventListener('input', function(e) {
+               const value = e.target.value.toUpperCase();
                const isValid = /^[0-9A-F]{0,6}$/.test(value);
 
                if (isValid) {
-                  input.value = value;
-                  input.classList.remove('error');
+                  e.target.value = value;
+                  e.target.classList.remove('error');
 
-                  // Update preview
+                  const fieldIndex = e.target.dataset.index;
                   if (value.length === 6) {
-                     updateColorPreview(position, value);
+                     updateColorPreview(fieldIndex, value);
                   } else {
-                     clearColorPreview(position);
+                     clearColorPreview(fieldIndex);
                   }
                } else {
-                  input.classList.add('error');
+                  e.target.classList.add('error');
                }
 
                updateLivePreview();
-            }
+            });
+         }
 
-            if (e.target.id === 'name') {
-               updateLivePreview();
-            }
-         });
-
-         function updateColorPreview(position, hexValue) {
-            const preview = document.getElementById('preview-' + position);
+         // Update color preview
+         function updateColorPreview(fieldIndex, hexValue) {
+            const preview = document.getElementById(`preview-${fieldIndex}`);
             if (preview) {
                preview.style.backgroundColor = '#' + hexValue;
                preview.style.borderColor = '#' + hexValue;
             }
          }
 
-         function clearColorPreview(position) {
-            const preview = document.getElementById('preview-' + position);
+         // Clear color preview
+         function clearColorPreview(fieldIndex) {
+            const preview = document.getElementById(`preview-${fieldIndex}`);
             if (preview) {
                preview.style.backgroundColor = '#f8f9fa';
                preview.style.borderColor = '#e9ecef';
             }
          }
 
+         // Get current color count
+         function getCurrentColorCount() {
+            return dynamicColorFields.querySelectorAll('.color-field').length;
+         }
+
+         // Update color count display
+         function updateColorCountDisplay() {
+            colorCountDisplay.textContent = getCurrentColorCount();
+         }
+
+         // Get combination ID from URL
+         function getCombinationId() {
+            const pathParts = window.location.pathname.split('/');
+            return pathParts[pathParts.indexOf('combinations') + 1];
+         }
+
+         // Update live preview
          function updateLivePreview() {
             const name = nameInput.value.trim();
+            const colorInputs = dynamicColorFields.querySelectorAll('.color-input');
             const validColors = [];
 
             colorInputs.forEach(input => {
@@ -492,11 +717,8 @@
 
             if (name && validColors.length > 0) {
                livePreview.style.display = 'block';
-
-               // Update preview name
                document.getElementById('livePreviewName').textContent = name;
 
-               // Update preview colors
                const previewColorsContainer = document.getElementById('livePreviewColors');
                previewColorsContainer.innerHTML = '';
 
@@ -512,6 +734,9 @@
             }
          }
 
+         // Name input listener
+         nameInput.addEventListener('input', updateLivePreview);
+
          // Form validation
          document.getElementById('editForm').addEventListener('submit', function (e) {
             const name = nameInput.value.trim();
@@ -523,7 +748,7 @@
                return;
             }
 
-            let validColorCount = 0;
+            const colorInputs = dynamicColorFields.querySelectorAll('.color-input');
             let hasErrors = false;
 
             colorInputs.forEach((input, index) => {
@@ -535,16 +760,9 @@
                   hasErrors = true;
                   return;
                }
-               validColorCount++;
             });
 
             if (hasErrors) return;
-
-            if (validColorCount !== colorInputs.length) {
-               e.preventDefault();
-               alert('Debe completar todos los colores');
-               return;
-            }
          });
       });
    </script>

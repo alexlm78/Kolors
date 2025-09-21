@@ -114,41 +114,50 @@
          border-color: #dc3545;
       }
 
-      .color-count-selector {
-         display: flex;
-         gap: 10px;
-         margin-bottom: 20px;
-      }
-
-      .color-count-btn {
-         padding: 10px 20px;
-         border: 2px solid #e9ecef;
-         background: white;
-         border-radius: 8px;
-         cursor: pointer;
-         transition: all 0.3s ease;
-         font-weight: 600;
-      }
-
-      .color-count-btn:hover {
-         border-color: #667eea;
-         background: #f8f9ff;
-      }
-
-      .color-count-btn.active {
-         background: #667eea;
-         color: white;
-         border-color: #667eea;
-      }
-
       /* Dynamic Color Fields */
-      .color-fields {
-         display: none;
-         margin-top: 20px;
+      #dynamicColorFields {
+         margin-top: 15px;
       }
 
-      .color-fields.active {
-         display: block;
+      .color-actions {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-top: 15px;
+         padding: 15px;
+         background: #f8f9fa;
+         border-radius: 8px;
+      }
+
+      .color-count-info {
+         font-weight: 600;
+         color: #495057;
+      }
+
+      .remove-color-btn {
+         background: #dc3545;
+         color: white;
+         border: none;
+         border-radius: 50%;
+         width: 30px;
+         height: 30px;
+         cursor: pointer;
+         font-size: 16px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         transition: all 0.3s ease;
+      }
+
+      .remove-color-btn:hover {
+         background: #c82333;
+         transform: scale(1.1);
+      }
+
+      .remove-color-btn:disabled {
+         background: #6c757d;
+         cursor: not-allowed;
+         transform: none;
       }
 
       .color-field {
@@ -469,90 +478,19 @@
                      placeholder="Ej: Atardecer tropical, Océano profundo..." maxlength="100" required>
                </div>
 
-               <!-- Color Count Selector -->
-               <div class="form-group">
-                  <label>Número de Colores</label>
-                  <div class="color-count-selector">
-                     <button type="button" class="color-count-btn" data-count="2">2 Colores</button>
-                     <button type="button" class="color-count-btn" data-count="3">3 Colores</button>
-                     <button type="button" class="color-count-btn" data-count="4">4 Colores</button>
-                  </div>
-                  <input type="hidden" name="colorCount" id="colorCount" required>
-               </div>
-
                <!-- Dynamic Color Fields -->
-               <div id="colorFields2" class="color-fields">
-                  <h3>Colores de la Combinación</h3>
-                  <div class="color-field">
-                     <span class="color-label">Color 1:</span>
-                     <div class="color-preview" id="preview-0"></div>
-                     <input type="text" name="colors[0].hexValue" class="form-control color-input" placeholder="FF5733"
-                        maxlength="6" data-position="0">
-                     <input type="hidden" name="colors[0].position" value="1">
+               <div class="form-group">
+                  <label>Colores de la Combinación</label>
+                  <div id="dynamicColorFields">
+                     <!-- Colors will be added dynamically here -->
                   </div>
-                  <div class="color-field">
-                     <span class="color-label">Color 2:</span>
-                     <div class="color-preview" id="preview-1"></div>
-                     <input type="text" name="colors[1].hexValue" class="form-control color-input" placeholder="33C3FF"
-                        maxlength="6" data-position="1">
-                     <input type="hidden" name="colors[1].position" value="2">
-                  </div>
-               </div>
-
-               <div id="colorFields3" class="color-fields">
-                  <h3>Colores de la Combinación</h3>
-                  <div class="color-field">
-                     <span class="color-label">Color 1:</span>
-                     <div class="color-preview" id="preview3-0"></div>
-                     <input type="text" name="colors[0].hexValue" class="form-control color-input" placeholder="FF5733"
-                        maxlength="6" data-position="0" disabled>
-                     <input type="hidden" name="colors[0].position" value="1" disabled>
-                  </div>
-                  <div class="color-field">
-                     <span class="color-label">Color 2:</span>
-                     <div class="color-preview" id="preview3-1"></div>
-                     <input type="text" name="colors[1].hexValue" class="form-control color-input" placeholder="33C3FF"
-                        maxlength="6" data-position="1" disabled>
-                     <input type="hidden" name="colors[1].position" value="2" disabled>
-                  </div>
-                  <div class="color-field">
-                     <span class="color-label">Color 3:</span>
-                     <div class="color-preview" id="preview3-2"></div>
-                     <input type="text" name="colors[2].hexValue" class="form-control color-input" placeholder="FFD700"
-                        maxlength="6" data-position="2" disabled>
-                     <input type="hidden" name="colors[2].position" value="3" disabled>
-                  </div>
-               </div>
-
-               <div id="colorFields4" class="color-fields">
-                  <h3>Colores de la Combinación</h3>
-                  <div class="color-field">
-                     <span class="color-label">Color 1:</span>
-                     <div class="color-preview" id="preview4-0"></div>
-                     <input type="text" name="colors[0].hexValue" class="form-control color-input" placeholder="FF5733"
-                        maxlength="6" data-position="0" disabled>
-                     <input type="hidden" name="colors[0].position" value="1" disabled>
-                  </div>
-                  <div class="color-field">
-                     <span class="color-label">Color 2:</span>
-                     <div class="color-preview" id="preview4-1"></div>
-                     <input type="text" name="colors[1].hexValue" class="form-control color-input" placeholder="33C3FF"
-                        maxlength="6" data-position="1" disabled>
-                     <input type="hidden" name="colors[1].position" value="2" disabled>
-                  </div>
-                  <div class="color-field">
-                     <span class="color-label">Color 3:</span>
-                     <div class="color-preview" id="preview4-2"></div>
-                     <input type="text" name="colors[2].hexValue" class="form-control color-input" placeholder="FFD700"
-                        maxlength="6" data-position="2" disabled>
-                     <input type="hidden" name="colors[2].position" value="3" disabled>
-                  </div>
-                  <div class="color-field">
-                     <span class="color-label">Color 4:</span>
-                     <div class="color-preview" id="preview4-3"></div>
-                     <input type="text" name="colors[3].hexValue" class="form-control color-input" placeholder="8A2BE2"
-                        maxlength="6" data-position="3" disabled>
-                     <input type="hidden" name="colors[3].position" value="4" disabled>
+                  <div class="color-actions">
+                     <button type="button" class="btn btn-secondary btn-sm" id="addColorBtn">
+                        + Agregar Color
+                     </button>
+                     <span class="color-count-info">
+                        Colores: <span id="colorCountDisplay">1</span>
+                     </span>
                   </div>
                </div>
 
@@ -595,9 +533,11 @@
                         <label for="colorCountFilter">Filtrar por número de colores</label>
                         <select name="colorCount" class="form-control" id="colorCountFilter">
                            <option value="">Todos</option>
+                           <option value="1" th:selected="${colorCount == 1}">1 Color</option>
                            <option value="2" th:selected="${colorCount == 2}">2 Colores</option>
                            <option value="3" th:selected="${colorCount == 3}">3 Colores</option>
                            <option value="4" th:selected="${colorCount == 4}">4 Colores</option>
+                           <option value="5" th:selected="${colorCount == 5}">5+ Colores</option>
                         </select>
                      </div>
                      <div class="form-group">
@@ -645,122 +585,158 @@
    </div>
 
    <script>
-      // Dynamic form functionality
+      // Dynamic Color Combination Management
       document.addEventListener('DOMContentLoaded', function () {
-         const colorCountButtons = document.querySelectorAll('.color-count-btn');
-         const colorCountInput = document.getElementById('colorCount');
-         const colorFieldsContainers = document.querySelectorAll('.color-fields');
+         const dynamicColorFields = document.getElementById('dynamicColorFields');
+         const addColorBtn = document.getElementById('addColorBtn');
+         const colorCountDisplay = document.getElementById('colorCountDisplay');
          const livePreview = document.getElementById('livePreview');
          const nameInput = document.getElementById('name');
 
-         // Initialize form state
-         let currentColorCount = 2;
+         let colorCount = 0;
+         let colorIndex = 0;
 
-         // Color count selection
-         colorCountButtons.forEach(button => {
-            button.addEventListener('click', function (e) {
-               e.preventDefault();
-               const count = parseInt(this.dataset.count);
-               selectColorCount(count);
-            });
+         // Initialize with one color
+         addColor();
+
+         // Add color button event
+         addColorBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            addColor();
          });
 
-         function selectColorCount(count) {
-            currentColorCount = count;
-            colorCountInput.value = count;
+         // Add new color field
+         function addColor(hexValue = '', position = null) {
+            colorCount++;
+            const actualPosition = position || colorCount;
+            const fieldIndex = colorIndex++;
 
-            // Update button states
-            colorCountButtons.forEach(btn => {
-               btn.classList.remove('active');
-               if (parseInt(btn.dataset.count) === count) {
-                  btn.classList.add('active');
-               }
-            });
+            const colorField = document.createElement('div');
+            colorField.className = 'color-field';
+            colorField.dataset.position = actualPosition;
+            colorField.innerHTML = `
+               <span class="color-label">Color ${actualPosition}:</span>
+               <div class="color-preview" id="preview-${fieldIndex}"></div>
+               <input type="text"
+                      name="colors[${actualPosition - 1}].hexValue"
+                      class="form-control color-input"
+                      placeholder="FF5733"
+                      maxlength="6"
+                      data-position="${actualPosition}"
+                      data-index="${fieldIndex}"
+                      value="${hexValue}">
+               <input type="hidden"
+                      name="colors[${actualPosition - 1}].position"
+                      value="${actualPosition}">
+               <button type="button"
+                       class="remove-color-btn"
+                       onclick="removeColor(this)"
+                       ${colorCount === 1 ? 'disabled' : ''}>×</button>
+            `;
 
-            // Disable all color fields first
-            colorFieldsContainers.forEach(container => {
-               container.classList.remove('active');
-               const inputs = container.querySelectorAll('input');
-               inputs.forEach(input => {
-                  input.disabled = true;
-               });
-            });
+            dynamicColorFields.appendChild(colorField);
+            updateColorCountDisplay();
 
-            // Enable and show the selected container
-            const activeContainer = document.getElementById('colorFields' + count);
-            if (activeContainer) {
-               activeContainer.classList.add('active');
-               const inputs = activeContainer.querySelectorAll('input');
-               inputs.forEach(input => {
-                  input.disabled = false;
-               });
+            // Set up event listeners for the new input
+            const colorInput = colorField.querySelector('.color-input');
+            setupColorInput(colorInput);
+
+            // If hex value provided, update preview
+            if (hexValue && hexValue.length === 6) {
+               updateColorPreview(fieldIndex, hexValue);
             }
 
             updateLivePreview();
          }
 
-         // Initialize with 2 colors
-         selectColorCount(2);
+         // Remove color field
+         window.removeColor = function(button) {
+            if (colorCount <= 1) return;
 
-         // Color input validation and preview
-         document.addEventListener('input', function (e) {
-            if (e.target.classList.contains('color-input')) {
-               const input = e.target;
-               const position = input.dataset.position;
-               const value = input.value.toUpperCase();
+            const colorField = button.closest('.color-field');
+            colorField.remove();
+            colorCount--;
 
-               // Validate hex format
+            // Reorder remaining fields
+            reorderColorFields();
+            updateColorCountDisplay();
+            updateLivePreview();
+         };
+
+         // Reorder color fields after removal
+         function reorderColorFields() {
+            const fields = dynamicColorFields.querySelectorAll('.color-field');
+            fields.forEach((field, index) => {
+               const position = index + 1;
+               const label = field.querySelector('.color-label');
+               const hexInput = field.querySelector('input[type="text"]');
+               const positionInput = field.querySelector('input[type="hidden"]');
+               const removeBtn = field.querySelector('.remove-color-btn');
+
+               // Update labels and names
+               label.textContent = `Color ${position}:`;
+               hexInput.name = `colors[${index}].hexValue`;
+               hexInput.dataset.position = position;
+               positionInput.name = `colors[${index}].position`;
+               positionInput.value = position;
+               field.dataset.position = position;
+
+               // Disable remove button if only one color
+               removeBtn.disabled = colorCount === 1;
+            });
+         }
+
+         // Set up color input event listeners
+         function setupColorInput(input) {
+            input.addEventListener('input', function(e) {
+               const value = e.target.value.toUpperCase();
                const isValid = /^[0-9A-F]{0,6}$/.test(value);
 
                if (isValid) {
-                  input.value = value;
-                  input.classList.remove('error');
+                  e.target.value = value;
+                  e.target.classList.remove('error');
 
-                  // Update preview
+                  const fieldIndex = e.target.dataset.index;
                   if (value.length === 6) {
-                     updateColorPreview(position, value);
+                     updateColorPreview(fieldIndex, value);
                   } else {
-                     clearColorPreview(position);
+                     clearColorPreview(fieldIndex);
                   }
                } else {
-                  input.classList.add('error');
+                  e.target.classList.add('error');
                }
 
                updateLivePreview();
-            }
-
-            if (e.target.id === 'name') {
-               updateLivePreview();
-            }
-         });
-
-         function updateColorPreview(position, hexValue) {
-            const previews = document.querySelectorAll(`[id*="preview"][id*="-${position}"], #preview-${position}`);
-            previews.forEach(preview => {
-               if (preview) {
-                  preview.style.backgroundColor = '#' + hexValue;
-                  preview.style.borderColor = '#' + hexValue;
-               }
             });
          }
 
-         function clearColorPreview(position) {
-            const previews = document.querySelectorAll(`[id*="preview"][id*="-${position}"], #preview-${position}`);
-            previews.forEach(preview => {
-               if (preview) {
-                  preview.style.backgroundColor = '#f8f9fa';
-                  preview.style.borderColor = '#e9ecef';
-               }
-            });
+         // Update color preview
+         function updateColorPreview(fieldIndex, hexValue) {
+            const preview = document.getElementById(`preview-${fieldIndex}`);
+            if (preview) {
+               preview.style.backgroundColor = '#' + hexValue;
+               preview.style.borderColor = '#' + hexValue;
+            }
          }
 
+         // Clear color preview
+         function clearColorPreview(fieldIndex) {
+            const preview = document.getElementById(`preview-${fieldIndex}`);
+            if (preview) {
+               preview.style.backgroundColor = '#f8f9fa';
+               preview.style.borderColor = '#e9ecef';
+            }
+         }
+
+         // Update color count display
+         function updateColorCountDisplay() {
+            colorCountDisplay.textContent = colorCount;
+         }
+
+         // Update live preview
          function updateLivePreview() {
             const name = nameInput.value.trim();
-            const activeContainer = document.querySelector('.color-fields.active');
-
-            if (!activeContainer) return;
-
-            const colorInputs = activeContainer.querySelectorAll('.color-input');
+            const colorInputs = dynamicColorFields.querySelectorAll('.color-input');
             const validColors = [];
 
             colorInputs.forEach(input => {
@@ -772,11 +748,8 @@
 
             if (name && validColors.length > 0) {
                livePreview.style.display = 'block';
-
-               // Update preview name
                document.getElementById('livePreviewName').textContent = name;
 
-               // Update preview colors
                const previewColorsContainer = document.getElementById('livePreviewColors');
                previewColorsContainer.innerHTML = '';
 
@@ -792,10 +765,12 @@
             }
          }
 
+         // Name input listener
+         nameInput.addEventListener('input', updateLivePreview);
+
          // Form validation
          document.getElementById('combinationForm').addEventListener('submit', function (e) {
             const name = nameInput.value.trim();
-            const colorCount = parseInt(colorCountInput.value);
 
             if (!name || name.length < 3) {
                e.preventDefault();
@@ -804,27 +779,19 @@
                return;
             }
 
-            if (!colorCount || colorCount < 2 || colorCount > 4) {
+            if (colorCount < 1) {
                e.preventDefault();
-               alert('Debe seleccionar entre 2 y 4 colores');
+               alert('Debe tener al menos un color');
                return;
             }
 
-            const activeContainer = document.querySelector('.color-fields.active');
-            if (!activeContainer) {
-               e.preventDefault();
-               alert('Error en el formulario');
-               return;
-            }
-
-            const colorInputs = activeContainer.querySelectorAll('.color-input');
+            const colorInputs = dynamicColorFields.querySelectorAll('.color-input');
             let validColorCount = 0;
 
-            for (let i = 0; i < colorCount; i++) {
+            for (let i = 0; i < colorInputs.length; i++) {
                const input = colorInputs[i];
-               if (!input) continue;
-
                const value = input.value.trim();
+
                if (!value || value.length !== 6 || !/^[0-9A-F]{6}$/.test(value)) {
                   e.preventDefault();
                   alert(`Color ${i + 1} tiene formato inválido. Use 6 caracteres hexadecimales (0-9, A-F)`);
