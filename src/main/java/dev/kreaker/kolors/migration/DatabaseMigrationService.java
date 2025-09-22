@@ -181,48 +181,6 @@ public class DatabaseMigrationService {
     }
 
     /**
-     * Performs comprehensive validation of all color combinations
-     */
-    private void performComprehensiveValidation(MigrationResult result) {
-        logger.info("Performing comprehensive data validation");
-
-        try {
-            // Get all combinations
-            List<ColorCombination> allCombinations = colorCombinationRepository.findAll();
-
-            // Validate data integrity
-            int validCombinations = 0;
-            int invalidCombinations = 0;
-
-            for (ColorCombination combination : allCombinations) {
-                if (validateSingleCombination(combination, result)) {
-                    validCombinations++;
-                } else {
-                    invalidCombinations++;
-                }
-            }
-
-            // Check for orphaned colors
-            long totalColors = allCombinations.stream()
-                    .mapToLong(c -> c.getColors().size())
-                    .sum();
-
-            result.addWarning("Validation summary: " + validCombinations + " valid combinations, "
-                    + invalidCombinations + " invalid combinations, " + totalColors + " total colors");
-
-            if (invalidCombinations == 0) {
-                logger.info("Comprehensive validation passed successfully");
-            } else {
-                logger.warn("Comprehensive validation found {} invalid combinations", invalidCombinations);
-            }
-
-        } catch (Exception e) {
-            result.addError("Comprehensive validation failed: " + e.getMessage());
-            logger.error("Comprehensive validation failed", e);
-        }
-    }
-
-    /**
      * Checks if there is legacy data available for migration. Always returns
      * false as legacy data has been migrated and removed.
      */

@@ -1,5 +1,7 @@
 package dev.kreaker.kolors;
 
+import java.util.Objects;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -127,16 +129,11 @@ public class ColorInCombination {
         }
 
         // Both hexValue and position must match for equality
-        boolean hexEquals = hexValue != null ? hexValue.equals(that.hexValue) : that.hexValue == null;
-        boolean positionEquals = position != null ? position.equals(that.position) : that.position == null;
-
-        return hexEquals && positionEquals;
+        return Objects.equals(hexValue, that.hexValue) && Objects.equals(position, that.position);
     }
 
     @Override
     public int hashCode() {
-        int result = hexValue != null ? hexValue.hashCode() : 0;
-        result = 31 * result + (position != null ? position.hashCode() : 0);
-        return result;
+        return Objects.hash(hexValue, position);
     }
 }

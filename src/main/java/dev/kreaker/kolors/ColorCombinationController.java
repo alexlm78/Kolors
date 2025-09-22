@@ -31,8 +31,6 @@ import jakarta.validation.Valid;
 public class ColorCombinationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ColorCombinationController.class);
-    private static final int DEFAULT_PAGE_SIZE = 10;
-
     private final ColorCombinationService colorCombinationService;
 
     public ColorCombinationController(ColorCombinationService colorCombinationService) {
