@@ -1,6 +1,5 @@
 package dev.kreaker.kolors.migration;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -14,12 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.kreaker.kolors.ColorCombination;
 import dev.kreaker.kolors.ColorCombinationRepository;
 import dev.kreaker.kolors.ColorInCombination;
-import dev.kreaker.kolors.KolorKombination;
-import dev.kreaker.kolors.KolorKombinationRepository;
 
 /**
- * Service responsible for migrating legacy KolorKombination data to the new
- * ColorCombination structure
+ * Service responsible for post-migration cleanup and validation. Legacy
+ * migration functionality has been completed and removed. This service now
+ * provides data integrity validation for migrated color combinations.
  */
 @Service
 public class DatabaseMigrationService {
@@ -28,160 +26,117 @@ public class DatabaseMigrationService {
     private static final Pattern HEX_PATTERN = Pattern.compile("^[0-9A-Fa-f]{6}$");
 
     @Autowired
-    private KolorKombinationRepository legacyRepository;
-
-    @Autowired
     private ColorCombinationRepository colorCombinationRepository;
 
-    private MigrationStatus currentStatus = MigrationStatus.NOT_STARTED;
+    private MigrationStatus currentStatus = MigrationStatus.COMPLETED;
     private MigrationResult lastMigrationResult;
 
     /**
-     * Migrates all legacy KolorKombination records to the new ColorCombination
-     * structure Each legacy record becomes a ColorCombination with a single
-     * color
+     * Validates the current state of migrated data. Migration has been
+     * completed and legacy code removed.
      */
-    @Transactional
-    public MigrationResult migrateLegacyData() {
-        logger.info("Starting migration of legacy data");
+    @Transactional(readOnly = true)
+    public MigrationResult validateMigratedData() {
+        logger.info("Validating migrated data integrity");
 
-        currentStatus = MigrationStatus.IN_PROGRESS;
+        currentStatus = MigrationStatus.COMPLETED;
         MigrationResult result = new MigrationResult();
 
         try {
-            // Get all legacy records
-            List<KolorKombination> legacyRecords = legacyRepository.findAll();
-            result.setTotalLegacyRecords(legacyRecords.size());
+            // Validate all color combinations
+            List<ColorCombination> allCombinations = colorCombinationRepository.findAll();
+            result.setTotalLegacyRecords(0); // No legacy data remains
+            result.setMigratedRecords(allCombinations.size());
+            result.setFailedRecords(0);
 
-            if (legacyRecords.isEmpty()) {
-                logger.info("No legacy data found to migrate");
-                currentStatus = MigrationStatus.NO_LEGACY_DATA;
-                result.setSuccess(true);
-                result.complete();
-                lastMigrationResult = result;
-                return result;
-            }
+            logger.info("Found {} color combinations to validate", allCombinations.size());
 
-            logger.info("Found {} legacy records to migrate", legacyRecords.size());
+            int validCombinations = 0;
+            int invalidCombinations = 0;
 
-            int migratedCount = 0;
-            int failedCount = 0;
-
-            for (KolorKombination legacy : legacyRecords) {
+            for (ColorCombination combination : allCombinations) {
                 try {
-                    if (migrateSingleRecord(legacy, result)) {
-                        migratedCount++;
+                    if (validateSingleCombination(combination, result)) {
+                        validCombinations++;
                     } else {
-                        failedCount++;
+                        invalidCombinations++;
                     }
                 } catch (Exception e) {
-                    failedCount++;
-                    String error = "Failed to migrate record ID " + legacy.getId() + ": " + e.getMessage();
+                    invalidCombinations++;
+                    String error = "Failed to validate combination ID " + combination.getId() + ": " + e.getMessage();
                     result.addError(error);
                     logger.error(error, e);
                 }
             }
 
-            result.setMigratedRecords(migratedCount);
-            result.setFailedRecords(failedCount);
-
             // Determine final status
-            if (failedCount == 0) {
-                currentStatus = MigrationStatus.COMPLETED;
+            if (invalidCombinations == 0) {
                 result.setSuccess(true);
-                logger.info("Migration completed successfully. Migrated {} records", migratedCount);
-            } else if (migratedCount > 0) {
-                currentStatus = MigrationStatus.COMPLETED_WITH_ERRORS;
-                result.setSuccess(true);
-                logger.warn("Migration completed with errors. Migrated: {}, Failed: {}", migratedCount, failedCount);
+                logger.info("Data validation completed successfully. Validated {} combinations", validCombinations);
             } else {
-                currentStatus = MigrationStatus.FAILED;
                 result.setSuccess(false);
-                logger.error("Migration failed completely. No records were migrated");
+                logger.warn("Data validation found issues. Valid: {}, Invalid: {}", validCombinations, invalidCombinations);
             }
 
         } catch (Exception e) {
-            currentStatus = MigrationStatus.FAILED;
             result.setSuccess(false);
-            result.addError("Migration failed with exception: " + e.getMessage());
-            logger.error("Migration failed with exception", e);
+            result.addError("Data validation failed with exception: " + e.getMessage());
+            logger.error("Data validation failed with exception", e);
         }
 
         result.complete();
         lastMigrationResult = result;
 
-        // Perform post-migration validation
-        if (result.isSuccess()) {
-            performPostMigrationValidation(result);
-        }
-
         return result;
     }
 
     /**
-     * Migrates a single legacy record to the new structure
+     * Validates a single color combination for data integrity
      */
-    private boolean migrateSingleRecord(KolorKombination legacy, MigrationResult result) {
+    private boolean validateSingleCombination(ColorCombination combination, MigrationResult result) {
         try {
-            // Validate legacy data
-            if (!isValidLegacyRecord(legacy, result)) {
+            // Validate combination data
+            if (!isValidCombination(combination, result)) {
                 return false;
             }
 
-            // Check if already migrated (by name and hex combination)
-            if (isAlreadyMigrated(legacy)) {
-                result.addWarning("Record already migrated: " + legacy.getName() + " (" + legacy.getHex() + ")");
-                return true; // Consider as successful since it's already there
+            // Validate colors in combination
+            if (!validateCombinationColors(combination, result)) {
+                return false;
             }
 
-            // Create new ColorCombination
-            ColorCombination newCombination = new ColorCombination();
-            newCombination.setName(legacy.getName());
-            newCombination.setColorCount(1);
-            newCombination.setCreatedAt(LocalDateTime.now());
-
-            // Save the combination first to get an ID
-            newCombination = colorCombinationRepository.save(newCombination);
-
-            // Create the single color
-            ColorInCombination color = new ColorInCombination();
-            color.setHexValue(legacy.getHex().toUpperCase());
-            color.setPosition(1);
-            color.setCombination(newCombination);
-
-            // Add color to combination
-            newCombination.addColor(color);
-
-            // Save the updated combination
-            colorCombinationRepository.save(newCombination);
-
-            logger.debug("Successfully migrated: {} -> ColorCombination ID {}",
-                    legacy.getName(), newCombination.getId());
+            logger.debug("Successfully validated combination ID {} with {} colors",
+                    combination.getId(), combination.getColorCount());
 
             return true;
 
         } catch (Exception e) {
-            logger.error("Error migrating record ID {}: {}", legacy.getId(), e.getMessage(), e);
+            logger.error("Error validating combination ID {}: {}", combination.getId(), e.getMessage(), e);
             return false;
         }
     }
 
     /**
-     * Validates a legacy record before migration
+     * Validates a color combination for data integrity
      */
-    private boolean isValidLegacyRecord(KolorKombination legacy, MigrationResult result) {
-        if (legacy.getName() == null || legacy.getName().trim().isEmpty()) {
-            result.addError("Invalid legacy record ID " + legacy.getId() + ": name is null or empty");
+    private boolean isValidCombination(ColorCombination combination, MigrationResult result) {
+        if (combination.getName() == null || combination.getName().trim().isEmpty()) {
+            result.addError("Invalid combination ID " + combination.getId() + ": name is null or empty");
             return false;
         }
 
-        if (legacy.getName().length() < 3) {
-            result.addError("Invalid legacy record ID " + legacy.getId() + ": name too short (< 3 characters)");
+        if (combination.getName().length() < 3) {
+            result.addError("Invalid combination ID " + combination.getId() + ": name too short (< 3 characters)");
             return false;
         }
 
-        if (legacy.getHex() == null || !HEX_PATTERN.matcher(legacy.getHex()).matches()) {
-            result.addError("Invalid legacy record ID " + legacy.getId() + ": invalid hex value '" + legacy.getHex() + "'");
+        if (combination.getColorCount() == null || combination.getColorCount() < 1) {
+            result.addError("Invalid combination ID " + combination.getId() + ": invalid color count " + combination.getColorCount());
+            return false;
+        }
+
+        if (combination.getCreatedAt() == null) {
+            result.addError("Invalid combination ID " + combination.getId() + ": missing creation date");
             return false;
         }
 
@@ -189,87 +144,91 @@ public class DatabaseMigrationService {
     }
 
     /**
-     * Checks if a legacy record has already been migrated
+     * Validates the colors within a combination
      */
-    private boolean isAlreadyMigrated(KolorKombination legacy) {
-        // Look for combinations with the same name and single color with the same hex
-        List<ColorCombination> existing = colorCombinationRepository.findByNameContainingIgnoreCase(legacy.getName());
+    private boolean validateCombinationColors(ColorCombination combination, MigrationResult result) {
+        List<ColorInCombination> colors = combination.getColors();
 
-        for (ColorCombination combination : existing) {
-            if (combination.getName().equals(legacy.getName())
-                    && combination.getColorCount() == 1
-                    && !combination.getColors().isEmpty()
-                    && combination.getColors().get(0).getHexValue().equalsIgnoreCase(legacy.getHex())) {
-                return true;
+        if (colors == null || colors.isEmpty()) {
+            result.addError("Combination ID " + combination.getId() + " has no colors");
+            return false;
+        }
+
+        if (colors.size() != combination.getColorCount()) {
+            result.addError("Combination ID " + combination.getId() + " color count mismatch: expected "
+                    + combination.getColorCount() + ", found " + colors.size());
+            return false;
+        }
+
+        // Validate each color
+        for (int i = 0; i < colors.size(); i++) {
+            ColorInCombination color = colors.get(i);
+
+            if (color.getHexValue() == null || !HEX_PATTERN.matcher(color.getHexValue()).matches()) {
+                result.addError("Combination ID " + combination.getId() + " has invalid hex value at position "
+                        + (i + 1) + ": '" + color.getHexValue() + "'");
+                return false;
+            }
+
+            if (color.getPosition() == null || color.getPosition() != (i + 1)) {
+                result.addError("Combination ID " + combination.getId() + " has invalid position at index "
+                        + i + ": expected " + (i + 1) + ", found " + color.getPosition());
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     /**
-     * Performs validation after migration to ensure data integrity
+     * Performs comprehensive validation of all color combinations
      */
-    private void performPostMigrationValidation(MigrationResult result) {
-        logger.info("Performing post-migration validation");
+    private void performComprehensiveValidation(MigrationResult result) {
+        logger.info("Performing comprehensive data validation");
 
         try {
-            // Count legacy records
-            long legacyCount = legacyRepository.count();
+            // Get all combinations
+            List<ColorCombination> allCombinations = colorCombinationRepository.findAll();
 
-            // Count migrated single-color combinations
-            long migratedCount = colorCombinationRepository.findByColorCount(1).size();
-
-            if (migratedCount < legacyCount) {
-                result.addWarning("Post-migration validation: Expected at least " + legacyCount
-                        + " single-color combinations, but found " + migratedCount);
-            }
-
-            // Validate that all migrated combinations have valid colors
-            List<ColorCombination> singleColorCombinations = colorCombinationRepository.findByColorCount(1);
+            // Validate data integrity
+            int validCombinations = 0;
             int invalidCombinations = 0;
 
-            for (ColorCombination combination : singleColorCombinations) {
-                if (combination.getColors().isEmpty()) {
-                    invalidCombinations++;
-                    result.addError("Post-migration validation: Combination ID " + combination.getId()
-                            + " has colorCount=1 but no colors");
-                } else if (combination.getColors().size() != 1) {
-                    invalidCombinations++;
-                    result.addError("Post-migration validation: Combination ID " + combination.getId()
-                            + " has colorCount=1 but " + combination.getColors().size() + " colors");
+            for (ColorCombination combination : allCombinations) {
+                if (validateSingleCombination(combination, result)) {
+                    validCombinations++;
                 } else {
-                    ColorInCombination color = combination.getColors().get(0);
-                    if (!HEX_PATTERN.matcher(color.getHexValue()).matches()) {
-                        invalidCombinations++;
-                        result.addError("Post-migration validation: Invalid hex value in combination ID "
-                                + combination.getId() + ": " + color.getHexValue());
-                    }
+                    invalidCombinations++;
                 }
             }
 
+            // Check for orphaned colors
+            long totalColors = allCombinations.stream()
+                    .mapToLong(c -> c.getColors().size())
+                    .sum();
+
+            result.addWarning("Validation summary: " + validCombinations + " valid combinations, "
+                    + invalidCombinations + " invalid combinations, " + totalColors + " total colors");
+
             if (invalidCombinations == 0) {
-                logger.info("Post-migration validation passed successfully");
+                logger.info("Comprehensive validation passed successfully");
             } else {
-                logger.warn("Post-migration validation found {} invalid combinations", invalidCombinations);
+                logger.warn("Comprehensive validation found {} invalid combinations", invalidCombinations);
             }
 
         } catch (Exception e) {
-            result.addError("Post-migration validation failed: " + e.getMessage());
-            logger.error("Post-migration validation failed", e);
+            result.addError("Comprehensive validation failed: " + e.getMessage());
+            logger.error("Comprehensive validation failed", e);
         }
     }
 
     /**
-     * Checks if there is legacy data available for migration
+     * Checks if there is legacy data available for migration. Always returns
+     * false as legacy data has been migrated and removed.
      */
     public boolean isLegacyDataPresent() {
-        try {
-            return legacyRepository.count() > 0;
-        } catch (Exception e) {
-            logger.error("Error checking for legacy data", e);
-            return false;
-        }
+        // Legacy data has been migrated and legacy tables removed
+        return false;
     }
 
     /**
@@ -295,13 +254,13 @@ public class DatabaseMigrationService {
     }
 
     /**
-     * Gets statistics about legacy and migrated data
+     * Gets statistics about migrated data
      */
     public MigrationStatistics getMigrationStatistics() {
         MigrationStatistics stats = new MigrationStatistics();
 
         try {
-            stats.setLegacyRecordCount(legacyRepository.count());
+            stats.setLegacyRecordCount(0); // No legacy data remains
             stats.setSingleColorCombinationCount(colorCombinationRepository.findByColorCount(1).size());
             stats.setTotalCombinationCount(colorCombinationRepository.count());
             stats.setMigrationStatus(currentStatus);
@@ -319,15 +278,14 @@ public class DatabaseMigrationService {
     }
 
     /**
-     * Creates backup of legacy data before migration
+     * Creates backup of current color combination data
      */
     public boolean createBackup() {
         try {
-            // This is a simple backup - in production you might want to export to file
-            logger.info("Creating backup of legacy data...");
+            logger.info("Creating backup of color combination data...");
 
-            List<KolorKombination> legacyData = legacyRepository.findAll();
-            logger.info("Backup created for {} legacy records", legacyData.size());
+            List<ColorCombination> currentData = colorCombinationRepository.findAll();
+            logger.info("Backup available for {} color combinations", currentData.size());
 
             return true;
         } catch (Exception e) {

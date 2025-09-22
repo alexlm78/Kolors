@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * Controller for managing data migration from legacy KolorKombination to new
- * ColorCombination structure
+ * Controller for managing post-migration data validation and cleanup. Legacy
+ * migration has been completed and legacy code removed. Provides administrative
+ * interface for data integrity validation.
  */
 @Controller
 @RequestMapping("/admin/migration")
@@ -55,50 +56,33 @@ public class MigrationController {
     }
 
     /**
-     * Performs the migration of legacy data
+     * Performs validation of migrated data
      */
     @PostMapping("/migrate")
-    public String migrateLegacyData(RedirectAttributes redirectAttributes) {
-        logger.info("Starting migration process via web interface");
+    public String validateMigratedData(RedirectAttributes redirectAttributes) {
+        logger.info("Starting data validation process via web interface");
 
         try {
-            // Check if migration is already in progress
-            if (migrationService.getMigrationStatus() == MigrationStatus.IN_PROGRESS) {
-                redirectAttributes.addFlashAttribute("error", "Migration is already in progress");
-                return "redirect:/admin/migration/status";
-            }
-
-            // Check if there's legacy data to migrate
-            if (!migrationService.isLegacyDataPresent()) {
-                redirectAttributes.addFlashAttribute("warning", "No legacy data found to migrate");
-                return "redirect:/admin/migration/status";
-            }
-
-            // Create backup before migration
+            // Create backup before validation
             boolean backupCreated = migrationService.createBackup();
             if (!backupCreated) {
-                redirectAttributes.addFlashAttribute("warning", "Failed to create backup, but proceeding with migration");
+                redirectAttributes.addFlashAttribute("warning", "Failed to create backup, but proceeding with validation");
             }
 
-            // Perform migration
-            MigrationResult result = migrationService.migrateLegacyData();
+            // Perform data validation (migration already completed)
+            MigrationResult result = migrationService.validateMigratedData();
 
             if (result.isSuccess()) {
-                if (result.getFailedRecords() > 0) {
-                    redirectAttributes.addFlashAttribute("warning",
-                            "Migration completed with some errors: " + result.getSummary());
-                } else {
-                    redirectAttributes.addFlashAttribute("success",
-                            "Migration completed successfully: " + result.getSummary());
-                }
+                redirectAttributes.addFlashAttribute("success",
+                        "Data validation completed successfully: " + result.getSummary());
             } else {
                 redirectAttributes.addFlashAttribute("error",
-                        "Migration failed: " + result.getSummary());
+                        "Data validation found issues: " + result.getSummary());
             }
 
         } catch (Exception e) {
-            logger.error("Migration failed with exception", e);
-            redirectAttributes.addFlashAttribute("error", "Migration failed: " + e.getMessage());
+            logger.error("Data validation failed with exception", e);
+            redirectAttributes.addFlashAttribute("error", "Data validation failed: " + e.getMessage());
         }
 
         return "redirect:/admin/migration/status";
@@ -142,41 +126,25 @@ public class MigrationController {
     }
 
     /**
-     * REST endpoint to perform migration via AJAX
+     * REST endpoint to perform data validation via AJAX
      */
     @PostMapping("/api/migrate")
     @ResponseBody
-    public ResponseEntity<MigrationResult> performMigration() {
-        logger.info("Starting migration via REST API");
+    public ResponseEntity<MigrationResult> performValidation() {
+        logger.info("Starting data validation via REST API");
 
         try {
-            // Check if migration is already in progress
-            if (migrationService.getMigrationStatus() == MigrationStatus.IN_PROGRESS) {
-                MigrationResult errorResult = new MigrationResult();
-                errorResult.setSuccess(false);
-                errorResult.addError("Migration is already in progress");
-                errorResult.complete();
-                return ResponseEntity.badRequest().body(errorResult);
-            }
+            // Legacy data has been migrated and removed, proceed with validation
 
-            // Check if there's legacy data to migrate
-            if (!migrationService.isLegacyDataPresent()) {
-                MigrationResult noDataResult = new MigrationResult();
-                noDataResult.setSuccess(true);
-                noDataResult.addWarning("No legacy data found to migrate");
-                noDataResult.complete();
-                return ResponseEntity.ok(noDataResult);
-            }
-
-            // Perform migration
-            MigrationResult result = migrationService.migrateLegacyData();
+            // Perform data validation (migration already completed)
+            MigrationResult result = migrationService.validateMigratedData();
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            logger.error("Migration failed via REST API", e);
+            logger.error("Data validation failed via REST API", e);
             MigrationResult errorResult = new MigrationResult();
             errorResult.setSuccess(false);
-            errorResult.addError("Migration failed: " + e.getMessage());
+            errorResult.addError("Data validation failed: " + e.getMessage());
             errorResult.complete();
             return ResponseEntity.internalServerError().body(errorResult);
         }
