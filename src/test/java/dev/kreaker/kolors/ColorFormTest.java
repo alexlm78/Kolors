@@ -34,10 +34,10 @@ class ColorFormTest {
         // Given
         String hexValue = "FF0000";
         Integer position = 1;
-        
+
         // When
         ColorForm form = new ColorForm(hexValue, position);
-        
+
         // Then
         assertNotNull(form);
         assertEquals(hexValue, form.getHexValue());
@@ -50,14 +50,14 @@ class ColorFormTest {
         // Given
         colorForm.setHexValue("");
         colorForm.setPosition(1);
-        
+
         // When
         Set<ConstraintViolation<ColorForm>> violations = validator.validate(colorForm);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("El valor hexadecimal es obligatorio")));
+                .anyMatch(v -> v.getMessage().contains("Hexadecimal value is required")));
     }
 
     @Test
@@ -66,21 +66,21 @@ class ColorFormTest {
         // Given - invalid characters
         colorForm.setHexValue("GGGGGG");
         colorForm.setPosition(1);
-        
+
         // When
         Set<ConstraintViolation<ColorForm>> violations = validator.validate(colorForm);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getMessage().contains("Invalid hexadecimal format")));
-        
+
         // Given - wrong length
         colorForm.setHexValue("FFF");
-        
+
         // When
         violations = validator.validate(colorForm);
-        
+
         // Then
         assertFalse(violations.isEmpty());
     }
@@ -91,36 +91,34 @@ class ColorFormTest {
         // Given - null position
         colorForm.setHexValue("FF0000");
         colorForm.setPosition(null);
-        
+
         // When
         Set<ConstraintViolation<ColorForm>> violations = validator.validate(colorForm);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getMessage().contains("La posición es obligatoria")));
-        
+
         // Given - position too low
         colorForm.setPosition(0);
-        
+
         // When
         violations = validator.validate(colorForm);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getMessage().contains("La posición mínima es 1")));
-        
-        // Given - position too high
+
+        // Given - position is now unlimited, so test with valid high position
         colorForm.setPosition(5);
-        
+
         // When
         violations = validator.validate(colorForm);
-        
-        // Then
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("La posición máxima es 4")));
+
+        // Then - should be valid now (no max position limit)
+        assertTrue(violations.isEmpty());
     }
 
     @Test
@@ -129,10 +127,10 @@ class ColorFormTest {
         // Given
         colorForm.setHexValue("FF0000");
         colorForm.setPosition(1);
-        
+
         // When
         Set<ConstraintViolation<ColorForm>> violations = validator.validate(colorForm);
-        
+
         // Then
         assertTrue(violations.isEmpty());
     }
@@ -142,19 +140,19 @@ class ColorFormTest {
     void shouldFormatHexValueWithHashPrefix() {
         // Given
         colorForm.setHexValue("FF0000");
-        
+
         // When
         String formatted = colorForm.getFormattedHex();
-        
+
         // Then
         assertEquals("#FF0000", formatted);
-        
+
         // Given - null hex value
         colorForm.setHexValue(null);
-        
+
         // When
         formatted = colorForm.getFormattedHex();
-        
+
         // Then
         assertNull(formatted);
     }
@@ -164,19 +162,19 @@ class ColorFormTest {
     void shouldValidateHexValueCorrectly() {
         // Given - valid hex
         colorForm.setHexValue("FF0000");
-        
+
         // When & Then
         assertTrue(colorForm.isValidHex());
-        
+
         // Given - invalid hex
         colorForm.setHexValue("GGGGGG");
-        
+
         // When & Then
         assertFalse(colorForm.isValidHex());
-        
+
         // Given - null hex
         colorForm.setHexValue(null);
-        
+
         // When & Then
         assertFalse(colorForm.isValidHex());
     }
@@ -187,10 +185,10 @@ class ColorFormTest {
         // Given
         colorForm.setHexValue("FF0000");
         colorForm.setPosition(1);
-        
+
         // When
         ColorInCombination entity = colorForm.toEntity();
-        
+
         // Then
         assertNotNull(entity);
         assertEquals("FF0000", entity.getHexValue());
@@ -203,19 +201,19 @@ class ColorFormTest {
     void shouldCreateFromEntityCorrectly() {
         // Given
         ColorInCombination entity = new ColorInCombination("00FF00", 2);
-        
+
         // When
         ColorForm form = ColorForm.fromEntity(entity);
-        
+
         // Then
         assertNotNull(form);
         assertEquals("00FF00", form.getHexValue());
         assertEquals(2, form.getPosition());
-        
+
         // Given - null entity
         // When
         form = ColorForm.fromEntity(null);
-        
+
         // Then
         assertNull(form);
     }
@@ -225,10 +223,10 @@ class ColorFormTest {
     void shouldHaveMeaningfulToStringRepresentation() {
         // Given
         ColorForm form = new ColorForm("FF0000", 1);
-        
+
         // When
         String toString = form.toString();
-        
+
         // Then
         assertNotNull(toString);
         assertTrue(toString.contains("FF0000"));

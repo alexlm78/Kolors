@@ -35,10 +35,10 @@ class ColorInCombinationTest {
         // Given
         String hexValue = "FF0000";
         Integer position = 1;
-        
+
         // When
         ColorInCombination color = new ColorInCombination(hexValue, position);
-        
+
         // Then
         assertNotNull(color);
         assertEquals(hexValue, color.getHexValue());
@@ -53,10 +53,10 @@ class ColorInCombinationTest {
         String hexValue = "00FF00";
         Integer position = 2;
         ColorCombination combination = new ColorCombination("Test", 2);
-        
+
         // When
         ColorInCombination color = new ColorInCombination(hexValue, position, combination);
-        
+
         // Then
         assertEquals(hexValue, color.getHexValue());
         assertEquals(position, color.getPosition());
@@ -69,14 +69,14 @@ class ColorInCombinationTest {
         // Given
         colorInCombination.setHexValue("");
         colorInCombination.setPosition(1);
-        
+
         // When
         Set<ConstraintViolation<ColorInCombination>> violations = validator.validate(colorInCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("El valor hexadecimal es obligatorio")));
+                .anyMatch(v -> v.getMessage().contains("Hexadecimal value is required")));
     }
 
     @Test
@@ -85,30 +85,30 @@ class ColorInCombinationTest {
         // Given - invalid hex format
         colorInCombination.setHexValue("GGGGGG");
         colorInCombination.setPosition(1);
-        
+
         // When
         Set<ConstraintViolation<ColorInCombination>> violations = validator.validate(colorInCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getMessage().contains("Invalid hexadecimal format")));
-        
+
         // Given - too short
         colorInCombination.setHexValue("FFF");
-        
+
         // When
         violations = validator.validate(colorInCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
-        
+
         // Given - too long
         colorInCombination.setHexValue("FFFFFFF");
-        
+
         // When
         violations = validator.validate(colorInCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
     }
@@ -118,15 +118,15 @@ class ColorInCombinationTest {
     void shouldAcceptValidHexFormats() {
         // Test various valid hex formats
         String[] validHexValues = {"FF0000", "00FF00", "0000FF", "FFFFFF", "000000", "123ABC", "abcdef"};
-        
+
         for (String hexValue : validHexValues) {
             // Given
             colorInCombination.setHexValue(hexValue);
             colorInCombination.setPosition(1);
-            
+
             // When
             Set<ConstraintViolation<ColorInCombination>> violations = validator.validate(colorInCombination);
-            
+
             // Then
             assertTrue(violations.isEmpty(), "Should accept hex value: " + hexValue);
         }
@@ -138,14 +138,14 @@ class ColorInCombinationTest {
         // Given
         colorInCombination.setHexValue("FF0000");
         colorInCombination.setPosition(null);
-        
+
         // When
         Set<ConstraintViolation<ColorInCombination>> violations = validator.validate(colorInCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("La posición es obligatoria")));
+                .anyMatch(v -> v.getMessage().contains("Position is required")));
     }
 
     @Test
@@ -154,25 +154,23 @@ class ColorInCombinationTest {
         // Given - position too low
         colorInCombination.setHexValue("FF0000");
         colorInCombination.setPosition(0);
-        
+
         // When
         Set<ConstraintViolation<ColorInCombination>> violations = validator.validate(colorInCombination);
-        
+
         // Then
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("La posición mínima es 1")));
-        
-        // Given - position too high
+                .anyMatch(v -> v.getMessage().contains("Minimum position is 1")));
+
+        // Given - position is now unlimited, so test with valid high position
         colorInCombination.setPosition(5);
-        
+
         // When
         violations = validator.validate(colorInCombination);
-        
-        // Then
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().contains("La posición máxima es 4")));
+
+        // Then - should be valid now (no max position limit)
+        assertTrue(violations.isEmpty());
     }
 
     @Test
@@ -181,10 +179,10 @@ class ColorInCombinationTest {
         // Given
         colorInCombination.setHexValue("FF0000");
         colorInCombination.setPosition(1);
-        
+
         // When
         Set<ConstraintViolation<ColorInCombination>> violations = validator.validate(colorInCombination);
-        
+
         // Then
         assertTrue(violations.isEmpty());
     }
@@ -194,10 +192,10 @@ class ColorInCombinationTest {
     void shouldFormatHexValueWithHashPrefix() {
         // Given
         colorInCombination.setHexValue("FF0000");
-        
+
         // When
         String formatted = colorInCombination.getFormattedHex();
-        
+
         // Then
         assertEquals("#FF0000", formatted);
     }
@@ -207,19 +205,19 @@ class ColorInCombinationTest {
     void shouldValidateHexValueCorrectly() {
         // Given - valid hex
         colorInCombination.setHexValue("FF0000");
-        
+
         // When & Then
         assertTrue(colorInCombination.isValidHex());
-        
+
         // Given - invalid hex
         colorInCombination.setHexValue("GGGGGG");
-        
+
         // When & Then
         assertFalse(colorInCombination.isValidHex());
-        
+
         // Given - null hex
         colorInCombination.setHexValue(null);
-        
+
         // When & Then
         assertFalse(colorInCombination.isValidHex());
     }
@@ -232,19 +230,19 @@ class ColorInCombinationTest {
         ColorInCombination color2 = new ColorInCombination("FF0000", 1);
         ColorInCombination color3 = new ColorInCombination("00FF00", 1);
         ColorInCombination color4 = new ColorInCombination("FF0000", 2);
-        
+
         // When & Then
         assertEquals(color1, color2);
         assertEquals(color1.hashCode(), color2.hashCode());
-        
+
         assertNotEquals(color1, color3);
         assertNotEquals(color1, color4);
-        
+
         // Test with IDs
         color1.setId(1L);
         color2.setId(1L);
         assertEquals(color1, color2);
-        
+
         color2.setId(2L);
         assertNotEquals(color1, color2);
     }
@@ -254,10 +252,10 @@ class ColorInCombinationTest {
     void shouldHaveMeaningfulToStringRepresentation() {
         // Given
         ColorInCombination color = new ColorInCombination("FF0000", 1);
-        
+
         // When
         String toString = color.toString();
-        
+
         // Then
         assertNotNull(toString);
         assertTrue(toString.contains("FF0000"));
