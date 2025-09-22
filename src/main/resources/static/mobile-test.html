@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Responsiveness Test - Kolors</title>
+    <link rel="stylesheet" href="/css/mobile-responsive.css">
+    <style>
+        /* Test-specific styles */
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+        }
+
+        .test-title {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .device-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .screen-size {
+            font-weight: 600;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mobile Responsiveness Test</h1>
+            <p>Testing mobile optimizations for Kolors</p>
+        </div>
+
+        <div class="content">
+            <div class="device-info">
+                <div class="screen-size" id="screenSize">Screen Size: Loading...</div>
+                <div id="deviceType">Device Type: Loading...</div>
+            </div>
+
+            <!-- Test Form Controls -->
+            <div class="test-section">
+                <div class="test-title">Touch-Friendly Form Controls</div>
+                <div class="form-group">
+                    <label for="testInput">Test Input (16px font to prevent zoom on iOS)</label>
+                    <input type="text" id="testInput" class="form-control" placeholder="Type here to test touch interaction">
+                </div>
+                <div class="form-group">
+                    <label for="testSelect">Test Select</label>
+                    <select id="testSelect" class="form-control">
+                        <option>Option 1</option>
+                        <option>Option 2</option>
+                        <option>Option 3</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Test Buttons -->
+            <div class="test-section">
+                <div class="test-title">Touch-Optimized Buttons (48px minimum)</div>
+                <button class="btn btn-primary">Primary Button</button>
+                <button class="btn btn-secondary">Secondary Button</button>
+                <button class="btn btn-danger">Danger Button</button>
+                <button class="remove-color-btn">×</button>
+            </div>
+
+            <!-- Test Color Fields -->
+            <div class="test-section">
+                <div class="test-title">Dynamic Color Fields</div>
+                <div class="color-field">
+                    <span class="color-label">Color 1:</span>
+                    <div class="color-preview" style="background-color: #FF5733;"></div>
+                    <input type="text" class="form-control color-input" value="FF5733" placeholder="FF5733">
+                    <button type="button" class="remove-color-btn">×</button>
+                </div>
+                <div class="color-field">
+                    <span class="color-label">Color 2:</span>
+                    <div class="color-preview" style="background-color: #33FF57;"></div>
+                    <input type="text" class="form-control color-input" value="33FF57" placeholder="33FF57">
+                    <button type="button" class="remove-color-btn">×</button>
+                </div>
+            </div>
+
+            <!-- Test Combination Cards -->
+            <div class="test-section">
+                <div class="test-title">Combination Cards</div>
+                <div class="combinations-grid">
+                    <div class="combination-card">
+                        <div class="combination-name">Sunset Colors</div>
+                        <div class="combination-meta">3 colores • 21/09/2024</div>
+                        <div class="combination-colors">
+                            <div class="combination-color" style="background-color: #FF5733;" data-hex="#FF5733"></div>
+                            <div class="combination-color" style="background-color: #FFC300;" data-hex="#FFC300"></div>
+                            <div class="combination-color" style="background-color: #FF8C00;" data-hex="#FF8C00"></div>
+                        </div>
+                        <div class="combination-actions">
+                            <button class="btn btn-secondary btn-sm">Ver</button>
+                            <button class="btn btn-secondary btn-sm">Editar</button>
+                            <button class="btn btn-danger btn-sm">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="combination-card">
+                        <div class="combination-name">Ocean Breeze</div>
+                        <div class="combination-meta">2 colores • 20/09/2024</div>
+                        <div class="combination-colors">
+                            <div class="combination-color" style="background-color: #3498DB;" data-hex="#3498DB"></div>
+                            <div class="combination-color" style="background-color: #2ECC71;" data-hex="#2ECC71"></div>
+                        </div>
+                        <div class="combination-actions">
+                            <button class="btn btn-secondary btn-sm">Ver</button>
+                            <button class="btn btn-secondary btn-sm">Editar</button>
+                            <button class="btn btn-danger btn-sm">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Live Preview -->
+            <div class="test-section">
+                <div class="test-title">Live Preview</div>
+                <div class="live-preview">
+                    <h3>Vista Previa</h3>
+                    <div class="preview-combination">
+                        <div id="livePreviewColors">
+                            <div class="preview-color" style="background-color: #FF5733;"></div>
+                            <div class="preview-color" style="background-color: #33FF57;"></div>
+                            <div class="preview-color" style="background-color: #3357FF;"></div>
+                        </div>
+                        <span class="preview-name">Test Combination</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Statistics -->
+            <div class="test-section">
+                <div class="test-title">Statistics Cards</div>
+                <div class="statistics">
+                    <div class="stat-card">
+                        <div class="stat-number">25</div>
+                        <div class="stat-label">Total Combinaciones</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Esta Semana</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Search Filters -->
+            <div class="test-section">
+                <div class="test-title">Search Filters</div>
+                <div class="search-filters">
+                    <div class="search-row">
+                        <div class="form-group">
+                            <label for="searchTest">Buscar por nombre</label>
+                            <input type="text" id="searchTest" class="form-control" placeholder="Buscar combinaciones...">
+                        </div>
+                        <div class="form-group">
+                            <label for="colorCountTest">Filtrar por número de colores</label>
+                            <select id="colorCountTest" class="form-control">
+                                <option value="">Todos</option>
+                                <option value="1">1 Color</option>
+                                <option value="2">2 Colores</option>
+                                <option value="3">3 Colores</option>
+                                <option value="4">4 Colores</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-secondary">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Toast -->
+            <div class="test-section">
+                <div class="test-title">Toast Notification</div>
+                <button class="btn btn-primary" onclick="showTestToast()">Show Toast</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="testToast" class="toast">
+        Test notification message
+    </div>
+
+    <script>
+        // Display screen information
+        function updateScreenInfo() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            document.getElementById('screenSize').textContent = `Screen Size: ${width}x${height}px`;
+
+            let deviceType = 'Desktop';
+            if (width <= 480) {
+                deviceType = 'Mobile (Small)';
+            } else if (width <= 767) {
+                deviceType = 'Mobile (Large)';
+            } else if (width <= 1024) {
+                deviceType = 'Tablet';
+            }
+
+            document.getElementById('deviceType').textContent = `Device Type: ${deviceType}`;
+        }
+
+        // Show test toast
+        function showTestToast() {
+            const toast = document.getElementById('testToast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Update screen info on load and resize
+        updateScreenInfo();
+        window.addEventListener('resize', updateScreenInfo);
+
+        // Test touch interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add touch feedback to buttons
+            const buttons = document.querySelectorAll('.btn, .remove-color-btn');
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+
+                button.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+
+            // Test color input validation
+            const colorInputs = document.querySelectorAll('.color-input');
+            colorInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    const value = e.target.value.toUpperCase();
+                    const isValid = /^[0-9A-F]{0,6}$/.test(value);
+
+                    if (isValid) {
+                        e.target.value = value;
+                        e.target.classList.remove('error');
+
+                        if (value.length === 6) {
+                            const preview = e.target.parentElement.querySelector('.color-preview');
+                            if (preview) {
+                                preview.style.backgroundColor = '#' + value;
+                            }
+                        }
+                    } else {
+                        e.target.classList.add('error');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

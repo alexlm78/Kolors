@@ -5,77 +5,14 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Editar Combinación - Kolors</title>
+   <link rel="stylesheet" th:href="@{/css/mobile-responsive.css}">
    <style>
-      * {
-         margin: 0;
-         padding: 0;
-         box-sizing: border-box;
-      }
-
-      body {
-         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         min-height: 100vh;
-         padding: 20px;
-      }
-
+      /* Edit page specific styles */
       .container {
          max-width: 800px;
-         margin: 0 auto;
-         background: white;
-         border-radius: 15px;
-         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-         overflow: hidden;
       }
 
-      .header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
-         padding: 30px;
-         text-align: center;
-      }
-
-      .header h1 {
-         font-size: 2rem;
-         margin-bottom: 10px;
-         font-weight: 300;
-      }
-
-      .header p {
-         opacity: 0.9;
-         font-size: 1.1rem;
-      }
-
-      .content {
-         padding: 30px;
-      }
-
-      /* Navigation */
-      .nav-back {
-         margin-bottom: 20px;
-      }
-
-      .nav-back a {
-         color: #667eea;
-         text-decoration: none;
-         font-weight: 600;
-         display: inline-flex;
-         align-items: center;
-         gap: 8px;
-      }
-
-      .nav-back a:hover {
-         text-decoration: underline;
-      }
-
-      /* Alerts */
-      .alert {
-         padding: 15px;
-         margin-bottom: 20px;
-         border-radius: 8px;
-         font-weight: 500;
-      }
-
+      /* Alert overrides */
       .alert-success {
          background-color: #d4edda;
          color: #155724;
@@ -86,40 +23,6 @@
          background-color: #f8d7da;
          color: #721c24;
          border: 1px solid #f5c6cb;
-      }
-
-      /* Form Styles */
-      .form-section {
-         background: #f8f9fa;
-         padding: 25px;
-         border-radius: 10px;
-         margin-bottom: 30px;
-      }
-
-      .form-group {
-         margin-bottom: 20px;
-      }
-
-      .form-group label {
-         display: block;
-         margin-bottom: 8px;
-         font-weight: 600;
-         color: #495057;
-      }
-
-      .form-control {
-         width: 100%;
-         padding: 12px;
-         border: 2px solid #e9ecef;
-         border-radius: 8px;
-         font-size: 16px;
-         transition: all 0.3s ease;
-      }
-
-      .form-control:focus {
-         outline: none;
-         border-color: #667eea;
-         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
       }
 
       .form-control.error {
@@ -134,95 +37,32 @@
          display: inline-block;
          font-weight: 600;
          margin-bottom: 20px;
-      }
-
-      /* Color Fields */
-      .color-fields {
-         margin-top: 20px;
-      }
-
-      .color-field {
-         display: flex;
-         align-items: center;
-         gap: 15px;
-         margin-bottom: 15px;
-         padding: 15px;
-         background: white;
-         border-radius: 8px;
-         border: 1px solid #e9ecef;
-      }
-
-      .color-preview {
-         width: 50px;
-         height: 50px;
-         border-radius: 8px;
-         border: 2px solid #e9ecef;
-         background: #f8f9fa;
-         transition: all 0.3s ease;
-      }
-
-      .color-input {
-         flex: 1;
-         max-width: 150px;
-      }
-
-      .color-label {
-         font-weight: 600;
-         color: #495057;
-         min-width: 80px;
-      }
-
-      /* Live Preview */
-      .live-preview {
-         margin-top: 20px;
-         padding: 20px;
-         background: white;
-         border-radius: 8px;
-         border: 1px solid #e9ecef;
-      }
-
-      .live-preview h3 {
-         margin-bottom: 15px;
-         color: #495057;
-      }
-
-      .preview-combination {
-         display: flex;
-         gap: 10px;
-         align-items: center;
-         margin-bottom: 10px;
-      }
-
-      .preview-color {
-         width: 60px;
-         height: 60px;
-         border-radius: 8px;
-         border: 2px solid #e9ecef;
-         background: #f8f9fa;
-         transition: all 0.3s ease;
-      }
-
-      .preview-name {
-         font-weight: 600;
-         color: #495057;
-         margin-left: 10px;
-      }
-
-      /* Button Styles */
-      .btn {
-         padding: 12px 25px;
-         border: none;
-         border-radius: 8px;
-         font-size: 16px;
-         font-weight: 600;
-         cursor: pointer;
-         transition: all 0.3s ease;
-         text-decoration: none;
-         display: inline-block;
          text-align: center;
-         margin-right: 10px;
+         width: 100%;
       }
 
+      /* Mobile optimizations for edit page */
+      @media (max-width: 767px) {
+         .color-count-display {
+            padding: 12px 16px;
+            font-size: 1rem;
+         }
+
+         .color-field {
+            padding: 20px 15px;
+         }
+
+         .color-preview {
+            width: 60px;
+            height: 60px;
+         }
+
+         .color-input {
+            font-size: 16px; /* Prevent zoom on iOS */
+         }
+      }
+
+      /* Button overrides */
       .btn-primary {
          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
          color: white;
@@ -247,6 +87,21 @@
          color: #dc3545;
          font-size: 0.875rem;
          margin-top: 5px;
+         text-align: center;
+      }
+
+      /* Mobile button optimizations */
+      @media (max-width: 767px) {
+         .btn {
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 10px;
+            padding: 16px 20px;
+         }
+
+         div[style*="margin-top: 30px"] .btn {
+            margin-bottom: 15px;
+         }
       }
 
       /* Current Combination Display */
@@ -261,12 +116,15 @@
       .current-combination h3 {
          color: #495057;
          margin-bottom: 15px;
+         text-align: center;
       }
 
       .current-colors {
          display: flex;
          gap: 10px;
          margin-bottom: 10px;
+         justify-content: center;
+         flex-wrap: wrap;
       }
 
       .current-color {
@@ -291,77 +149,71 @@
       .current-meta {
          color: #6c757d;
          font-size: 0.9rem;
+         text-align: center;
       }
 
-      /* Dynamic Color Management */
-      .color-actions {
-         display: flex;
-         gap: 10px;
-         margin-top: 15px;
-         padding: 15px;
-         background: #f8f9fa;
-         border-radius: 8px;
+      /* Mobile current combination optimizations */
+      @media (max-width: 767px) {
+         .current-combination {
+            padding: 15px;
+         }
+
+         .current-colors {
+            gap: 8px;
+         }
+
+         .current-color {
+            width: 40px;
+            height: 40px;
+         }
+
+         .current-color::after {
+            font-size: 8px;
+            bottom: -16px;
+         }
+
+         .current-meta {
+            font-size: 0.85rem;
+         }
+
+         .remove-color-btn {
+            width: 44px;
+            height: 44px;
+            font-size: 18px;
+         }
+
+         .btn-sm {
+            padding: 12px 16px;
+            font-size: 15px;
+            width: 100%;
+            margin-bottom: 10px;
+         }
       }
 
-      .remove-color-btn {
-         background: #dc3545;
-         color: white;
-         border: none;
-         border-radius: 50%;
-         width: 30px;
-         height: 30px;
-         cursor: pointer;
-         font-size: 16px;
-         display: flex;
-         align-items: center;
-         justify-content: center;
-         transition: all 0.3s ease;
+      /* Additional mobile optimizations for edit page */
+      @media (max-width: 767px) {
+         .color-actions {
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+         }
+
+         .form-section {
+            padding: 15px;
+         }
       }
 
-      .remove-color-btn:hover {
-         background: #c82333;
-         transform: scale(1.1);
-      }
-
-      .remove-color-btn:disabled {
-         background: #6c757d;
-         cursor: not-allowed;
-         transform: none;
-      }
-
-      .btn-sm {
-         padding: 8px 15px;
-         font-size: 14px;
-      }
-
-      /* Responsive Design */
-      @media (max-width: 768px) {
+      @media (max-width: 480px) {
          .container {
-            margin: 10px;
-            border-radius: 10px;
-         }
-
-         .header {
-            padding: 20px;
-         }
-
-         .header h1 {
-            font-size: 1.5rem;
+            margin: 5px;
          }
 
          .content {
-            padding: 20px;
+            padding: 15px;
          }
 
-         .color-field {
-            flex-direction: column;
-            text-align: center;
-         }
-
-         .btn {
-            width: 100%;
-            margin-bottom: 10px;
-            margin-right: 0;
+         .current-combination {
+            padding: 12px;
          }
       }
    </style>
@@ -766,6 +618,9 @@
          });
       });
    </script>
+
+   <!-- Mobile Enhancement JavaScript -->
+   <script th:src="@{/js/mobile-enhancements.js}"></script>
 </body>
 
 </html>

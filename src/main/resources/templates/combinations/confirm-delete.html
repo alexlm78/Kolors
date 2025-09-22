@@ -5,70 +5,52 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Confirmar Eliminación - Kolors</title>
+   <link rel="stylesheet" th:href="@{/css/mobile-responsive.css}">
    <style>
-      * {
-         margin: 0;
-         padding: 0;
-         box-sizing: border-box;
-      }
-
+      /* Confirm delete specific styles */
       body {
-         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         min-height: 100vh;
-         padding: 20px;
          display: flex;
          align-items: center;
          justify-content: center;
+         min-height: 100vh;
       }
 
       .container {
          max-width: 600px;
          width: 100%;
-         background: white;
-         border-radius: 15px;
-         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-         overflow: hidden;
       }
 
       .header {
          background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
          color: white;
-         padding: 30px;
+         padding: 20px;
          text-align: center;
       }
 
       .header h1 {
-         font-size: 2rem;
-         margin-bottom: 10px;
+         font-size: 1.5rem;
+         margin-bottom: 8px;
          font-weight: 300;
       }
 
       .header p {
          opacity: 0.9;
-         font-size: 1.1rem;
+         font-size: 0.95rem;
       }
 
-      .content {
-         padding: 30px;
-      }
+      /* Mobile header optimizations */
+      @media (max-width: 767px) {
+         .header {
+            padding: 15px;
+         }
 
-      /* Navigation */
-      .nav-back {
-         margin-bottom: 20px;
-      }
+         .header h1 {
+            font-size: 1.3rem;
+         }
 
-      .nav-back a {
-         color: #667eea;
-         text-decoration: none;
-         font-weight: 600;
-         display: inline-flex;
-         align-items: center;
-         gap: 8px;
-      }
-
-      .nav-back a:hover {
-         text-decoration: underline;
+         .header p {
+            font-size: 0.9rem;
+         }
       }
 
       /* Warning Section */
@@ -76,105 +58,140 @@
          background: #fff3cd;
          border: 1px solid #ffeaa7;
          border-radius: 10px;
-         padding: 25px;
-         margin-bottom: 30px;
+         padding: 20px;
+         margin-bottom: 20px;
          text-align: center;
       }
 
       .warning-icon {
-         font-size: 3rem;
+         font-size: 2.5rem;
          color: #856404;
-         margin-bottom: 15px;
+         margin-bottom: 12px;
       }
 
       .warning-title {
-         font-size: 1.5rem;
+         font-size: 1.3rem;
          font-weight: 700;
          color: #856404;
-         margin-bottom: 15px;
+         margin-bottom: 12px;
       }
 
       .warning-message {
          color: #856404;
-         font-size: 1.1rem;
+         font-size: 1rem;
          line-height: 1.5;
+      }
+
+      /* Mobile warning optimizations */
+      @media (max-width: 767px) {
+         .warning-section {
+            padding: 15px;
+         }
+
+         .warning-icon {
+            font-size: 2rem;
+         }
+
+         .warning-title {
+            font-size: 1.1rem;
+         }
+
+         .warning-message {
+            font-size: 0.9rem;
+         }
       }
 
       /* Combination Preview */
       .combination-preview {
          background: #f8f9fa;
-         padding: 25px;
+         padding: 20px;
          border-radius: 10px;
-         margin-bottom: 30px;
+         margin-bottom: 20px;
          text-align: center;
       }
 
       .combination-name {
-         font-size: 1.8rem;
+         font-size: 1.5rem;
          font-weight: 700;
          color: #495057;
-         margin-bottom: 15px;
+         margin-bottom: 12px;
       }
 
       .combination-meta {
          color: #6c757d;
-         font-size: 1rem;
-         margin-bottom: 20px;
+         font-size: 0.9rem;
+         margin-bottom: 15px;
       }
 
       .combination-colors {
          display: flex;
          justify-content: center;
-         gap: 15px;
-         margin-bottom: 20px;
+         gap: 12px;
+         margin-bottom: 15px;
          flex-wrap: wrap;
       }
 
       .color-box {
-         width: 80px;
-         height: 80px;
-         border-radius: 10px;
+         width: 60px;
+         height: 60px;
+         border-radius: 8px;
          border: 2px solid #e9ecef;
-         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
          position: relative;
       }
 
       .color-hex {
          position: absolute;
-         bottom: -25px;
+         bottom: -20px;
          left: 50%;
          transform: translateX(-50%);
-         font-size: 0.8rem;
+         font-size: 0.7rem;
          color: #6c757d;
          font-family: 'Courier New', monospace;
          white-space: nowrap;
       }
 
+      /* Mobile combination preview optimizations */
+      @media (max-width: 767px) {
+         .combination-preview {
+            padding: 15px;
+         }
+
+         .combination-name {
+            font-size: 1.2rem;
+         }
+
+         .combination-meta {
+            font-size: 0.85rem;
+         }
+
+         .combination-colors {
+            gap: 8px;
+         }
+
+         .color-box {
+            width: 45px;
+            height: 45px;
+         }
+
+         .color-hex {
+            font-size: 0.6rem;
+            bottom: -16px;
+         }
+      }
+
       /* Action Buttons */
       .action-buttons {
          display: flex;
-         gap: 15px;
+         gap: 12px;
          justify-content: center;
          flex-wrap: wrap;
-      }
-
-      .btn {
-         padding: 15px 30px;
-         border: none;
-         border-radius: 8px;
-         font-size: 16px;
-         font-weight: 600;
-         cursor: pointer;
-         transition: all 0.3s ease;
-         text-decoration: none;
-         display: inline-block;
-         text-align: center;
-         min-width: 150px;
       }
 
       .btn-danger {
          background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
          color: white;
+         min-width: 140px;
       }
 
       .btn-danger:hover {
@@ -185,6 +202,7 @@
       .btn-secondary {
          background: #6c757d;
          color: white;
+         min-width: 140px;
       }
 
       .btn-secondary:hover {
@@ -193,21 +211,35 @@
          box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
       }
 
+      /* Mobile action buttons */
+      @media (max-width: 767px) {
+         .action-buttons {
+            flex-direction: column;
+            gap: 15px;
+         }
+
+         .action-buttons .btn {
+            width: 100%;
+            min-width: auto;
+            padding: 16px 20px;
+         }
+      }
+
       /* Confirmation Form */
       .confirmation-form {
          background: white;
-         padding: 25px;
+         padding: 20px;
          border-radius: 10px;
          border: 1px solid #e9ecef;
-         margin-bottom: 20px;
+         margin-bottom: 15px;
       }
 
       .confirmation-checkbox {
          display: flex;
          align-items: center;
          gap: 10px;
-         margin-bottom: 20px;
-         padding: 15px;
+         margin-bottom: 15px;
+         padding: 12px;
          background: #f8f9fa;
          border-radius: 8px;
       }
@@ -222,6 +254,7 @@
          cursor: pointer;
          font-weight: 500;
          color: #495057;
+         font-size: 0.95rem;
       }
 
       .delete-button {
@@ -235,64 +268,58 @@
          cursor: pointer;
       }
 
-      /* Responsive Design */
-      @media (max-width: 768px) {
-         .container {
-            margin: 10px;
-            border-radius: 10px;
+      /* Mobile confirmation form optimizations */
+      @media (max-width: 767px) {
+         .confirmation-form {
+            padding: 15px;
          }
 
-         .header {
-            padding: 20px;
-         }
-
-         .header h1 {
-            font-size: 1.5rem;
-         }
-
-         .content {
-            padding: 20px;
-         }
-
-         .combination-name {
-            font-size: 1.5rem;
-         }
-
-         .combination-colors {
-            gap: 10px;
-         }
-
-         .color-box {
-            width: 60px;
-            height: 60px;
-         }
-
-         .action-buttons {
+         .confirmation-checkbox {
+            padding: 15px;
             flex-direction: column;
+            text-align: center;
+            gap: 12px;
          }
 
-         .btn {
-            width: 100%;
-            min-width: auto;
+         .confirmation-checkbox input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+         }
+
+         .confirmation-checkbox label {
+            font-size: 0.9rem;
+            line-height: 1.4;
          }
       }
 
+      /* Additional mobile optimizations */
       @media (max-width: 480px) {
          body {
-            padding: 10px;
+            padding: 5px;
          }
 
-         .warning-icon {
-            font-size: 2rem;
+         .container {
+            margin: 5px;
          }
 
-         .warning-title {
-            font-size: 1.2rem;
+         .content {
+            padding: 15px;
          }
 
          .combination-colors {
             flex-direction: column;
             align-items: center;
+            gap: 10px;
+         }
+
+         .color-box {
+            width: 50px;
+            height: 50px;
+         }
+
+         .color-hex {
+            font-size: 0.55rem;
+            bottom: -14px;
          }
       }
    </style>
@@ -405,6 +432,9 @@
          });
       });
    </script>
+
+   <!-- Mobile Enhancement JavaScript -->
+   <script th:src="@{/js/mobile-enhancements.js}"></script>
 </body>
 
 </html>
