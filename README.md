@@ -58,15 +58,15 @@ A modern Spring Boot web application for creating, managing, and exploring dynam
    ```
 
 4. **Access the application**
-   - Web Interface: http://localhost:8080
-   - Color Combinations: http://localhost:8080/combinations/
-   - Admin Panel: http://localhost:8080/admin/migration/status
+   - Web Interface: <http://localhost:8080>
+   - Color Combinations: <http://localhost:8080/combinations/>
+   - Admin Panel: <http://localhost:8080/admin/migration/status>
 
 ## 📱 Usage Guide
 
 ### Creating Color Combinations
 
-1. **Navigate to the main page** at http://localhost:8080/combinations/
+1. **Navigate to the main page** at <http://localhost:8080/combinations/>
 2. **Click "Nueva Combinación"** to create a new combination
 3. **Enter a name** for your color combination (minimum 3 characters)
 4. **Add colors** using the color picker or hex input
@@ -99,7 +99,7 @@ The application is fully responsive and optimized for mobile devices:
 
 ### Project Structure
 
-```
+```directory
 src/
 ├── main/
 │   ├── java/dev/kreaker/kolors/
@@ -294,7 +294,7 @@ The application has completed migration from the legacy KolorKombination system:
 - ✅ **Data Validated**: Complete data integrity validation
 - ✅ **System Optimized**: Performance improvements implemented
 
-Access the migration status at: http://localhost:8080/admin/migration/status
+Access the migration status at: <http://localhost:8080/admin/migration/status>
 
 ## 🤝 Contributing
 
@@ -388,3 +388,5 @@ When using or modifying this software, include attribution such as:
 ---
 
 **Kolors** - Making color combination management simple and beautiful. 🎨
+
+(c) Alex Lopez Monzon for [Kreaker Developments](https://kreaker.dev)

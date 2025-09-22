@@ -39,7 +39,9 @@ tasks.named('test') {
 spotless {
     java {
       target '**/*.java'
-      googleJavaFormat('1.17.0')
+      targetExclude '**/build/**', '**/.gradle/**', 'out/**'
+
+      googleJavaFormat('1.17.0').aosp()
       removeUnusedImports()
       trimTrailingWhitespace()
       endWithNewline()
@@ -47,43 +49,56 @@ spotless {
 
       custom 'noWildcardImports', {
          if (it.contains('import .*\\*')) {
-            throw new RuntimeException('No usar wildcard imports')
+            throw new RuntimeException('No use wildcard imports')
          }
+      }
+
+      custom 'enforceUtf8', {
+         return new String(it.getBytes('UTF-8'), 'UTF-8')
       }
    }
 
    format 'properties', {
       target '**/*.properties'
-      targetExclude '**/build/**'
+      targetExclude '**/build/**', '**/.gradle/**', 'out/**'
 
       trimTrailingWhitespace()
       endWithNewline()
+      indentWithSpaces(2)
 
-      // Properties perzonalized format
+      // Sort properties alphabetically
       custom 'sortProperties', { content ->
          def lines = content.readLines()
-         def comments = []
-         def props = []
-         def inComment = false
+         def result = []
+         def commentBlock = []
+         def propBlock = []
 
          lines.each { line ->
             def trimmed = line.trim()
             if (trimmed.startsWith('#') || trimmed.isEmpty()) {
-               if (!props.isEmpty()) {
-                  comments.addAll(props.sort())
-                  props.clear()
+               if (!propBlock.isEmpty()) {
+                  result.addAll(propBlock.sort { a, b ->
+                     def keyA = a.split('=')[0].trim()
+                     def keyB = b.split('=')[0].trim()
+                     return keyA.compareToIgnoreCase(keyB)
+                  })
+                  propBlock.clear()
                }
-               comments.add(line)
+               result.add(line)
             } else {
-               props.add(line)
+               propBlock.add(line)
             }
          }
 
-         if (!props.isEmpty()) {
-            comments.addAll(props.sort())
+         if (!propBlock.isEmpty()) {
+            result.addAll(propBlock.sort { a, b ->
+               def keyA = a.split('=')[0].trim()
+               def keyB = b.split('=')[0].trim()
+               return keyA.compareToIgnoreCase(keyB)
+            })
          }
 
-         return comments.join('\n')
+         return result.join('\n')
       }
    }
 
@@ -94,6 +109,7 @@ spotless {
 
       trimTrailingWhitespace()
       endWithNewline()
+      indentWithSpaces(2)
    }
 
    // XML files (Maven, Spring configs)
@@ -104,11 +120,41 @@ spotless {
       eclipseWtp('xml')
       trimTrailingWhitespace()
       endWithNewline()
+      indentWithSpaces(2)
+   }
+
+   // Additional formats
+   format 'misc', {
+      target '**/*.md', '**/*.gitignore'
+      trimTrailingWhitespace()
+      endWithNewline()
+      indentWithSpaces(3)
    }
 }
 
-task formatCode {
+// Custom tasks for IDE integration
+task formatJava {
    group 'formatting'
-   description 'Apply Spotless format to all files'
+   description 'Format only Java files'
+   doLast {
+      exec {
+         commandLine './gradlew', 'spotlessJavaApply'
+      }
+   }
+}
+
+task formatProperties {
+   group 'formatting'
+   description 'Format only Properties files'
+   doLast {
+      exec {
+         commandLine './gradlew', 'spotlessPropertiesApply'
+      }
+   }
+}
+
+task formatAll {
+   group 'formatting'
+   description 'Format all supported files'
    dependsOn 'spotlessApply'
 }
