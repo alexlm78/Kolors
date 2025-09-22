@@ -129,6 +129,85 @@ public class ColorCombinationService {
     }
 
     /**
+     * Advanced search with multiple criteria
+     */
+    @Transactional(readOnly = true)
+    public List<ColorCombination> searchWithFilters(String name, Integer minColors, Integer maxColors, String hexValue) {
+        logger.debug("Advanced search - name: '{}', minColors: {}, maxColors: {}, hexValue: '{}'",
+                name, minColors, maxColors, hexValue);
+
+        // If searching by hex value, use specific method
+        if (hexValue != null && !hexValue.trim().isEmpty()) {
+            if (!isValidHexColor(hexValue)) {
+                throw InvalidColorFormatException.forHexValue(hexValue);
+            }
+            return colorCombinationRepository.findByContainingHexValue(hexValue.toUpperCase());
+        }
+
+        // If both name and color range specified
+        if (name != null && !name.trim().isEmpty() && minColors != null && maxColors != null) {
+            return colorCombinationRepository.findByNameAndColorCountRange(name.trim(), minColors, maxColors);
+        }
+
+        // If only color range specified
+        if (minColors != null && maxColors != null) {
+            return colorCombinationRepository.findByColorCountBetweenOrderByCreatedAtDesc(minColors, maxColors);
+        }
+
+        // If only name specified
+        if (name != null && !name.trim().isEmpty()) {
+            return colorCombinationRepository.findByNameContainingIgnoreCase(name.trim());
+        }
+
+        // Default: return all combinations
+        return findAllCombinations();
+    }
+
+    /**
+     * Advanced search with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<ColorCombination> searchWithFilters(String name, Integer minColors, Integer maxColors,
+            String hexValue, Pageable pageable) {
+        logger.debug("Advanced search with pagination - name: '{}', minColors: {}, maxColors: {}, hexValue: '{}', page: {}",
+                name, minColors, maxColors, hexValue, pageable);
+
+        // If searching by hex value, use specific method
+        if (hexValue != null && !hexValue.trim().isEmpty()) {
+            if (!isValidHexColor(hexValue)) {
+                throw InvalidColorFormatException.forHexValue(hexValue);
+            }
+            return colorCombinationRepository.findByContainingHexValueWithPagination(hexValue.toUpperCase(), pageable);
+        }
+
+        // Use complex query for other filters
+        return colorCombinationRepository.findWithFilters(
+                name != null && !name.trim().isEmpty() ? name.trim() : null,
+                minColors,
+                maxColors,
+                pageable
+        );
+    }
+
+    /**
+     * Search combinations by color count range
+     */
+    @Transactional(readOnly = true)
+    public List<ColorCombination> findByColorCountRange(Integer minColors, Integer maxColors) {
+        logger.debug("Searching combinations with color count between {} and {}", minColors, maxColors);
+
+        if (minColors == null || maxColors == null) {
+            throw new IllegalArgumentException("Both minColors and maxColors must be specified");
+        }
+
+        if (minColors < 1 || maxColors < minColors) {
+            throw new IllegalArgumentException("Invalid color count range");
+        }
+
+        return colorCombinationRepository.findByColorCountBetweenOrderByCreatedAtDesc(minColors, maxColors);
+    }
+
+    /**
      * Gets a combination by ID
      */
     @Transactional(readOnly = true)

@@ -127,6 +127,83 @@
          text-align: center;
       }
 
+      /* Search and filter styles */
+      .search-filters {
+         background: #f8f9fa;
+         border-radius: 8px;
+         padding: 20px;
+         margin-bottom: 20px;
+      }
+
+      .search-row {
+         display: flex;
+         gap: 15px;
+         flex-wrap: wrap;
+         align-items: end;
+      }
+
+      .search-row .form-group {
+         flex: 1;
+         min-width: 200px;
+      }
+
+      .advanced-filters {
+         margin-top: 15px;
+         padding-top: 15px;
+         border-top: 1px solid #dee2e6;
+      }
+
+      .search-actions {
+         display: flex;
+         gap: 10px;
+         margin-top: 15px;
+         flex-wrap: wrap;
+      }
+
+      .search-results-info {
+         margin-bottom: 15px;
+         padding: 10px 15px;
+         background: #e9ecef;
+         border-radius: 5px;
+      }
+
+      .results-count {
+         margin: 0;
+         color: #495057;
+         font-size: 0.9rem;
+      }
+
+      .search-term, .filter-info {
+         color: #007bff;
+      }
+
+      /* Pagination styles */
+      .pagination-controls {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-top: 20px;
+         padding: 15px;
+         background: #f8f9fa;
+         border-radius: 8px;
+      }
+
+      .pagination-info {
+         color: #6c757d;
+         font-size: 0.9rem;
+      }
+
+      .pagination-buttons {
+         display: flex;
+         gap: 5px;
+         align-items: center;
+      }
+
+      .pagination-buttons .current-page {
+         background: #007bff !important;
+         border-color: #007bff !important;
+      }
+
       /* Mobile search optimizations */
       @media (max-width: 767px) {
          .combinations-section h2 {
@@ -135,6 +212,29 @@
 
          .search-filters {
             padding: 15px;
+         }
+
+         .search-row {
+            flex-direction: column;
+            gap: 10px;
+         }
+
+         .search-row .form-group {
+            min-width: auto;
+         }
+
+         .search-actions {
+            flex-direction: column;
+         }
+
+         .pagination-controls {
+            flex-direction: column;
+            gap: 10px;
+         }
+
+         .pagination-buttons {
+            flex-wrap: wrap;
+            justify-content: center;
          }
       }
 
@@ -332,7 +432,9 @@
                            <option value="2" th:selected="${colorCount == 2}">2 Colores</option>
                            <option value="3" th:selected="${colorCount == 3}">3 Colores</option>
                            <option value="4" th:selected="${colorCount == 4}">4 Colores</option>
-                           <option value="5" th:selected="${colorCount == 5}">5+ Colores</option>
+                           <option value="5" th:selected="${colorCount == 5}">5 Colores</option>
+                           <option value="6" th:selected="${colorCount == 6}">6 Colores</option>
+                           <option value="7" th:selected="${colorCount == 7}">7+ Colores</option>
                         </select>
                      </div>
                      <div class="form-group">
@@ -340,11 +442,53 @@
                         <input type="text" name="hexValue" th:value="${hexValue}" class="form-control" id="hexValue"
                            placeholder="FF5733" maxlength="6">
                      </div>
-                     <div class="form-group">
-                        <button type="submit" class="btn btn-secondary">Buscar</button>
+                  </div>
+
+                  <!-- Advanced Filters -->
+                  <div class="advanced-filters" id="advancedFilters" style="display: none;">
+                     <div class="search-row">
+                        <div class="form-group">
+                           <label for="minColors">Mínimo de colores</label>
+                           <input type="number" name="minColors" th:value="${minColors}" class="form-control" id="minColors"
+                              min="1" max="20" placeholder="1">
+                        </div>
+                        <div class="form-group">
+                           <label for="maxColors">Máximo de colores</label>
+                           <input type="number" name="maxColors" th:value="${maxColors}" class="form-control" id="maxColors"
+                              min="1" max="20" placeholder="10">
+                        </div>
                      </div>
                   </div>
+
+                  <div class="search-actions">
+                     <button type="submit" class="btn btn-secondary">Buscar</button>
+                     <button type="button" class="btn btn-secondary btn-sm" id="toggleAdvanced">
+                        Filtros Avanzados
+                     </button>
+                     <button type="button" class="btn btn-secondary btn-sm" id="clearFilters">
+                        Limpiar
+                     </button>
+                  </div>
                </form>
+            </div>
+
+            <!-- Search Results Info -->
+            <div class="search-results-info" th:if="${totalCombinations != null}">
+               <p class="results-count">
+                  <span th:text="${totalCombinations}">0</span> combinaciones encontradas
+                  <span th:if="${search != null and !search.isEmpty()}" class="search-term">
+                     para "<strong th:text="${search}"></strong>"
+                  </span>
+                  <span th:if="${colorCount != null}" class="filter-info">
+                     con <strong th:text="${colorCount}"></strong> colores
+                  </span>
+                  <span th:if="${minColors != null and maxColors != null}" class="filter-info">
+                     con <strong th:text="${minColors}"></strong> a <strong th:text="${maxColors}"></strong> colores
+                  </span>
+                  <span th:if="${hexValue != null and !hexValue.isEmpty()}" class="filter-info">
+                     conteniendo color <strong th:text="'#' + ${hexValue}"></strong>
+                  </span>
+               </p>
             </div>
 
             <!-- Combinations Grid -->
@@ -370,10 +514,43 @@
                </div>
             </div>
 
+            <!-- Pagination Controls -->
+            <div class="pagination-controls" th:if="${totalPages != null and totalPages > 1}">
+               <div class="pagination-info">
+                  Página <span th:text="${currentPage + 1}">1</span> de <span th:text="${totalPages}">1</span>
+               </div>
+               <div class="pagination-buttons">
+                  <a th:if="${hasPrevious}"
+                     th:href="@{/combinations/paginated(search=${search}, colorCount=${colorCount}, minColors=${minColors}, maxColors=${maxColors}, hexValue=${hexValue}, page=${currentPage - 1}, size=${pageSize})}"
+                     class="btn btn-secondary btn-sm">« Anterior</a>
+
+                  <span th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:if="${pageNum >= (currentPage - 2) and pageNum <= (currentPage + 2)}">
+                     <a th:if="${pageNum != currentPage}"
+                        th:href="@{/combinations/paginated(search=${search}, colorCount=${colorCount}, minColors=${minColors}, maxColors=${maxColors}, hexValue=${hexValue}, page=${pageNum}, size=${pageSize})}"
+                        th:text="${pageNum + 1}"
+                        class="btn btn-secondary btn-sm">1</a>
+                     <span th:if="${pageNum == currentPage}"
+                           th:text="${pageNum + 1}"
+                           class="btn btn-primary btn-sm current-page">1</span>
+                  </span>
+
+                  <a th:if="${hasNext}"
+                     th:href="@{/combinations/paginated(search=${search}, colorCount=${colorCount}, minColors=${minColors}, maxColors=${maxColors}, hexValue=${hexValue}, page=${currentPage + 1}, size=${pageSize})}"
+                     class="btn btn-secondary btn-sm">Siguiente »</a>
+               </div>
+            </div>
+
             <!-- Empty State -->
             <div th:if="${combinations == null or combinations.empty}" class="text-center" style="padding: 40px;">
                <h3 style="color: #6c757d; margin-bottom: 10px;">No hay combinaciones guardadas</h3>
-               <p style="color: #6c757d;">Crea tu primera combinación de colores usando el formulario de arriba.</p>
+               <p style="color: #6c757d;" th:if="${search == null and colorCount == null and hexValue == null}">
+                  Crea tu primera combinación de colores usando el formulario de arriba.
+               </p>
+               <p style="color: #6c757d;" th:if="${search != null or colorCount != null or hexValue != null}">
+                  No se encontraron combinaciones que coincidan con los criterios de búsqueda.
+                  <a href="/combinations/" class="btn btn-secondary btn-sm" style="margin-left: 10px;">Ver todas</a>
+               </p>
             </div>
          </div>
       </div>
@@ -608,6 +785,11 @@
          const searchInput = document.getElementById('search');
          const colorCountFilter = document.getElementById('colorCountFilter');
          const hexValueInput = document.getElementById('hexValue');
+         const minColorsInput = document.getElementById('minColors');
+         const maxColorsInput = document.getElementById('maxColors');
+         const toggleAdvancedBtn = document.getElementById('toggleAdvanced');
+         const clearFiltersBtn = document.getElementById('clearFilters');
+         const advancedFilters = document.getElementById('advancedFilters');
 
          // Auto-submit search on input change (debounced)
          let searchTimeout;
@@ -618,8 +800,31 @@
             }, 500);
          }
 
+         // Search input listeners
          searchInput.addEventListener('input', debounceSearch);
-         colorCountFilter.addEventListener('change', () => searchForm.submit());
+         colorCountFilter.addEventListener('change', () => {
+            // Clear range filters when specific count is selected
+            if (colorCountFilter.value) {
+               minColorsInput.value = '';
+               maxColorsInput.value = '';
+            }
+            searchForm.submit();
+         });
+
+         // Range filter listeners
+         minColorsInput.addEventListener('input', function() {
+            if (this.value) {
+               colorCountFilter.value = ''; // Clear specific count when range is used
+            }
+            debounceSearch();
+         });
+
+         maxColorsInput.addEventListener('input', function() {
+            if (this.value) {
+               colorCountFilter.value = ''; // Clear specific count when range is used
+            }
+            debounceSearch();
+         });
 
          // Hex value validation in search
          hexValueInput.addEventListener('input', function (e) {
@@ -636,6 +841,38 @@
                e.target.classList.add('error');
             }
          });
+
+         // Toggle advanced filters
+         toggleAdvancedBtn.addEventListener('click', function() {
+            const isVisible = advancedFilters.style.display !== 'none';
+            advancedFilters.style.display = isVisible ? 'none' : 'block';
+            this.textContent = isVisible ? 'Filtros Avanzados' : 'Ocultar Filtros';
+         });
+
+         // Clear all filters
+         clearFiltersBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            colorCountFilter.value = '';
+            hexValueInput.value = '';
+            minColorsInput.value = '';
+            maxColorsInput.value = '';
+            searchForm.submit();
+         });
+
+         // Validate range inputs
+         function validateRange() {
+            const min = parseInt(minColorsInput.value);
+            const max = parseInt(maxColorsInput.value);
+
+            if (min && max && min > max) {
+               maxColorsInput.setCustomValidity('El máximo debe ser mayor o igual al mínimo');
+            } else {
+               maxColorsInput.setCustomValidity('');
+            }
+         }
+
+         minColorsInput.addEventListener('change', validateRange);
+         maxColorsInput.addEventListener('change', validateRange);
       });
    </script>
 
