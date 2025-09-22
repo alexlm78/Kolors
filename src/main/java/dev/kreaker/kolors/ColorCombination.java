@@ -13,6 +13,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -22,11 +23,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "color_combination")
+@Table(name = "color_combination", indexes = {
+    @Index(name = "idx_comb_name", columnList = "name"),
+    @Index(name = "idx_comb_created", columnList = "created_at"),
+    @Index(name = "idx_comb_count", columnList = "color_count"),
+    @Index(name = "idx_comb_name_count", columnList = "name, color_count")
+})
 public class ColorCombination {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @NotBlank(message = "Name is required")

@@ -2,9 +2,11 @@ package dev.kreaker.kolors;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,11 +18,13 @@ public interface ColorCombinationRepository extends JpaRepository<ColorCombinati
     /**
      * Searches combinations by name (case insensitive)
      */
+    @EntityGraph(attributePaths = {"colors"})
     List<ColorCombination> findByNameContainingIgnoreCase(String name);
 
     /**
      * Searches combinations by exact number of colors
      */
+    @EntityGraph(attributePaths = {"colors"})
     List<ColorCombination> findByColorCount(Integer colorCount);
 
     /**
@@ -31,11 +35,13 @@ public interface ColorCombinationRepository extends JpaRepository<ColorCombinati
     /**
      * Searches combinations ordered by creation date (most recent first)
      */
+    @EntityGraph(attributePaths = {"colors"})
     List<ColorCombination> findAllByOrderByCreatedAtDesc();
 
     /**
      * Searches combinations containing a specific color (by hex value)
      */
+    @EntityGraph(attributePaths = {"colors"})
     @Query("SELECT DISTINCT cc FROM ColorCombination cc "
             + "JOIN cc.colors cic "
             + "WHERE cic.hexValue = :hexValue")
@@ -94,6 +100,7 @@ public interface ColorCombinationRepository extends JpaRepository<ColorCombinati
     /**
      * Searches similar combinations by name and number of colors
      */
+    @EntityGraph(attributePaths = {"colors"})
     @Query("SELECT cc FROM ColorCombination cc "
             + "WHERE LOWER(cc.name) LIKE LOWER(CONCAT('%', :namePattern, '%')) "
             + "AND cc.colorCount = :colorCount "
@@ -104,11 +111,13 @@ public interface ColorCombinationRepository extends JpaRepository<ColorCombinati
     /**
      * Searches combinations by color count range
      */
+    @EntityGraph(attributePaths = {"colors"})
     List<ColorCombination> findByColorCountBetweenOrderByCreatedAtDesc(Integer minColors, Integer maxColors);
 
     /**
      * Searches combinations by name and color count range
      */
+    @EntityGraph(attributePaths = {"colors"})
     @Query("SELECT cc FROM ColorCombination cc "
             + "WHERE LOWER(cc.name) LIKE LOWER(CONCAT('%', :namePattern, '%')) "
             + "AND cc.colorCount BETWEEN :minColors AND :maxColors "
@@ -148,4 +157,11 @@ public interface ColorCombinationRepository extends JpaRepository<ColorCombinati
             + "WHERE cic.hexValue = :hexValue "
             + "ORDER BY cc.createdAt DESC")
     Page<ColorCombination> findByContainingHexValueWithPagination(@Param("hexValue") String hexValue, Pageable pageable);
+
+    /**
+     * Find by ID with optimized loading of colors
+     */
+    @EntityGraph(attributePaths = {"colors"})
+    @Query("SELECT cc FROM ColorCombination cc WHERE cc.id = :id")
+    Optional<ColorCombination> findByIdWithColors(@Param("id") Long id);
 }

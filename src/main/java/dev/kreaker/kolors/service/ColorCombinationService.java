@@ -79,11 +79,12 @@ public class ColorCombinationService {
     }
 
     /**
-     * Gets all color combinations
+     * Gets all color combinations with optimized loading
      */
     @Transactional(readOnly = true)
     public List<ColorCombination> findAllCombinations() {
-        logger.debug("Getting all color combinations");
+        logger.debug("Getting all color combinations with optimized loading");
+        // Using @EntityGraph annotation in repository to avoid N+1 queries
         return colorCombinationRepository.findAllByOrderByCreatedAtDesc();
     }
 
@@ -208,21 +209,22 @@ public class ColorCombinationService {
     }
 
     /**
-     * Gets a combination by ID
+     * Gets a combination by ID with optimized loading
      */
     @Transactional(readOnly = true)
     public Optional<ColorCombination> findById(Long id) {
-        logger.debug("Searching combination by ID: {}", id);
-        return colorCombinationRepository.findById(id);
+        logger.debug("Searching combination by ID with optimized loading: {}", id);
+        return colorCombinationRepository.findByIdWithColors(id);
     }
 
     /**
-     * Gets a combination by ID or throws exception if not found
+     * Gets a combination by ID or throws exception if not found Uses optimized
+     * loading to fetch colors in single query
      */
     @Transactional(readOnly = true)
     public ColorCombination getById(Long id) {
-        logger.debug("Getting combination by ID: {}", id);
-        return colorCombinationRepository.findById(id)
+        logger.debug("Getting combination by ID with optimized loading: {}", id);
+        return colorCombinationRepository.findByIdWithColors(id)
                 .orElseThrow(() -> new ColorCombinationNotFoundException(id));
     }
 

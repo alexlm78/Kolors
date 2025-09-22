@@ -215,7 +215,7 @@ class ColorCombinationServiceTest {
         void shouldFindCombinationById() {
             // Given
             Long id = 1L;
-            when(colorCombinationRepository.findById(id))
+            when(colorCombinationRepository.findByIdWithColors(id))
                     .thenReturn(Optional.of(validCombination));
 
             // When
@@ -225,7 +225,7 @@ class ColorCombinationServiceTest {
             assertThat(result).isPresent();
             assertThat(result.get()).isEqualTo(validCombination);
 
-            verify(colorCombinationRepository).findById(id);
+            verify(colorCombinationRepository).findByIdWithColors(id);
         }
 
         @Test
@@ -233,7 +233,7 @@ class ColorCombinationServiceTest {
         void shouldGetCombinationByIdOrThrowException() {
             // Given
             Long id = 1L;
-            when(colorCombinationRepository.findById(id))
+            when(colorCombinationRepository.findByIdWithColors(id))
                     .thenReturn(Optional.of(validCombination));
 
             // When
@@ -242,7 +242,7 @@ class ColorCombinationServiceTest {
             // Then
             assertThat(result).isEqualTo(validCombination);
 
-            verify(colorCombinationRepository).findById(id);
+            verify(colorCombinationRepository).findByIdWithColors(id);
         }
 
         @Test
@@ -250,7 +250,7 @@ class ColorCombinationServiceTest {
         void shouldThrowExceptionWhenCombinationNotFoundById() {
             // Given
             Long id = 999L;
-            when(colorCombinationRepository.findById(id))
+            when(colorCombinationRepository.findByIdWithColors(id))
                     .thenReturn(Optional.empty());
 
             // When & Then
@@ -258,7 +258,7 @@ class ColorCombinationServiceTest {
                     .isInstanceOf(ColorCombinationNotFoundException.class)
                     .hasMessageContaining("999");
 
-            verify(colorCombinationRepository).findById(id);
+            verify(colorCombinationRepository).findByIdWithColors(id);
         }
 
         @Test
@@ -346,7 +346,7 @@ class ColorCombinationServiceTest {
                     new ColorForm("000000", 2)
             ));
 
-            when(colorCombinationRepository.findById(id))
+            when(colorCombinationRepository.findByIdWithColors(id))
                     .thenReturn(Optional.of(validCombination));
             when(colorCombinationRepository.save(any(ColorCombination.class)))
                     .thenReturn(validCombination);
@@ -357,7 +357,7 @@ class ColorCombinationServiceTest {
             // Then
             assertThat(result).isNotNull();
 
-            verify(colorCombinationRepository).findById(id);
+            verify(colorCombinationRepository).findByIdWithColors(id);
             verify(colorCombinationRepository).save(any(ColorCombination.class));
         }
 
@@ -366,7 +366,7 @@ class ColorCombinationServiceTest {
         void shouldThrowExceptionWhenUpdatingNonExistentCombination() {
             // Given
             Long id = 999L;
-            when(colorCombinationRepository.findById(id))
+            when(colorCombinationRepository.findByIdWithColors(id))
                     .thenReturn(Optional.empty());
 
             // When & Then
@@ -374,7 +374,7 @@ class ColorCombinationServiceTest {
                     .isInstanceOf(ColorCombinationNotFoundException.class)
                     .hasMessageContaining("999");
 
-            verify(colorCombinationRepository).findById(id);
+            verify(colorCombinationRepository).findByIdWithColors(id);
             verify(colorCombinationRepository, never()).save(any());
         }
     }

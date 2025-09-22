@@ -6,6 +6,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -17,11 +18,17 @@ import jakarta.validation.constraints.Pattern;
 
 @Entity
 @Table(name = "color_in_combination",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"combination_id", "position"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"combination_id", "position"}),
+        indexes = {
+            @Index(name = "idx_color_hex", columnList = "hex_value"),
+            @Index(name = "idx_color_comb", columnList = "combination_id"),
+            @Index(name = "idx_color_pos", columnList = "position"),
+            @Index(name = "idx_color_comb_pos", columnList = "combination_id, position")
+        })
 public class ColorInCombination {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @NotBlank(message = "Hexadecimal value is required")
