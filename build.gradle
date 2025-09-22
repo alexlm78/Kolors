@@ -2,10 +2,11 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.6'
 	id 'io.spring.dependency-management' version '1.1.7'
+   id 'com.diffplug.spotless' version '6.22.0'
 }
 
 group = 'dev.kreaker.kolors'
-version = '0.0.1-SNAPSHOT'
+version = '0.6.4'
 sourceCompatibility = '21'
 
 java {
@@ -33,4 +34,81 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+spotless {
+    java {
+      target '**/*.java'
+      googleJavaFormat('1.17.0')
+      removeUnusedImports()
+      trimTrailingWhitespace()
+      endWithNewline()
+      indentWithSpaces(3)
+
+      custom 'noWildcardImports', {
+         if (it.contains('import .*\\*')) {
+            throw new RuntimeException('No usar wildcard imports')
+         }
+      }
+   }
+
+   format 'properties', {
+      target '**/*.properties'
+      targetExclude '**/build/**'
+
+      trimTrailingWhitespace()
+      endWithNewline()
+
+      // Properties perzonalized format
+      custom 'sortProperties', { content ->
+         def lines = content.readLines()
+         def comments = []
+         def props = []
+         def inComment = false
+
+         lines.each { line ->
+            def trimmed = line.trim()
+            if (trimmed.startsWith('#') || trimmed.isEmpty()) {
+               if (!props.isEmpty()) {
+                  comments.addAll(props.sort())
+                  props.clear()
+               }
+               comments.add(line)
+            } else {
+               props.add(line)
+            }
+         }
+
+         if (!props.isEmpty()) {
+            comments.addAll(props.sort())
+         }
+
+         return comments.join('\n')
+      }
+   }
+
+   // YAML files (Spring Boot configs)
+   format 'yaml', {
+      target '**/*.yml', '**/*.yaml'
+      targetExclude '**/build/**'
+
+      trimTrailingWhitespace()
+      endWithNewline()
+   }
+
+   // XML files (Maven, Spring configs)
+   format 'xml', {
+      target '**/*.xml'
+      targetExclude '**/build/**'
+
+      eclipseWtp('xml')
+      trimTrailingWhitespace()
+      endWithNewline()
+   }
+}
+
+task formatCode {
+   group 'formatting'
+   description 'Apply Spotless format to all files'
+   dependsOn 'spotlessApply'
 }

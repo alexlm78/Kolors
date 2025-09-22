@@ -12,10 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
+import dev.kreaker.kolors.exception.ColorCombinationValidationException;
+import dev.kreaker.kolors.service.ColorCombinationService;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,476 +32,487 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
-import dev.kreaker.kolors.exception.ColorCombinationValidationException;
-import dev.kreaker.kolors.service.ColorCombinationService;
-
 /**
- * Tests de integración para ColorCombinationController Enfocados en la lógica
- * del controlador sin requerir templates
+ * Tests de integración para ColorCombinationController Enfocados en la lógica del controlador sin
+ * requerir templates
  */
 @SpringBootTest
 @AutoConfigureWebMvc
-@TestPropertySource(locations = "classpath:application-test.properties", properties = {
-    "spring.thymeleaf.enabled=false",
-    "spring.main.web-application-type=servlet"
-})
+@TestPropertySource(
+    locations = "classpath:application-test.properties",
+    properties = {"spring.thymeleaf.enabled=false", "spring.main.web-application-type=servlet"})
 @DisplayName("ColorCombinationController Integration Tests")
 class ColorCombinationControllerIntegrationTest {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @MockBean
-    private ColorCombinationService colorCombinationService;
+  @MockBean private ColorCombinationService colorCombinationService;
 
-    private ColorCombination testCombination;
-    private ColorCombinationForm testForm;
-    private List<ColorCombination> testCombinations;
+  private ColorCombination testCombination;
+  private ColorCombinationForm testForm;
+  private List<ColorCombination> testCombinations;
 
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+  @BeforeEach
+  void setUp() {
+    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        // Create test combination
-        testCombination = new ColorCombination("Sunset Colors", 3);
-        testCombination.setId(1L);
-        testCombination.setCreatedAt(LocalDateTime.now());
-        testCombination.addColor(new ColorInCombination("FF6B35", 1));
-        testCombination.addColor(new ColorInCombination("F7931E", 2));
-        testCombination.addColor(new ColorInCombination("FFD23F", 3));
+    // Create test combination
+    testCombination = new ColorCombination("Sunset Colors", 3);
+    testCombination.setId(1L);
+    testCombination.setCreatedAt(LocalDateTime.now());
+    testCombination.addColor(new ColorInCombination("FF6B35", 1));
+    testCombination.addColor(new ColorInCombination("F7931E", 2));
+    testCombination.addColor(new ColorInCombination("FFD23F", 3));
 
-        // Create test form
-        testForm = new ColorCombinationForm("Ocean Breeze");
-        testForm.addColor("0077BE");
-        testForm.addColor("87CEEB");
+    // Create test form
+    testForm = new ColorCombinationForm("Ocean Breeze");
+    testForm.addColor("0077BE");
+    testForm.addColor("87CEEB");
 
-        // List of test combinations
-        testCombinations = Arrays.asList(testCombination);
+    // List of test combinations
+    testCombinations = Arrays.asList(testCombination);
 
-        // Mock statistics
-        ColorCombinationService.CombinationStatistics stats = new ColorCombinationService.CombinationStatistics(1, 0, 1,
-                0);
-        when(colorCombinationService.getStatistics()).thenReturn(stats);
+    // Mock statistics
+    ColorCombinationService.CombinationStatistics stats =
+        new ColorCombinationService.CombinationStatistics(1, 0, 1, 0);
+    when(colorCombinationService.getStatistics()).thenReturn(stats);
+  }
+
+  @Nested
+  @DisplayName("Página Principal")
+  class IndexPageTests {
+
+    @Test
+    @DisplayName("Should respond correctly to the main page")
+    void shouldRespondToIndexPage() throws Exception {
+      // Given
+      when(colorCombinationService.searchCombinations(null, null)).thenReturn(testCombinations);
+
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("combinations"))
+          .andExpect(model().attributeExists("combinationForm"));
+
+      verify(colorCombinationService).searchCombinations(null, null);
     }
 
-    @Nested
-    @DisplayName("Página Principal")
-    class IndexPageTests {
+    @Test
+    @DisplayName("Should handle search parameters")
+    void shouldHandleSearchParameters() throws Exception {
+      // Given
+      String searchTerm = "Sunset";
+      when(colorCombinationService.searchCombinations(searchTerm, null))
+          .thenReturn(testCombinations);
 
-        @Test
-        @DisplayName("Should respond correctly to the main page")
-        void shouldRespondToIndexPage() throws Exception {
-            // Given
-            when(colorCombinationService.searchCombinations(null, null))
-                    .thenReturn(testCombinations);
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/").param("search", searchTerm))
+          .andExpect(status().isOk())
+          .andExpect(model().attribute("search", searchTerm));
 
-            // When & Then
-            mockMvc.perform(get("/combinations/"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("combinations"))
-                    .andExpect(model().attributeExists("combinationForm"));
-
-            verify(colorCombinationService).searchCombinations(null, null);
-        }
-
-        @Test
-        @DisplayName("Should handle search parameters")
-        void shouldHandleSearchParameters() throws Exception {
-            // Given
-            String searchTerm = "Sunset";
-            when(colorCombinationService.searchCombinations(searchTerm, null))
-                    .thenReturn(testCombinations);
-
-            // When & Then
-            mockMvc.perform(get("/combinations/")
-                    .param("search", searchTerm))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attribute("search", searchTerm));
-
-            verify(colorCombinationService).searchCombinations(searchTerm, null);
-        }
-
-        @Test
-        @DisplayName("Should handle search by hexadecimal value")
-        void shouldHandleHexValueSearch() throws Exception {
-            // Given
-            String hexValue = "FF6B35";
-            when(colorCombinationService.findByHexValue(hexValue))
-                    .thenReturn(testCombinations);
-
-            // When & Then
-            mockMvc.perform(get("/combinations/")
-                    .param("hexValue", hexValue))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attribute("hexValue", hexValue));
-
-            verify(colorCombinationService).findByHexValue(hexValue);
-        }
+      verify(colorCombinationService).searchCombinations(searchTerm, null);
     }
 
-    @Nested
-    @DisplayName("Crear Combinación")
-    class CreateCombinationTests {
+    @Test
+    @DisplayName("Should handle search by hexadecimal value")
+    void shouldHandleHexValueSearch() throws Exception {
+      // Given
+      String hexValue = "FF6B35";
+      when(colorCombinationService.findByHexValue(hexValue)).thenReturn(testCombinations);
 
-        @Test
-        @DisplayName("Should create valid combination successfully")
-        void shouldCreateValidCombinationSuccessfully() throws Exception {
-            // Given
-            when(colorCombinationService.createCombination(any(ColorCombinationForm.class)))
-                    .thenReturn(testCombination);
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/").param("hexValue", hexValue))
+          .andExpect(status().isOk())
+          .andExpect(model().attribute("hexValue", hexValue));
 
-            // When & Then
-            mockMvc.perform(post("/combinations/create")
-                    .param("name", "Ocean Breeze")
-                    .param("colorCount", "2")
-                    .param("colors[0].hexValue", "0077BE")
-                    .param("colors[0].position", "1")
-                    .param("colors[1].hexValue", "87CEEB")
-                    .param("colors[1].position", "2"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("success"));
+      verify(colorCombinationService).findByHexValue(hexValue);
+    }
+  }
 
-            verify(colorCombinationService).createCombination(any(ColorCombinationForm.class));
-        }
+  @Nested
+  @DisplayName("Crear Combinación")
+  class CreateCombinationTests {
 
-        @Test
-        @DisplayName("Should handle service validation errors")
-        void shouldHandleServiceValidationErrors() throws Exception {
-            // Given
-            List<String> validationErrors = Arrays.asList("Error 1", "Error 2");
-            when(colorCombinationService.createCombination(any(ColorCombinationForm.class)))
-                    .thenThrow(new ColorCombinationValidationException(validationErrors));
-            when(colorCombinationService.findAllCombinations()).thenReturn(testCombinations);
+    @Test
+    @DisplayName("Should create valid combination successfully")
+    void shouldCreateValidCombinationSuccessfully() throws Exception {
+      // Given
+      when(colorCombinationService.createCombination(any(ColorCombinationForm.class)))
+          .thenReturn(testCombination);
 
-            // When & Then
-            mockMvc.perform(post("/combinations/create")
-                    .param("name", "Test Combination")
-                    .param("colorCount", "2")
-                    .param("colors[0].hexValue", "0077BE")
-                    .param("colors[0].position", "1")
-                    .param("colors[1].hexValue", "87CEEB")
-                    .param("colors[1].position", "2"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("error"));
-        }
+      // When & Then
+      mockMvc
+          .perform(
+              post("/combinations/create")
+                  .param("name", "Ocean Breeze")
+                  .param("colorCount", "2")
+                  .param("colors[0].hexValue", "0077BE")
+                  .param("colors[0].position", "1")
+                  .param("colors[1].hexValue", "87CEEB")
+                  .param("colors[1].position", "2"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("success"));
+
+      verify(colorCombinationService).createCombination(any(ColorCombinationForm.class));
     }
 
-    @Nested
-    @DisplayName("Editar Combinación")
-    class EditCombinationTests {
+    @Test
+    @DisplayName("Should handle service validation errors")
+    void shouldHandleServiceValidationErrors() throws Exception {
+      // Given
+      List<String> validationErrors = Arrays.asList("Error 1", "Error 2");
+      when(colorCombinationService.createCombination(any(ColorCombinationForm.class)))
+          .thenThrow(new ColorCombinationValidationException(validationErrors));
+      when(colorCombinationService.findAllCombinations()).thenReturn(testCombinations);
 
-        @Test
-        @DisplayName("Should display edit form")
-        void shouldDisplayEditForm() throws Exception {
-            // Given
-            when(colorCombinationService.getById(1L)).thenReturn(testCombination);
-            when(colorCombinationService.convertToForm(testCombination)).thenReturn(testForm);
+      // When & Then
+      mockMvc
+          .perform(
+              post("/combinations/create")
+                  .param("name", "Test Combination")
+                  .param("colorCount", "2")
+                  .param("colors[0].hexValue", "0077BE")
+                  .param("colors[0].position", "1")
+                  .param("colors[1].hexValue", "87CEEB")
+                  .param("colors[1].position", "2"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("error"));
+    }
+  }
 
-            // When & Then
-            mockMvc.perform(get("/combinations/1/edit"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("combinationForm"))
-                    .andExpect(model().attributeExists("combination"))
-                    .andExpect(model().attribute("isEditing", true));
+  @Nested
+  @DisplayName("Editar Combinación")
+  class EditCombinationTests {
 
-            verify(colorCombinationService).getById(1L);
-            verify(colorCombinationService).convertToForm(testCombination);
-        }
+    @Test
+    @DisplayName("Should display edit form")
+    void shouldDisplayEditForm() throws Exception {
+      // Given
+      when(colorCombinationService.getById(1L)).thenReturn(testCombination);
+      when(colorCombinationService.convertToForm(testCombination)).thenReturn(testForm);
 
-        @Test
-        @DisplayName("Should handle combination not found in editing")
-        void shouldHandleNotFoundInEdit() throws Exception {
-            // Given
-            when(colorCombinationService.getById(999L))
-                    .thenThrow(new ColorCombinationNotFoundException(999L));
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/1/edit"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("combinationForm"))
+          .andExpect(model().attributeExists("combination"))
+          .andExpect(model().attribute("isEditing", true));
 
-            // When & Then
-            mockMvc.perform(get("/combinations/999/edit"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("error"));
-        }
-
-        @Test
-        @DisplayName("Should update combination successfully")
-        void shouldUpdateCombinationSuccessfully() throws Exception {
-            // Given
-            when(colorCombinationService.updateCombination(eq(1L), any(ColorCombinationForm.class)))
-                    .thenReturn(testCombination);
-
-            // When & Then
-            mockMvc.perform(post("/combinations/1/update")
-                    .param("name", "Updated Ocean Breeze")
-                    .param("colorCount", "2")
-                    .param("colors[0].hexValue", "0077BE")
-                    .param("colors[0].position", "1")
-                    .param("colors[1].hexValue", "87CEEB")
-                    .param("colors[1].position", "2"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("success"));
-
-            verify(colorCombinationService).updateCombination(eq(1L), any(ColorCombinationForm.class));
-        }
+      verify(colorCombinationService).getById(1L);
+      verify(colorCombinationService).convertToForm(testCombination);
     }
 
-    @Nested
-    @DisplayName("Eliminar Combinación")
-    class DeleteCombinationTests {
+    @Test
+    @DisplayName("Should handle combination not found in editing")
+    void shouldHandleNotFoundInEdit() throws Exception {
+      // Given
+      when(colorCombinationService.getById(999L))
+          .thenThrow(new ColorCombinationNotFoundException(999L));
 
-        @Test
-        @DisplayName("Should display delete confirmation")
-        void shouldDisplayDeleteConfirmation() throws Exception {
-            // Given
-            when(colorCombinationService.getById(1L)).thenReturn(testCombination);
-
-            // When & Then
-            mockMvc.perform(get("/combinations/1/confirm-delete"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("combination"));
-
-            verify(colorCombinationService).getById(1L);
-        }
-
-        @Test
-        @DisplayName("Should delete combination successfully")
-        void shouldDeleteCombinationSuccessfully() throws Exception {
-            // Given
-            when(colorCombinationService.getById(1L)).thenReturn(testCombination);
-            doNothing().when(colorCombinationService).deleteCombination(1L);
-
-            // When & Then
-            mockMvc.perform(post("/combinations/1/delete"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("success"));
-
-            verify(colorCombinationService).getById(1L);
-            verify(colorCombinationService).deleteCombination(1L);
-        }
-
-        @Test
-        @DisplayName("Should handle combination not found in deletion")
-        void shouldHandleNotFoundInDelete() throws Exception {
-            // Given
-            when(colorCombinationService.getById(999L))
-                    .thenThrow(new ColorCombinationNotFoundException(999L));
-
-            // When & Then
-            mockMvc.perform(post("/combinations/999/delete"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("error"));
-        }
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/999/edit"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("error"));
     }
 
-    @Nested
-    @DisplayName("Ver Combinación")
-    class ViewCombinationTests {
+    @Test
+    @DisplayName("Should update combination successfully")
+    void shouldUpdateCombinationSuccessfully() throws Exception {
+      // Given
+      when(colorCombinationService.updateCombination(eq(1L), any(ColorCombinationForm.class)))
+          .thenReturn(testCombination);
 
-        @Test
-        @DisplayName("Should display combination details")
-        void shouldDisplayCombinationDetails() throws Exception {
-            // Given
-            when(colorCombinationService.getById(1L)).thenReturn(testCombination);
+      // When & Then
+      mockMvc
+          .perform(
+              post("/combinations/1/update")
+                  .param("name", "Updated Ocean Breeze")
+                  .param("colorCount", "2")
+                  .param("colors[0].hexValue", "0077BE")
+                  .param("colors[0].position", "1")
+                  .param("colors[1].hexValue", "87CEEB")
+                  .param("colors[1].position", "2"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("success"));
 
-            // When & Then
-            mockMvc.perform(get("/combinations/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("combination"));
+      verify(colorCombinationService).updateCombination(eq(1L), any(ColorCombinationForm.class));
+    }
+  }
 
-            verify(colorCombinationService).getById(1L);
-        }
+  @Nested
+  @DisplayName("Eliminar Combinación")
+  class DeleteCombinationTests {
 
-        @Test
-        @DisplayName("Should handle combination not found in viewing")
-        void shouldHandleNotFoundInView() throws Exception {
-            // Given
-            when(colorCombinationService.getById(999L))
-                    .thenThrow(new ColorCombinationNotFoundException(999L));
+    @Test
+    @DisplayName("Should display delete confirmation")
+    void shouldDisplayDeleteConfirmation() throws Exception {
+      // Given
+      when(colorCombinationService.getById(1L)).thenReturn(testCombination);
 
-            // When & Then
-            mockMvc.perform(get("/combinations/999"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("error"));
-        }
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/1/confirm-delete"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("combination"));
+
+      verify(colorCombinationService).getById(1L);
     }
 
-    @Nested
-    @DisplayName("Búsqueda AJAX")
-    class AjaxSearchTests {
+    @Test
+    @DisplayName("Should delete combination successfully")
+    void shouldDeleteCombinationSuccessfully() throws Exception {
+      // Given
+      when(colorCombinationService.getById(1L)).thenReturn(testCombination);
+      doNothing().when(colorCombinationService).deleteCombination(1L);
 
-        @Test
-        @DisplayName("Should handle AJAX search by term")
-        void shouldHandleAjaxSearchByTerm() throws Exception {
-            // Given
-            when(colorCombinationService.searchCombinations("Ocean", null))
-                    .thenReturn(testCombinations);
+      // When & Then
+      mockMvc
+          .perform(post("/combinations/1/delete"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("success"));
 
-            // When & Then
-            mockMvc.perform(get("/combinations/search")
-                    .param("term", "Ocean"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("combinations"));
-
-            verify(colorCombinationService).searchCombinations("Ocean", null);
-        }
-
-        @Test
-        @DisplayName("Should handle AJAX search by hexadecimal value")
-        void shouldHandleAjaxSearchByHexValue() throws Exception {
-            // Given
-            when(colorCombinationService.findByHexValue("FF6B35"))
-                    .thenReturn(testCombinations);
-
-            // When & Then
-            mockMvc.perform(get("/combinations/search")
-                    .param("hexValue", "FF6B35"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("combinations"));
-
-            verify(colorCombinationService).findByHexValue("FF6B35");
-        }
+      verify(colorCombinationService).getById(1L);
+      verify(colorCombinationService).deleteCombination(1L);
     }
 
-    @Nested
-    @DisplayName("Manejo de Errores")
-    class ErrorHandlingTests {
+    @Test
+    @DisplayName("Should handle combination not found in deletion")
+    void shouldHandleNotFoundInDelete() throws Exception {
+      // Given
+      when(colorCombinationService.getById(999L))
+          .thenThrow(new ColorCombinationNotFoundException(999L));
 
-        @Test
-        @DisplayName("Should handle unexpected errors in creation")
-        void shouldHandleUnexpectedErrorsInCreation() throws Exception {
-            // Given
-            when(colorCombinationService.createCombination(any(ColorCombinationForm.class)))
-                    .thenThrow(new RuntimeException("Unexpected error"));
-            when(colorCombinationService.findAllCombinations()).thenReturn(testCombinations);
+      // When & Then
+      mockMvc
+          .perform(post("/combinations/999/delete"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("error"));
+    }
+  }
 
-            // When & Then
-            mockMvc.perform(post("/combinations/create")
-                    .param("name", "Test Combination")
-                    .param("colorCount", "2")
-                    .param("colors[0].hexValue", "0077BE")
-                    .param("colors[0].position", "1")
-                    .param("colors[1].hexValue", "87CEEB")
-                    .param("colors[1].position", "2"))
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("error"));
-        }
+  @Nested
+  @DisplayName("Ver Combinación")
+  class ViewCombinationTests {
 
-        @Test
-        @DisplayName("Should handle errors in deletion")
-        void shouldHandleErrorsInDelete() throws Exception {
-            // Given
-            when(colorCombinationService.getById(1L)).thenReturn(testCombination);
-            doThrow(new RuntimeException("Delete error"))
-                    .when(colorCombinationService).deleteCombination(1L);
+    @Test
+    @DisplayName("Should display combination details")
+    void shouldDisplayCombinationDetails() throws Exception {
+      // Given
+      when(colorCombinationService.getById(1L)).thenReturn(testCombination);
 
-            // When & Then
-            mockMvc.perform(post("/combinations/1/delete"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("error"));
-        }
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/1"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("combination"));
+
+      verify(colorCombinationService).getById(1L);
     }
 
-    @Nested
-    @DisplayName("Dynamic Color Management Tests")
-    class DynamicColorManagementTests {
+    @Test
+    @DisplayName("Should handle combination not found in viewing")
+    void shouldHandleNotFoundInView() throws Exception {
+      // Given
+      when(colorCombinationService.getById(999L))
+          .thenThrow(new ColorCombinationNotFoundException(999L));
 
-        @Test
-        @DisplayName("Should add color to combination successfully")
-        void shouldAddColorToCombinationSuccessfully() throws Exception {
-            // Given
-            ColorForm colorForm = new ColorForm("FFFF00", 4);
-            when(colorCombinationService.addColorToCombination(eq(1L), any(ColorForm.class)))
-                    .thenReturn(testCombination);
-
-            // When & Then
-            mockMvc.perform(post("/combinations/1/add-color")
-                    .param("hexValue", "FFFF00")
-                    .param("position", "4"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/1/edit"))
-                    .andExpect(flash().attributeExists("success"));
-
-            verify(colorCombinationService).addColorToCombination(eq(1L), any(ColorForm.class));
-        }
-
-        @Test
-        @DisplayName("Should handle validation errors when adding color")
-        void shouldHandleValidationErrorsWhenAddingColor() throws Exception {
-            // When & Then - invalid hex format
-            mockMvc.perform(post("/combinations/1/add-color")
-                    .param("hexValue", "INVALID")
-                    .param("position", "4"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/1/edit"))
-                    .andExpect(flash().attributeExists("error"));
-        }
-
-        @Test
-        @DisplayName("Should handle combination not found when adding color")
-        void shouldHandleCombinationNotFoundWhenAddingColor() throws Exception {
-            // Given
-            when(colorCombinationService.addColorToCombination(eq(999L), any(ColorForm.class)))
-                    .thenThrow(new ColorCombinationNotFoundException("Combination not found"));
-
-            // When & Then
-            mockMvc.perform(post("/combinations/999/add-color")
-                    .param("hexValue", "FFFF00")
-                    .param("position", "4"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("error"));
-        }
-
-        @Test
-        @DisplayName("Should remove color from combination successfully")
-        void shouldRemoveColorFromCombinationSuccessfully() throws Exception {
-            // Given
-            when(colorCombinationService.removeColorFromCombination(1L, 2))
-                    .thenReturn(testCombination);
-
-            // When & Then
-            mockMvc.perform(post("/combinations/1/remove-color/2"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/1/edit"))
-                    .andExpect(flash().attributeExists("success"));
-
-            verify(colorCombinationService).removeColorFromCombination(1L, 2);
-        }
-
-        @Test
-        @DisplayName("Should handle validation error when removing last color")
-        void shouldHandleValidationErrorWhenRemovingLastColor() throws Exception {
-            // Given
-            when(colorCombinationService.removeColorFromCombination(1L, 1))
-                    .thenThrow(new ColorCombinationValidationException("Cannot remove the last color"));
-
-            // When & Then
-            mockMvc.perform(post("/combinations/1/remove-color/1"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/1/edit"))
-                    .andExpect(flash().attributeExists("error"));
-        }
-
-        @Test
-        @DisplayName("Should handle combination not found when removing color")
-        void shouldHandleCombinationNotFoundWhenRemovingColor() throws Exception {
-            // Given
-            when(colorCombinationService.removeColorFromCombination(999L, 1))
-                    .thenThrow(new ColorCombinationNotFoundException("Combination not found"));
-
-            // When & Then
-            mockMvc.perform(post("/combinations/999/remove-color/1"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/combinations/"))
-                    .andExpect(flash().attributeExists("error"));
-        }
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/999"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("error"));
     }
+  }
+
+  @Nested
+  @DisplayName("Búsqueda AJAX")
+  class AjaxSearchTests {
+
+    @Test
+    @DisplayName("Should handle AJAX search by term")
+    void shouldHandleAjaxSearchByTerm() throws Exception {
+      // Given
+      when(colorCombinationService.searchCombinations("Ocean", null)).thenReturn(testCombinations);
+
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/search").param("term", "Ocean"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("combinations"));
+
+      verify(colorCombinationService).searchCombinations("Ocean", null);
+    }
+
+    @Test
+    @DisplayName("Should handle AJAX search by hexadecimal value")
+    void shouldHandleAjaxSearchByHexValue() throws Exception {
+      // Given
+      when(colorCombinationService.findByHexValue("FF6B35")).thenReturn(testCombinations);
+
+      // When & Then
+      mockMvc
+          .perform(get("/combinations/search").param("hexValue", "FF6B35"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("combinations"));
+
+      verify(colorCombinationService).findByHexValue("FF6B35");
+    }
+  }
+
+  @Nested
+  @DisplayName("Manejo de Errores")
+  class ErrorHandlingTests {
+
+    @Test
+    @DisplayName("Should handle unexpected errors in creation")
+    void shouldHandleUnexpectedErrorsInCreation() throws Exception {
+      // Given
+      when(colorCombinationService.createCombination(any(ColorCombinationForm.class)))
+          .thenThrow(new RuntimeException("Unexpected error"));
+      when(colorCombinationService.findAllCombinations()).thenReturn(testCombinations);
+
+      // When & Then
+      mockMvc
+          .perform(
+              post("/combinations/create")
+                  .param("name", "Test Combination")
+                  .param("colorCount", "2")
+                  .param("colors[0].hexValue", "0077BE")
+                  .param("colors[0].position", "1")
+                  .param("colors[1].hexValue", "87CEEB")
+                  .param("colors[1].position", "2"))
+          .andExpect(status().isOk())
+          .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("Should handle errors in deletion")
+    void shouldHandleErrorsInDelete() throws Exception {
+      // Given
+      when(colorCombinationService.getById(1L)).thenReturn(testCombination);
+      doThrow(new RuntimeException("Delete error"))
+          .when(colorCombinationService)
+          .deleteCombination(1L);
+
+      // When & Then
+      mockMvc
+          .perform(post("/combinations/1/delete"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("error"));
+    }
+  }
+
+  @Nested
+  @DisplayName("Dynamic Color Management Tests")
+  class DynamicColorManagementTests {
+
+    @Test
+    @DisplayName("Should add color to combination successfully")
+    void shouldAddColorToCombinationSuccessfully() throws Exception {
+      // Given
+      ColorForm colorForm = new ColorForm("FFFF00", 4);
+      when(colorCombinationService.addColorToCombination(eq(1L), any(ColorForm.class)))
+          .thenReturn(testCombination);
+
+      // When & Then
+      mockMvc
+          .perform(
+              post("/combinations/1/add-color").param("hexValue", "FFFF00").param("position", "4"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/1/edit"))
+          .andExpect(flash().attributeExists("success"));
+
+      verify(colorCombinationService).addColorToCombination(eq(1L), any(ColorForm.class));
+    }
+
+    @Test
+    @DisplayName("Should handle validation errors when adding color")
+    void shouldHandleValidationErrorsWhenAddingColor() throws Exception {
+      // When & Then - invalid hex format
+      mockMvc
+          .perform(
+              post("/combinations/1/add-color").param("hexValue", "INVALID").param("position", "4"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/1/edit"))
+          .andExpect(flash().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("Should handle combination not found when adding color")
+    void shouldHandleCombinationNotFoundWhenAddingColor() throws Exception {
+      // Given
+      when(colorCombinationService.addColorToCombination(eq(999L), any(ColorForm.class)))
+          .thenThrow(new ColorCombinationNotFoundException("Combination not found"));
+
+      // When & Then
+      mockMvc
+          .perform(
+              post("/combinations/999/add-color")
+                  .param("hexValue", "FFFF00")
+                  .param("position", "4"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("Should remove color from combination successfully")
+    void shouldRemoveColorFromCombinationSuccessfully() throws Exception {
+      // Given
+      when(colorCombinationService.removeColorFromCombination(1L, 2)).thenReturn(testCombination);
+
+      // When & Then
+      mockMvc
+          .perform(post("/combinations/1/remove-color/2"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/1/edit"))
+          .andExpect(flash().attributeExists("success"));
+
+      verify(colorCombinationService).removeColorFromCombination(1L, 2);
+    }
+
+    @Test
+    @DisplayName("Should handle validation error when removing last color")
+    void shouldHandleValidationErrorWhenRemovingLastColor() throws Exception {
+      // Given
+      when(colorCombinationService.removeColorFromCombination(1L, 1))
+          .thenThrow(new ColorCombinationValidationException("Cannot remove the last color"));
+
+      // When & Then
+      mockMvc
+          .perform(post("/combinations/1/remove-color/1"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/1/edit"))
+          .andExpect(flash().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("Should handle combination not found when removing color")
+    void shouldHandleCombinationNotFoundWhenRemovingColor() throws Exception {
+      // Given
+      when(colorCombinationService.removeColorFromCombination(999L, 1))
+          .thenThrow(new ColorCombinationNotFoundException("Combination not found"));
+
+      // When & Then
+      mockMvc
+          .perform(post("/combinations/999/remove-color/1"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/combinations/"))
+          .andExpect(flash().attributeExists("error"));
+    }
+  }
 }
