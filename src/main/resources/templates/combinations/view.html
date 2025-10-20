@@ -378,6 +378,188 @@
             padding: 12px;
          }
       }
+
+      /* Export CSS Modal */
+      .modal {
+         display: none;
+         position: fixed;
+         z-index: 1000;
+         left: 0;
+         top: 0;
+         width: 100%;
+         height: 100%;
+         background-color: rgba(0, 0, 0, 0.5);
+         backdrop-filter: blur(5px);
+         animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+         from { opacity: 0; }
+         to { opacity: 1; }
+      }
+
+      .modal.show {
+         display: flex;
+         align-items: center;
+         justify-content: center;
+      }
+
+      .modal-content {
+         background: white;
+         padding: 30px;
+         border-radius: 15px;
+         max-width: 600px;
+         width: 90%;
+         max-height: 80vh;
+         overflow-y: auto;
+         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+         animation: slideUp 0.3s ease;
+      }
+
+      @keyframes slideUp {
+         from {
+            transform: translateY(50px);
+            opacity: 0;
+         }
+         to {
+            transform: translateY(0);
+            opacity: 1;
+         }
+      }
+
+      .modal-header {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 20px;
+         padding-bottom: 15px;
+         border-bottom: 2px solid #e9ecef;
+      }
+
+      .modal-header h2 {
+         margin: 0;
+         color: #495057;
+         font-size: 1.5rem;
+      }
+
+      .close-modal {
+         background: none;
+         border: none;
+         font-size: 2rem;
+         color: #6c757d;
+         cursor: pointer;
+         padding: 0;
+         width: 30px;
+         height: 30px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         transition: all 0.2s ease;
+      }
+
+      .close-modal:hover {
+         color: #dc3545;
+         transform: rotate(90deg);
+      }
+
+      .modal-body {
+         margin-bottom: 20px;
+      }
+
+      .css-preview {
+         background: #282c34;
+         color: #abb2bf;
+         padding: 20px;
+         border-radius: 8px;
+         font-family: 'Courier New', Consolas, monospace;
+         font-size: 0.9rem;
+         line-height: 1.6;
+         overflow-x: auto;
+         margin-bottom: 20px;
+         position: relative;
+      }
+
+      .css-preview pre {
+         margin: 0;
+         white-space: pre-wrap;
+         word-wrap: break-word;
+      }
+
+      .css-comment {
+         color: #5c6370;
+      }
+
+      .css-selector {
+         color: #e06c75;
+      }
+
+      .css-property {
+         color: #61afef;
+      }
+
+      .css-value {
+         color: #98c379;
+      }
+
+      .modal-actions {
+         display: flex;
+         gap: 10px;
+         flex-wrap: wrap;
+      }
+
+      .modal-actions .btn {
+         flex: 1;
+         min-width: 120px;
+      }
+
+      .btn-success {
+         background: #28a745;
+         color: white;
+      }
+
+      .btn-success:hover {
+         background: #218838;
+         transform: translateY(-2px);
+         box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+      }
+
+      .btn-info {
+         background: #17a2b8;
+         color: white;
+      }
+
+      .btn-info:hover {
+         background: #138496;
+         transform: translateY(-2px);
+         box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+      }
+
+      /* Mobile modal adjustments */
+      @media (max-width: 767px) {
+         .modal-content {
+            width: 95%;
+            padding: 20px;
+            max-height: 90vh;
+         }
+
+         .modal-header h2 {
+            font-size: 1.2rem;
+         }
+
+         .css-preview {
+            padding: 15px;
+            font-size: 0.8rem;
+         }
+
+         .modal-actions {
+            flex-direction: column;
+         }
+
+         .modal-actions .btn {
+            width: 100%;
+            min-width: auto;
+         }
+      }
    </style>
 </head>
 
@@ -447,6 +629,7 @@
 
          <!-- Action Buttons -->
          <div class="action-buttons">
+            <button onclick="showExportModal()" class="btn btn-success">Exportar CSS</button>
             <a th:href="@{/combinations/{id}/edit(id=${combination.id})}" class="btn btn-primary">Editar Combinación</a>
             <a th:href="@{/combinations/{id}/confirm-delete(id=${combination.id})}" class="btn btn-danger">Eliminar
                Combinación</a>
@@ -458,6 +641,29 @@
    <!-- Toast Notification -->
    <div id="toast" class="toast">
       Color copiado al portapapeles
+   </div>
+
+   <!-- Export CSS Modal -->
+   <div id="exportModal" class="modal">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h2>Exportar CSS Variables</h2>
+            <button class="close-modal" onclick="closeExportModal()">&times;</button>
+         </div>
+         <div class="modal-body">
+            <p style="color: #6c757d; margin-bottom: 15px;">
+               Copia estas variables CSS o descárgalas como archivo para usar en tus proyectos.
+            </p>
+            <div class="css-preview" id="cssPreview">
+               <pre id="cssCode"></pre>
+            </div>
+         </div>
+         <div class="modal-actions">
+            <button onclick="copyCSSToClipboard()" class="btn btn-success">Copiar al Portapapeles</button>
+            <button onclick="downloadCSS()" class="btn btn-info">Descargar .css</button>
+            <button onclick="closeExportModal()" class="btn btn-secondary">Cerrar</button>
+         </div>
+      </div>
    </div>
 
    <script>
@@ -516,6 +722,162 @@
          }, 3000);
       }
 
+      // Export CSS functionality
+      function generateCSS() {
+         const combinationName = /*[[${combination.name}]]*/ 'Combination';
+         const colors = [];
+
+         // Get all colors from the combination
+         /*[# th:each="color : ${combination.colors}"]*/
+         colors.push({
+            position: /*[[${color.position}]]*/ 1,
+            hex: /*[[${color.hexValue}]]*/ 'FFFFFF'
+         });
+         /*[/]*/
+
+         // Sort by position
+         colors.sort((a, b) => a.position - b.position);
+
+         // Generate CSS code
+         let css = `/* ${combinationName} - Color Palette */\n`;
+         css += `/* Generated by Kolors */\n\n`;
+         css += `:root {\n`;
+
+         colors.forEach((color, index) => {
+            // Generate variable name from combination name
+            const varName = combinationName
+               .toLowerCase()
+               .replace(/[^a-z0-9]+/g, '-')
+               .replace(/^-+|-+$/g, '');
+
+            css += `  --${varName}-color-${index + 1}: #${color.hex};\n`;
+         });
+
+         css += `}\n\n`;
+         css += `/* Usage example:\n`;
+         css += ` * .element {\n`;
+         css += ` *   background-color: var(--${combinationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-color-1);\n`;
+         css += ` *   color: var(--${combinationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-color-2);\n`;
+         css += ` * }\n`;
+         css += ` */\n`;
+
+         return css;
+      }
+
+      function showExportModal() {
+         const modal = document.getElementById('exportModal');
+         const cssCode = document.getElementById('cssCode');
+
+         // Generate CSS
+         const css = generateCSS();
+
+         // Apply syntax highlighting
+         cssCode.innerHTML = highlightCSS(css);
+
+         // Show modal
+         modal.classList.add('show');
+
+         // Prevent body scroll
+         document.body.style.overflow = 'hidden';
+
+         // Close on outside click
+         modal.onclick = function(event) {
+            if (event.target === modal) {
+               closeExportModal();
+            }
+         };
+      }
+
+      function closeExportModal() {
+         const modal = document.getElementById('exportModal');
+         modal.classList.remove('show');
+         document.body.style.overflow = '';
+      }
+
+      function highlightCSS(css) {
+         // Simple syntax highlighting
+         return css
+            .replace(/\/\*.*?\*\//g, '<span class="css-comment">$&</span>')
+            .replace(/(:root|\.[\w-]+)/g, '<span class="css-selector">$&</span>')
+            .replace(/(--[\w-]+):/g, '<span class="css-property">$1</span>:')
+            .replace(/(#[0-9A-Fa-f]{6})/g, '<span class="css-value">$1</span>')
+            .replace(/\n/g, '<br>');
+      }
+
+      function copyCSSToClipboard() {
+         const css = generateCSS();
+
+         if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(css).then(function() {
+               // Update button text
+               const btn = event.target;
+               const originalText = btn.textContent;
+               btn.textContent = '¡Copiado!';
+               btn.style.background = '#28a745';
+
+               setTimeout(() => {
+                  btn.textContent = originalText;
+                  btn.style.background = '';
+               }, 2000);
+
+               // Show toast
+               const toast = document.getElementById('toast');
+               toast.textContent = 'CSS copiado al portapapeles';
+               showToast();
+            }).catch(function(err) {
+               console.error('Error al copiar: ', err);
+               fallbackCopyCSS(css);
+            });
+         } else {
+            fallbackCopyCSS(css);
+         }
+      }
+
+      function fallbackCopyCSS(css) {
+         const textArea = document.createElement('textarea');
+         textArea.value = css;
+         textArea.style.position = 'fixed';
+         textArea.style.left = '-9999px';
+         document.body.appendChild(textArea);
+         textArea.select();
+
+         try {
+            document.execCommand('copy');
+            const toast = document.getElementById('toast');
+            toast.textContent = 'CSS copiado al portapapeles';
+            showToast();
+         } catch (err) {
+            alert('No se pudo copiar. Por favor, copia manualmente.');
+         }
+
+         document.body.removeChild(textArea);
+      }
+
+      function downloadCSS() {
+         const combinationName = /*[[${combination.name}]]*/ 'combination';
+         const css = generateCSS();
+
+         // Create blob
+         const blob = new Blob([css], { type: 'text/css' });
+         const url = window.URL.createObjectURL(blob);
+
+         // Create download link
+         const a = document.createElement('a');
+         a.href = url;
+         a.download = `${combinationName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-colors.css`;
+         document.body.appendChild(a);
+         a.click();
+
+         // Cleanup
+         window.URL.revokeObjectURL(url);
+         document.body.removeChild(a);
+
+         // Show feedback
+         const toast = document.getElementById('toast');
+         toast.textContent = 'Archivo CSS descargado';
+         showToast();
+      }
+
       // Add click handlers to color boxes for better UX
       document.addEventListener('DOMContentLoaded', function () {
          const colorBoxes = document.querySelectorAll('.color-box');
@@ -528,6 +890,13 @@
          paletteColors.forEach(color => {
             color.style.cursor = 'pointer';
             color.title = 'Haz clic para copiar el color';
+         });
+
+         // Close modal with Escape key
+         document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+               closeExportModal();
+            }
          });
       });
    </script>
