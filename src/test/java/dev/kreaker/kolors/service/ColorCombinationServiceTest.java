@@ -41,657 +41,671 @@ import org.springframework.data.domain.Pageable;
 @DisplayName("ColorCombinationService Tests")
 class ColorCombinationServiceTest {
 
-  @Mock private ColorCombinationRepository colorCombinationRepository;
+    @Mock private ColorCombinationRepository colorCombinationRepository;
 
-  @Mock private ColorInCombinationRepository colorInCombinationRepository;
+    @Mock private ColorInCombinationRepository colorInCombinationRepository;
 
-  @Mock private ColorPositionService colorPositionService;
+    @Mock private ColorPositionService colorPositionService;
 
-  @InjectMocks private ColorCombinationService colorCombinationService;
+    @InjectMocks private ColorCombinationService colorCombinationService;
 
-  private ColorCombinationForm validForm;
-  private ColorCombination validCombination;
+    private ColorCombinationForm validForm;
+    private ColorCombination validCombination;
 
-  @BeforeEach
-  void setUp() {
-    // Create valid form
-    validForm = new ColorCombinationForm();
-    validForm.setName("Test Combination");
-    validForm.setColors(
-        Arrays.asList(
-            new ColorForm("FF0000", 1), new ColorForm("00FF00", 2), new ColorForm("0000FF", 3)));
+    @BeforeEach
+    void setUp() {
+        // Create valid form
+        validForm = new ColorCombinationForm();
+        validForm.setName("Test Combination");
+        validForm.setColors(
+                Arrays.asList(
+                        new ColorForm("FF0000", 1),
+                        new ColorForm("00FF00", 2),
+                        new ColorForm("0000FF", 3)));
 
-    // Create valid combination
-    validCombination = new ColorCombination("Test Combination", 3);
-    validCombination.setId(1L);
-    validCombination.setCreatedAt(LocalDateTime.now());
-    validCombination.addColor(new ColorInCombination("FF0000", 1));
-    validCombination.addColor(new ColorInCombination("00FF00", 2));
-    validCombination.addColor(new ColorInCombination("0000FF", 3));
-  }
-
-  @Nested
-  @DisplayName("Create Combination Tests")
-  class CreateCombinationTests {
-
-    @Test
-    @DisplayName("Should create combination successfully with valid form")
-    void shouldCreateCombinationSuccessfully() {
-      // Given
-      when(colorCombinationRepository.save(any(ColorCombination.class)))
-          .thenReturn(validCombination);
-
-      // When
-      ColorCombination result = colorCombinationService.createCombination(validForm);
-
-      // Then
-      assertThat(result).isNotNull();
-      assertThat(result.getName()).isEqualTo("Test Combination");
-      assertThat(result.getColorCount()).isEqualTo(3);
-      assertThat(result.getColors()).hasSize(3);
-
-      verify(colorCombinationRepository).save(any(ColorCombination.class));
+        // Create valid combination
+        validCombination = new ColorCombination("Test Combination", 3);
+        validCombination.setId(1L);
+        validCombination.setCreatedAt(LocalDateTime.now());
+        validCombination.addColor(new ColorInCombination("FF0000", 1));
+        validCombination.addColor(new ColorInCombination("00FF00", 2));
+        validCombination.addColor(new ColorInCombination("0000FF", 3));
     }
 
-    @Test
-    @DisplayName("Should throw validation exception with invalid name")
-    void shouldThrowValidationExceptionWithInvalidName() {
-      // Given
-      validForm.setName("AB"); // Muy corto
+    @Nested
+    @DisplayName("Create Combination Tests")
+    class CreateCombinationTests {
 
-      // When & Then
-      assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
-          .isInstanceOf(ColorCombinationValidationException.class)
-          .hasMessageContaining("Name must have at least 3 characters");
+        @Test
+        @DisplayName("Should create combination successfully with valid form")
+        void shouldCreateCombinationSuccessfully() {
+            // Given
+            when(colorCombinationRepository.save(any(ColorCombination.class)))
+                    .thenReturn(validCombination);
 
-      verify(colorCombinationRepository, never()).save(any());
+            // When
+            ColorCombination result = colorCombinationService.createCombination(validForm);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getName()).isEqualTo("Test Combination");
+            assertThat(result.getColorCount()).isEqualTo(3);
+            assertThat(result.getColors()).hasSize(3);
+
+            verify(colorCombinationRepository).save(any(ColorCombination.class));
+        }
+
+        @Test
+        @DisplayName("Should throw validation exception with invalid name")
+        void shouldThrowValidationExceptionWithInvalidName() {
+            // Given
+            validForm.setName("AB"); // Muy corto
+
+            // When & Then
+            assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
+                    .isInstanceOf(ColorCombinationValidationException.class)
+                    .hasMessageContaining("Name must have at least 3 characters");
+
+            verify(colorCombinationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw validation exception with empty colors")
+        void shouldThrowValidationExceptionWithEmptyColors() {
+            // Given
+            validForm.setColors(new ArrayList<>()); // Empty colors list
+
+            // When & Then
+            assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
+                    .isInstanceOf(ColorCombinationValidationException.class)
+                    .hasMessageContaining("Must have at least one color");
+
+            verify(colorCombinationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw validation exception with invalid hex color")
+        void shouldThrowValidationExceptionWithInvalidHexColor() {
+            // Given
+            validForm.getColors().get(0).setHexValue("INVALID"); // Invalid format
+
+            // When & Then
+            assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
+                    .isInstanceOf(ColorCombinationValidationException.class)
+                    .hasMessageContaining("invalid hexadecimal format");
+
+            verify(colorCombinationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should handle dynamic color count correctly")
+        void shouldHandleDynamicColorCountCorrectly() {
+            // Given - Create a form with dynamic colors
+            ColorCombinationForm form = new ColorCombinationForm();
+            form.setName("Test Combination");
+            form.setColors(
+                    Arrays.asList(
+                            new ColorForm("FF0000", 1),
+                            new ColorForm("00FF00", 2),
+                            new ColorForm("0000FF", 3) // 3 colors dynamically
+                            ));
+
+            ColorCombination savedCombination = new ColorCombination("Test Combination", 3);
+            savedCombination.setId(1L);
+
+            when(colorCombinationRepository.save(any(ColorCombination.class)))
+                    .thenReturn(savedCombination);
+
+            // When
+            ColorCombination result = colorCombinationService.createCombination(form);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertEquals(3, result.getColorCount()); // Should match the number of colors provided
+            verify(colorCombinationRepository).save(any(ColorCombination.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should throw validation exception with empty colors")
-    void shouldThrowValidationExceptionWithEmptyColors() {
-      // Given
-      validForm.setColors(new ArrayList<>()); // Empty colors list
+    @Nested
+    @DisplayName("Read Combination Tests")
+    class ReadCombinationTests {
 
-      // When & Then
-      assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
-          .isInstanceOf(ColorCombinationValidationException.class)
-          .hasMessageContaining("Must have at least one color");
+        @Test
+        @DisplayName("Should find all combinations")
+        void shouldFindAllCombinations() {
+            // Given
+            List<ColorCombination> combinations = Arrays.asList(validCombination);
+            when(colorCombinationRepository.findAllByOrderByCreatedAtDesc())
+                    .thenReturn(combinations);
 
-      verify(colorCombinationRepository, never()).save(any());
+            // When
+            List<ColorCombination> result = colorCombinationService.findAllCombinations();
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findAllByOrderByCreatedAtDesc();
+        }
+
+        @Test
+        @DisplayName("Should find combinations with pagination")
+        void shouldFindCombinationsWithPagination() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<ColorCombination> page = new PageImpl<>(Arrays.asList(validCombination));
+            when(colorCombinationRepository.findAllByOrderByNameAsc(pageable)).thenReturn(page);
+
+            // When
+            Page<ColorCombination> result = colorCombinationService.findAllCombinations(pageable);
+
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0)).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findAllByOrderByNameAsc(pageable);
+        }
+
+        @Test
+        @DisplayName("Should find combination by ID")
+        void shouldFindCombinationById() {
+            // Given
+            Long id = 1L;
+            when(colorCombinationRepository.findByIdWithColors(id))
+                    .thenReturn(Optional.of(validCombination));
+
+            // When
+            Optional<ColorCombination> result = colorCombinationService.findById(id);
+
+            // Then
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findByIdWithColors(id);
+        }
+
+        @Test
+        @DisplayName("Should get combination by ID or throw exception")
+        void shouldGetCombinationByIdOrThrowException() {
+            // Given
+            Long id = 1L;
+            when(colorCombinationRepository.findByIdWithColors(id))
+                    .thenReturn(Optional.of(validCombination));
+
+            // When
+            ColorCombination result = colorCombinationService.getById(id);
+
+            // Then
+            assertThat(result).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findByIdWithColors(id);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when combination not found by ID")
+        void shouldThrowExceptionWhenCombinationNotFoundById() {
+            // Given
+            Long id = 999L;
+            when(colorCombinationRepository.findByIdWithColors(id)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> colorCombinationService.getById(id))
+                    .isInstanceOf(ColorCombinationNotFoundException.class)
+                    .hasMessageContaining("999");
+
+            verify(colorCombinationRepository).findByIdWithColors(id);
+        }
+
+        @Test
+        @DisplayName("Should search combinations by name")
+        void shouldSearchCombinationsByName() {
+            // Given
+            String searchTerm = "Prueba";
+            when(colorCombinationRepository.findByNameContainingIgnoreCase(searchTerm))
+                    .thenReturn(Arrays.asList(validCombination));
+
+            // When
+            List<ColorCombination> result =
+                    colorCombinationService.searchCombinations(searchTerm, null);
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findByNameContainingIgnoreCase(searchTerm);
+        }
+
+        @Test
+        @DisplayName("Should search combinations by color count")
+        void shouldSearchCombinationsByColorCount() {
+            // Given
+            Integer colorCount = 3;
+            when(colorCombinationRepository.findByColorCount(colorCount))
+                    .thenReturn(Arrays.asList(validCombination));
+
+            // When
+            List<ColorCombination> result =
+                    colorCombinationService.searchCombinations(null, colorCount);
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findByColorCount(colorCount);
+        }
+
+        @Test
+        @DisplayName("Should find combinations by hex value")
+        void shouldFindCombinationsByHexValue() {
+            // Given
+            String hexValue = "FF0000";
+            when(colorCombinationRepository.findByContainingHexValue("FF0000"))
+                    .thenReturn(Arrays.asList(validCombination));
+
+            // When
+            List<ColorCombination> result = colorCombinationService.findByHexValue(hexValue);
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findByContainingHexValue("FF0000");
+        }
+
+        @Test
+        @DisplayName("Should throw exception with invalid hex value")
+        void shouldThrowExceptionWithInvalidHexValue() {
+            // Given
+            String invalidHex = "INVALID";
+
+            // When & Then
+            assertThatThrownBy(() -> colorCombinationService.findByHexValue(invalidHex))
+                    .isInstanceOf(InvalidColorFormatException.class)
+                    .hasMessageContaining("INVALID");
+
+            verify(colorCombinationRepository, never()).findByContainingHexValue(any());
+        }
     }
 
-    @Test
-    @DisplayName("Should throw validation exception with invalid hex color")
-    void shouldThrowValidationExceptionWithInvalidHexColor() {
-      // Given
-      validForm.getColors().get(0).setHexValue("INVALID"); // Invalid format
+    @Nested
+    @DisplayName("Update Combination Tests")
+    class UpdateCombinationTests {
 
-      // When & Then
-      assertThatThrownBy(() -> colorCombinationService.createCombination(validForm))
-          .isInstanceOf(ColorCombinationValidationException.class)
-          .hasMessageContaining("invalid hexadecimal format");
+        @Test
+        @DisplayName("Should update combination successfully")
+        void shouldUpdateCombinationSuccessfully() {
+            // Given
+            Long id = 1L;
+            ColorCombinationForm updateForm = new ColorCombinationForm();
+            updateForm.setName("Combinación Actualizada");
+            updateForm.setColors(
+                    Arrays.asList(new ColorForm("FFFFFF", 1), new ColorForm("000000", 2)));
 
-      verify(colorCombinationRepository, never()).save(any());
+            when(colorCombinationRepository.findByIdWithColors(id))
+                    .thenReturn(Optional.of(validCombination));
+            when(colorCombinationRepository.save(any(ColorCombination.class)))
+                    .thenReturn(validCombination);
+
+            // When
+            ColorCombination result = colorCombinationService.updateCombination(id, updateForm);
+
+            // Then
+            assertThat(result).isNotNull();
+
+            verify(colorCombinationRepository).findByIdWithColors(id);
+            verify(colorCombinationRepository).save(any(ColorCombination.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when updating non-existent combination")
+        void shouldThrowExceptionWhenUpdatingNonExistentCombination() {
+            // Given
+            Long id = 999L;
+            when(colorCombinationRepository.findByIdWithColors(id)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> colorCombinationService.updateCombination(id, validForm))
+                    .isInstanceOf(ColorCombinationNotFoundException.class)
+                    .hasMessageContaining("999");
+
+            verify(colorCombinationRepository).findByIdWithColors(id);
+            verify(colorCombinationRepository, never()).save(any());
+        }
     }
 
-    @Test
-    @DisplayName("Should handle dynamic color count correctly")
-    void shouldHandleDynamicColorCountCorrectly() {
-      // Given - Create a form with dynamic colors
-      ColorCombinationForm form = new ColorCombinationForm();
-      form.setName("Test Combination");
-      form.setColors(
-          Arrays.asList(
-              new ColorForm("FF0000", 1),
-              new ColorForm("00FF00", 2),
-              new ColorForm("0000FF", 3) // 3 colors dynamically
-              ));
+    @Nested
+    @DisplayName("Delete Combination Tests")
+    class DeleteCombinationTests {
 
-      ColorCombination savedCombination = new ColorCombination("Test Combination", 3);
-      savedCombination.setId(1L);
+        @Test
+        @DisplayName("Should delete combination successfully")
+        void shouldDeleteCombinationSuccessfully() {
+            // Given
+            Long id = 1L;
+            when(colorCombinationRepository.existsById(id)).thenReturn(true);
 
-      when(colorCombinationRepository.save(any(ColorCombination.class)))
-          .thenReturn(savedCombination);
+            // When
+            colorCombinationService.deleteCombination(id);
 
-      // When
-      ColorCombination result = colorCombinationService.createCombination(form);
+            // Then
+            verify(colorCombinationRepository).existsById(id);
+            verify(colorCombinationRepository).deleteById(id);
+        }
 
-      // Then
-      assertThat(result).isNotNull();
-      assertEquals(3, result.getColorCount()); // Should match the number of colors provided
-      verify(colorCombinationRepository).save(any(ColorCombination.class));
-    }
-  }
+        @Test
+        @DisplayName("Should throw exception when deleting non-existent combination")
+        void shouldThrowExceptionWhenDeletingNonExistentCombination() {
+            // Given
+            Long id = 999L;
+            when(colorCombinationRepository.existsById(id)).thenReturn(false);
 
-  @Nested
-  @DisplayName("Read Combination Tests")
-  class ReadCombinationTests {
+            // When & Then
+            assertThatThrownBy(() -> colorCombinationService.deleteCombination(id))
+                    .isInstanceOf(ColorCombinationNotFoundException.class)
+                    .hasMessageContaining("999");
 
-    @Test
-    @DisplayName("Should find all combinations")
-    void shouldFindAllCombinations() {
-      // Given
-      List<ColorCombination> combinations = Arrays.asList(validCombination);
-      when(colorCombinationRepository.findAllByOrderByCreatedAtDesc()).thenReturn(combinations);
-
-      // When
-      List<ColorCombination> result = colorCombinationService.findAllCombinations();
-
-      // Then
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0)).isEqualTo(validCombination);
-
-      verify(colorCombinationRepository).findAllByOrderByCreatedAtDesc();
+            verify(colorCombinationRepository).existsById(id);
+            verify(colorCombinationRepository, never()).deleteById(any());
+        }
     }
 
-    @Test
-    @DisplayName("Should find combinations with pagination")
-    void shouldFindCombinationsWithPagination() {
-      // Given
-      Pageable pageable = PageRequest.of(0, 10);
-      Page<ColorCombination> page = new PageImpl<>(Arrays.asList(validCombination));
-      when(colorCombinationRepository.findAllByOrderByNameAsc(pageable)).thenReturn(page);
+    @Nested
+    @DisplayName("Validation Tests")
+    class ValidationTests {
 
-      // When
-      Page<ColorCombination> result = colorCombinationService.findAllCombinations(pageable);
+        @Test
+        @DisplayName("Should validate hex color correctly")
+        void shouldValidateHexColorCorrectly() {
+            // Valid hex colors
+            assertThat(colorCombinationService.isValidHexColor("FF0000")).isTrue();
+            assertThat(colorCombinationService.isValidHexColor("00ff00")).isTrue();
+            assertThat(colorCombinationService.isValidHexColor("123ABC")).isTrue();
 
-      // Then
-      assertThat(result.getContent()).hasSize(1);
-      assertThat(result.getContent().get(0)).isEqualTo(validCombination);
+            // Invalid hex colors
+            assertThat(colorCombinationService.isValidHexColor("INVALID")).isFalse();
+            assertThat(colorCombinationService.isValidHexColor("FF00")).isFalse();
+            assertThat(colorCombinationService.isValidHexColor("FF0000G")).isFalse();
+            assertThat(colorCombinationService.isValidHexColor(null)).isFalse();
+            assertThat(colorCombinationService.isValidHexColor("")).isFalse();
+        }
 
-      verify(colorCombinationRepository).findAllByOrderByNameAsc(pageable);
+        @Test
+        @DisplayName("Should validate hex colors list correctly")
+        void shouldValidateHexColorsListCorrectly() {
+            // Valid list
+            List<String> validColors = Arrays.asList("FF0000", "00FF00", "0000FF");
+            assertThat(colorCombinationService.validateHexColors(validColors)).isTrue();
+
+            // Invalid list
+            List<String> invalidColors = Arrays.asList("FF0000", "INVALID", "0000FF");
+            assertThat(colorCombinationService.validateHexColors(invalidColors)).isFalse();
+
+            // Null or empty list
+            assertThat(colorCombinationService.validateHexColors(null)).isFalse();
+            assertThat(colorCombinationService.validateHexColors(Arrays.asList())).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should validate color count correctly")
+        void shouldValidateColorCountCorrectly() {
+            List<ColorForm> colors =
+                    Arrays.asList(new ColorForm("FF0000", 1), new ColorForm("00FF00", 2));
+
+            // Valid count
+            assertThat(colorCombinationService.validateColorCount(2, colors)).isTrue();
+
+            // Invalid count
+            assertThat(colorCombinationService.validateColorCount(3, colors)).isFalse();
+            assertThat(colorCombinationService.validateColorCount(1, colors)).isFalse();
+            assertThat(colorCombinationService.validateColorCount(5, colors)).isFalse();
+
+            // Null parameters
+            assertThat(colorCombinationService.validateColorCount(null, colors)).isFalse();
+            assertThat(colorCombinationService.validateColorCount(2, null)).isFalse();
+        }
     }
 
-    @Test
-    @DisplayName("Should find combination by ID")
-    void shouldFindCombinationById() {
-      // Given
-      Long id = 1L;
-      when(colorCombinationRepository.findByIdWithColors(id))
-          .thenReturn(Optional.of(validCombination));
+    @Nested
+    @DisplayName("Utility Tests")
+    class UtilityTests {
 
-      // When
-      Optional<ColorCombination> result = colorCombinationService.findById(id);
+        @Test
+        @DisplayName("Should convert entity to form correctly")
+        void shouldConvertEntityToFormCorrectly() {
+            // When
+            ColorCombinationForm result = colorCombinationService.convertToForm(validCombination);
 
-      // Then
-      assertThat(result).isPresent();
-      assertThat(result.get()).isEqualTo(validCombination);
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getName()).isEqualTo(validCombination.getName());
+            assertThat(result.getColorCount()).isEqualTo(validCombination.getColorCount());
+            assertThat(result.getColors()).hasSize(validCombination.getColors().size());
+        }
 
-      verify(colorCombinationRepository).findByIdWithColors(id);
+        @Test
+        @DisplayName("Should return null when converting null entity")
+        void shouldReturnNullWhenConvertingNullEntity() {
+            // When
+            ColorCombinationForm result = colorCombinationService.convertToForm(null);
+
+            // Then
+            assertThat(result).isNull();
+        }
+
+        @Test
+        @DisplayName("Should check if combination exists by name")
+        void shouldCheckIfCombinationExistsByName() {
+            // Given
+            String name = "Test Combination";
+            when(colorCombinationRepository.existsByNameIgnoreCase(name)).thenReturn(true);
+
+            // When
+            boolean result = colorCombinationService.existsByName(name);
+
+            // Then
+            assertThat(result).isTrue();
+            verify(colorCombinationRepository).existsByNameIgnoreCase(name);
+        }
+
+        @Test
+        @DisplayName("Should get statistics correctly")
+        void shouldGetStatisticsCorrectly() {
+            // Given
+            when(colorCombinationRepository.count()).thenReturn(10L);
+            when(colorCombinationRepository.countByColorCount(2)).thenReturn(3L);
+            when(colorCombinationRepository.countByColorCount(3)).thenReturn(4L);
+            when(colorCombinationRepository.countByColorCount(4)).thenReturn(3L);
+
+            // When
+            ColorCombinationService.CombinationStatistics result =
+                    colorCombinationService.getStatistics();
+
+            // Then
+            assertThat(result.getTotalCombinations()).isEqualTo(10L);
+            assertThat(result.getCombinationsWith2Colors()).isEqualTo(3L);
+            assertThat(result.getCombinationsWith3Colors()).isEqualTo(4L);
+            assertThat(result.getCombinationsWith4Colors()).isEqualTo(3L);
+        }
+
+        @Test
+        @DisplayName("Should get recent combinations")
+        void shouldGetRecentCombinations() {
+            // Given
+            int limit = 5;
+            when(colorCombinationRepository.findMostRecent(any(Pageable.class)))
+                    .thenReturn(Arrays.asList(validCombination));
+
+            // When
+            List<ColorCombination> result = colorCombinationService.getRecentCombinations(limit);
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(validCombination);
+
+            verify(colorCombinationRepository).findMostRecent(any(Pageable.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should get combination by ID or throw exception")
-    void shouldGetCombinationByIdOrThrowException() {
-      // Given
-      Long id = 1L;
-      when(colorCombinationRepository.findByIdWithColors(id))
-          .thenReturn(Optional.of(validCombination));
+    @Nested
+    @DisplayName("Dynamic Color Management Tests")
+    class DynamicColorManagementTests {
 
-      // When
-      ColorCombination result = colorCombinationService.getById(id);
+        @Test
+        @DisplayName("Should add color to combination successfully")
+        void shouldAddColorToCombinationSuccessfully() {
+            // Given
+            Long combinationId = 1L;
+            ColorForm colorForm = new ColorForm("FFFF00", 4);
 
-      // Then
-      assertThat(result).isEqualTo(validCombination);
+            when(colorCombinationRepository.findById(combinationId))
+                    .thenReturn(Optional.of(validCombination));
+            when(colorCombinationRepository.save(any(ColorCombination.class)))
+                    .thenReturn(validCombination);
 
-      verify(colorCombinationRepository).findByIdWithColors(id);
+            // When
+            ColorCombination result =
+                    colorCombinationService.addColorToCombination(combinationId, colorForm);
+
+            // Then
+            assertThat(result).isNotNull();
+            verify(colorCombinationRepository).findById(combinationId);
+            verify(colorCombinationRepository).save(any(ColorCombination.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when adding color to non-existent combination")
+        void shouldThrowExceptionWhenAddingColorToNonExistentCombination() {
+            // Given
+            Long combinationId = 999L;
+            ColorForm colorForm = new ColorForm("FFFF00", 4);
+
+            when(colorCombinationRepository.findById(combinationId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(
+                            () ->
+                                    colorCombinationService.addColorToCombination(
+                                            combinationId, colorForm))
+                    .isInstanceOf(ColorCombinationNotFoundException.class)
+                    .hasMessageContaining("Combination not found with ID: " + combinationId);
+
+            verify(colorCombinationRepository).findById(combinationId);
+            verify(colorCombinationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception for invalid hex color when adding")
+        void shouldThrowExceptionForInvalidHexColorWhenAdding() {
+            // Given
+            Long combinationId = 1L;
+            ColorForm colorForm = new ColorForm("INVALID", 4);
+
+            // When & Then
+            assertThatThrownBy(
+                            () ->
+                                    colorCombinationService.addColorToCombination(
+                                            combinationId, colorForm))
+                    .isInstanceOf(InvalidColorFormatException.class)
+                    .hasMessageContaining("Invalid hexadecimal color format");
+
+            verify(colorCombinationRepository, never()).findById(any());
+            verify(colorCombinationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should remove color from combination successfully")
+        void shouldRemoveColorFromCombinationSuccessfully() {
+            // Given
+            Long combinationId = 1L;
+            Integer position = 2;
+
+            // Create a combination with multiple colors
+            ColorCombination combinationWithMultipleColors = new ColorCombination("Test", 3);
+            combinationWithMultipleColors.addColor(new ColorInCombination("FF0000", 1));
+            combinationWithMultipleColors.addColor(new ColorInCombination("00FF00", 2));
+            combinationWithMultipleColors.addColor(new ColorInCombination("0000FF", 3));
+
+            when(colorCombinationRepository.findById(combinationId))
+                    .thenReturn(Optional.of(combinationWithMultipleColors));
+            when(colorCombinationRepository.save(any(ColorCombination.class)))
+                    .thenReturn(combinationWithMultipleColors);
+
+            // When
+            ColorCombination result =
+                    colorCombinationService.removeColorFromCombination(combinationId, position);
+
+            // Then
+            assertThat(result).isNotNull();
+            verify(colorCombinationRepository).findById(combinationId);
+            verify(colorCombinationRepository).save(any(ColorCombination.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when removing last color")
+        void shouldThrowExceptionWhenRemovingLastColor() {
+            // Given
+            Long combinationId = 1L;
+            Integer position = 1;
+
+            // Create a combination with only one color
+            ColorCombination combinationWithOneColor = new ColorCombination("Test", 1);
+            combinationWithOneColor.addColor(new ColorInCombination("FF0000", 1));
+
+            when(colorCombinationRepository.findById(combinationId))
+                    .thenReturn(Optional.of(combinationWithOneColor));
+
+            // When & Then
+            assertThatThrownBy(
+                            () ->
+                                    colorCombinationService.removeColorFromCombination(
+                                            combinationId, position))
+                    .isInstanceOf(ColorCombinationValidationException.class)
+                    .hasMessageContaining("Cannot remove the last color from a combination");
+
+            verify(colorCombinationRepository).findById(combinationId);
+            verify(colorCombinationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when removing color from non-existent combination")
+        void shouldThrowExceptionWhenRemovingColorFromNonExistentCombination() {
+            // Given
+            Long combinationId = 999L;
+            Integer position = 1;
+
+            when(colorCombinationRepository.findById(combinationId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(
+                            () ->
+                                    colorCombinationService.removeColorFromCombination(
+                                            combinationId, position))
+                    .isInstanceOf(ColorCombinationNotFoundException.class)
+                    .hasMessageContaining("Combination not found with ID: " + combinationId);
+
+            verify(colorCombinationRepository).findById(combinationId);
+            verify(colorCombinationRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should validate minimum colors correctly")
+        void shouldValidateMinimumColorsCorrectly() {
+            // Given - valid colors list
+            List<ColorForm> validColors =
+                    Arrays.asList(new ColorForm("FF0000", 1), new ColorForm("00FF00", 2));
+
+            // When & Then
+            assertTrue(colorCombinationService.validateMinimumColors(validColors));
+
+            // Given - empty colors list
+            List<ColorForm> emptyColors = Arrays.asList();
+
+            // When & Then
+            assertFalse(colorCombinationService.validateMinimumColors(emptyColors));
+
+            // Given - null colors list
+            // When & Then
+            assertFalse(colorCombinationService.validateMinimumColors(null));
+        }
     }
-
-    @Test
-    @DisplayName("Should throw exception when combination not found by ID")
-    void shouldThrowExceptionWhenCombinationNotFoundById() {
-      // Given
-      Long id = 999L;
-      when(colorCombinationRepository.findByIdWithColors(id)).thenReturn(Optional.empty());
-
-      // When & Then
-      assertThatThrownBy(() -> colorCombinationService.getById(id))
-          .isInstanceOf(ColorCombinationNotFoundException.class)
-          .hasMessageContaining("999");
-
-      verify(colorCombinationRepository).findByIdWithColors(id);
-    }
-
-    @Test
-    @DisplayName("Should search combinations by name")
-    void shouldSearchCombinationsByName() {
-      // Given
-      String searchTerm = "Prueba";
-      when(colorCombinationRepository.findByNameContainingIgnoreCase(searchTerm))
-          .thenReturn(Arrays.asList(validCombination));
-
-      // When
-      List<ColorCombination> result = colorCombinationService.searchCombinations(searchTerm, null);
-
-      // Then
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0)).isEqualTo(validCombination);
-
-      verify(colorCombinationRepository).findByNameContainingIgnoreCase(searchTerm);
-    }
-
-    @Test
-    @DisplayName("Should search combinations by color count")
-    void shouldSearchCombinationsByColorCount() {
-      // Given
-      Integer colorCount = 3;
-      when(colorCombinationRepository.findByColorCount(colorCount))
-          .thenReturn(Arrays.asList(validCombination));
-
-      // When
-      List<ColorCombination> result = colorCombinationService.searchCombinations(null, colorCount);
-
-      // Then
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0)).isEqualTo(validCombination);
-
-      verify(colorCombinationRepository).findByColorCount(colorCount);
-    }
-
-    @Test
-    @DisplayName("Should find combinations by hex value")
-    void shouldFindCombinationsByHexValue() {
-      // Given
-      String hexValue = "FF0000";
-      when(colorCombinationRepository.findByContainingHexValue("FF0000"))
-          .thenReturn(Arrays.asList(validCombination));
-
-      // When
-      List<ColorCombination> result = colorCombinationService.findByHexValue(hexValue);
-
-      // Then
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0)).isEqualTo(validCombination);
-
-      verify(colorCombinationRepository).findByContainingHexValue("FF0000");
-    }
-
-    @Test
-    @DisplayName("Should throw exception with invalid hex value")
-    void shouldThrowExceptionWithInvalidHexValue() {
-      // Given
-      String invalidHex = "INVALID";
-
-      // When & Then
-      assertThatThrownBy(() -> colorCombinationService.findByHexValue(invalidHex))
-          .isInstanceOf(InvalidColorFormatException.class)
-          .hasMessageContaining("INVALID");
-
-      verify(colorCombinationRepository, never()).findByContainingHexValue(any());
-    }
-  }
-
-  @Nested
-  @DisplayName("Update Combination Tests")
-  class UpdateCombinationTests {
-
-    @Test
-    @DisplayName("Should update combination successfully")
-    void shouldUpdateCombinationSuccessfully() {
-      // Given
-      Long id = 1L;
-      ColorCombinationForm updateForm = new ColorCombinationForm();
-      updateForm.setName("Combinación Actualizada");
-      updateForm.setColors(Arrays.asList(new ColorForm("FFFFFF", 1), new ColorForm("000000", 2)));
-
-      when(colorCombinationRepository.findByIdWithColors(id))
-          .thenReturn(Optional.of(validCombination));
-      when(colorCombinationRepository.save(any(ColorCombination.class)))
-          .thenReturn(validCombination);
-
-      // When
-      ColorCombination result = colorCombinationService.updateCombination(id, updateForm);
-
-      // Then
-      assertThat(result).isNotNull();
-
-      verify(colorCombinationRepository).findByIdWithColors(id);
-      verify(colorCombinationRepository).save(any(ColorCombination.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when updating non-existent combination")
-    void shouldThrowExceptionWhenUpdatingNonExistentCombination() {
-      // Given
-      Long id = 999L;
-      when(colorCombinationRepository.findByIdWithColors(id)).thenReturn(Optional.empty());
-
-      // When & Then
-      assertThatThrownBy(() -> colorCombinationService.updateCombination(id, validForm))
-          .isInstanceOf(ColorCombinationNotFoundException.class)
-          .hasMessageContaining("999");
-
-      verify(colorCombinationRepository).findByIdWithColors(id);
-      verify(colorCombinationRepository, never()).save(any());
-    }
-  }
-
-  @Nested
-  @DisplayName("Delete Combination Tests")
-  class DeleteCombinationTests {
-
-    @Test
-    @DisplayName("Should delete combination successfully")
-    void shouldDeleteCombinationSuccessfully() {
-      // Given
-      Long id = 1L;
-      when(colorCombinationRepository.existsById(id)).thenReturn(true);
-
-      // When
-      colorCombinationService.deleteCombination(id);
-
-      // Then
-      verify(colorCombinationRepository).existsById(id);
-      verify(colorCombinationRepository).deleteById(id);
-    }
-
-    @Test
-    @DisplayName("Should throw exception when deleting non-existent combination")
-    void shouldThrowExceptionWhenDeletingNonExistentCombination() {
-      // Given
-      Long id = 999L;
-      when(colorCombinationRepository.existsById(id)).thenReturn(false);
-
-      // When & Then
-      assertThatThrownBy(() -> colorCombinationService.deleteCombination(id))
-          .isInstanceOf(ColorCombinationNotFoundException.class)
-          .hasMessageContaining("999");
-
-      verify(colorCombinationRepository).existsById(id);
-      verify(colorCombinationRepository, never()).deleteById(any());
-    }
-  }
-
-  @Nested
-  @DisplayName("Validation Tests")
-  class ValidationTests {
-
-    @Test
-    @DisplayName("Should validate hex color correctly")
-    void shouldValidateHexColorCorrectly() {
-      // Valid hex colors
-      assertThat(colorCombinationService.isValidHexColor("FF0000")).isTrue();
-      assertThat(colorCombinationService.isValidHexColor("00ff00")).isTrue();
-      assertThat(colorCombinationService.isValidHexColor("123ABC")).isTrue();
-
-      // Invalid hex colors
-      assertThat(colorCombinationService.isValidHexColor("INVALID")).isFalse();
-      assertThat(colorCombinationService.isValidHexColor("FF00")).isFalse();
-      assertThat(colorCombinationService.isValidHexColor("FF0000G")).isFalse();
-      assertThat(colorCombinationService.isValidHexColor(null)).isFalse();
-      assertThat(colorCombinationService.isValidHexColor("")).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should validate hex colors list correctly")
-    void shouldValidateHexColorsListCorrectly() {
-      // Valid list
-      List<String> validColors = Arrays.asList("FF0000", "00FF00", "0000FF");
-      assertThat(colorCombinationService.validateHexColors(validColors)).isTrue();
-
-      // Invalid list
-      List<String> invalidColors = Arrays.asList("FF0000", "INVALID", "0000FF");
-      assertThat(colorCombinationService.validateHexColors(invalidColors)).isFalse();
-
-      // Null or empty list
-      assertThat(colorCombinationService.validateHexColors(null)).isFalse();
-      assertThat(colorCombinationService.validateHexColors(Arrays.asList())).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should validate color count correctly")
-    void shouldValidateColorCountCorrectly() {
-      List<ColorForm> colors =
-          Arrays.asList(new ColorForm("FF0000", 1), new ColorForm("00FF00", 2));
-
-      // Valid count
-      assertThat(colorCombinationService.validateColorCount(2, colors)).isTrue();
-
-      // Invalid count
-      assertThat(colorCombinationService.validateColorCount(3, colors)).isFalse();
-      assertThat(colorCombinationService.validateColorCount(1, colors)).isFalse();
-      assertThat(colorCombinationService.validateColorCount(5, colors)).isFalse();
-
-      // Null parameters
-      assertThat(colorCombinationService.validateColorCount(null, colors)).isFalse();
-      assertThat(colorCombinationService.validateColorCount(2, null)).isFalse();
-    }
-  }
-
-  @Nested
-  @DisplayName("Utility Tests")
-  class UtilityTests {
-
-    @Test
-    @DisplayName("Should convert entity to form correctly")
-    void shouldConvertEntityToFormCorrectly() {
-      // When
-      ColorCombinationForm result = colorCombinationService.convertToForm(validCombination);
-
-      // Then
-      assertThat(result).isNotNull();
-      assertThat(result.getName()).isEqualTo(validCombination.getName());
-      assertThat(result.getColorCount()).isEqualTo(validCombination.getColorCount());
-      assertThat(result.getColors()).hasSize(validCombination.getColors().size());
-    }
-
-    @Test
-    @DisplayName("Should return null when converting null entity")
-    void shouldReturnNullWhenConvertingNullEntity() {
-      // When
-      ColorCombinationForm result = colorCombinationService.convertToForm(null);
-
-      // Then
-      assertThat(result).isNull();
-    }
-
-    @Test
-    @DisplayName("Should check if combination exists by name")
-    void shouldCheckIfCombinationExistsByName() {
-      // Given
-      String name = "Test Combination";
-      when(colorCombinationRepository.existsByNameIgnoreCase(name)).thenReturn(true);
-
-      // When
-      boolean result = colorCombinationService.existsByName(name);
-
-      // Then
-      assertThat(result).isTrue();
-      verify(colorCombinationRepository).existsByNameIgnoreCase(name);
-    }
-
-    @Test
-    @DisplayName("Should get statistics correctly")
-    void shouldGetStatisticsCorrectly() {
-      // Given
-      when(colorCombinationRepository.count()).thenReturn(10L);
-      when(colorCombinationRepository.countByColorCount(2)).thenReturn(3L);
-      when(colorCombinationRepository.countByColorCount(3)).thenReturn(4L);
-      when(colorCombinationRepository.countByColorCount(4)).thenReturn(3L);
-
-      // When
-      ColorCombinationService.CombinationStatistics result =
-          colorCombinationService.getStatistics();
-
-      // Then
-      assertThat(result.getTotalCombinations()).isEqualTo(10L);
-      assertThat(result.getCombinationsWith2Colors()).isEqualTo(3L);
-      assertThat(result.getCombinationsWith3Colors()).isEqualTo(4L);
-      assertThat(result.getCombinationsWith4Colors()).isEqualTo(3L);
-    }
-
-    @Test
-    @DisplayName("Should get recent combinations")
-    void shouldGetRecentCombinations() {
-      // Given
-      int limit = 5;
-      when(colorCombinationRepository.findMostRecent(any(Pageable.class)))
-          .thenReturn(Arrays.asList(validCombination));
-
-      // When
-      List<ColorCombination> result = colorCombinationService.getRecentCombinations(limit);
-
-      // Then
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0)).isEqualTo(validCombination);
-
-      verify(colorCombinationRepository).findMostRecent(any(Pageable.class));
-    }
-  }
-
-  @Nested
-  @DisplayName("Dynamic Color Management Tests")
-  class DynamicColorManagementTests {
-
-    @Test
-    @DisplayName("Should add color to combination successfully")
-    void shouldAddColorToCombinationSuccessfully() {
-      // Given
-      Long combinationId = 1L;
-      ColorForm colorForm = new ColorForm("FFFF00", 4);
-
-      when(colorCombinationRepository.findById(combinationId))
-          .thenReturn(Optional.of(validCombination));
-      when(colorCombinationRepository.save(any(ColorCombination.class)))
-          .thenReturn(validCombination);
-
-      // When
-      ColorCombination result =
-          colorCombinationService.addColorToCombination(combinationId, colorForm);
-
-      // Then
-      assertThat(result).isNotNull();
-      verify(colorCombinationRepository).findById(combinationId);
-      verify(colorCombinationRepository).save(any(ColorCombination.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when adding color to non-existent combination")
-    void shouldThrowExceptionWhenAddingColorToNonExistentCombination() {
-      // Given
-      Long combinationId = 999L;
-      ColorForm colorForm = new ColorForm("FFFF00", 4);
-
-      when(colorCombinationRepository.findById(combinationId)).thenReturn(Optional.empty());
-
-      // When & Then
-      assertThatThrownBy(
-              () -> colorCombinationService.addColorToCombination(combinationId, colorForm))
-          .isInstanceOf(ColorCombinationNotFoundException.class)
-          .hasMessageContaining("Combination not found with ID: " + combinationId);
-
-      verify(colorCombinationRepository).findById(combinationId);
-      verify(colorCombinationRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should throw exception for invalid hex color when adding")
-    void shouldThrowExceptionForInvalidHexColorWhenAdding() {
-      // Given
-      Long combinationId = 1L;
-      ColorForm colorForm = new ColorForm("INVALID", 4);
-
-      // When & Then
-      assertThatThrownBy(
-              () -> colorCombinationService.addColorToCombination(combinationId, colorForm))
-          .isInstanceOf(InvalidColorFormatException.class)
-          .hasMessageContaining("Invalid hexadecimal color format");
-
-      verify(colorCombinationRepository, never()).findById(any());
-      verify(colorCombinationRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should remove color from combination successfully")
-    void shouldRemoveColorFromCombinationSuccessfully() {
-      // Given
-      Long combinationId = 1L;
-      Integer position = 2;
-
-      // Create a combination with multiple colors
-      ColorCombination combinationWithMultipleColors = new ColorCombination("Test", 3);
-      combinationWithMultipleColors.addColor(new ColorInCombination("FF0000", 1));
-      combinationWithMultipleColors.addColor(new ColorInCombination("00FF00", 2));
-      combinationWithMultipleColors.addColor(new ColorInCombination("0000FF", 3));
-
-      when(colorCombinationRepository.findById(combinationId))
-          .thenReturn(Optional.of(combinationWithMultipleColors));
-      when(colorCombinationRepository.save(any(ColorCombination.class)))
-          .thenReturn(combinationWithMultipleColors);
-
-      // When
-      ColorCombination result =
-          colorCombinationService.removeColorFromCombination(combinationId, position);
-
-      // Then
-      assertThat(result).isNotNull();
-      verify(colorCombinationRepository).findById(combinationId);
-      verify(colorCombinationRepository).save(any(ColorCombination.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when removing last color")
-    void shouldThrowExceptionWhenRemovingLastColor() {
-      // Given
-      Long combinationId = 1L;
-      Integer position = 1;
-
-      // Create a combination with only one color
-      ColorCombination combinationWithOneColor = new ColorCombination("Test", 1);
-      combinationWithOneColor.addColor(new ColorInCombination("FF0000", 1));
-
-      when(colorCombinationRepository.findById(combinationId))
-          .thenReturn(Optional.of(combinationWithOneColor));
-
-      // When & Then
-      assertThatThrownBy(
-              () -> colorCombinationService.removeColorFromCombination(combinationId, position))
-          .isInstanceOf(ColorCombinationValidationException.class)
-          .hasMessageContaining("Cannot remove the last color from a combination");
-
-      verify(colorCombinationRepository).findById(combinationId);
-      verify(colorCombinationRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should throw exception when removing color from non-existent combination")
-    void shouldThrowExceptionWhenRemovingColorFromNonExistentCombination() {
-      // Given
-      Long combinationId = 999L;
-      Integer position = 1;
-
-      when(colorCombinationRepository.findById(combinationId)).thenReturn(Optional.empty());
-
-      // When & Then
-      assertThatThrownBy(
-              () -> colorCombinationService.removeColorFromCombination(combinationId, position))
-          .isInstanceOf(ColorCombinationNotFoundException.class)
-          .hasMessageContaining("Combination not found with ID: " + combinationId);
-
-      verify(colorCombinationRepository).findById(combinationId);
-      verify(colorCombinationRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should validate minimum colors correctly")
-    void shouldValidateMinimumColorsCorrectly() {
-      // Given - valid colors list
-      List<ColorForm> validColors =
-          Arrays.asList(new ColorForm("FF0000", 1), new ColorForm("00FF00", 2));
-
-      // When & Then
-      assertTrue(colorCombinationService.validateMinimumColors(validColors));
-
-      // Given - empty colors list
-      List<ColorForm> emptyColors = Arrays.asList();
-
-      // When & Then
-      assertFalse(colorCombinationService.validateMinimumColors(emptyColors));
-
-      // Given - null colors list
-      // When & Then
-      assertFalse(colorCombinationService.validateMinimumColors(null));
-    }
-  }
 }

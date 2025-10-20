@@ -12,52 +12,52 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class PostMigrationValidationTest {
 
-  @Autowired private DatabaseMigrationService migrationService;
+    @Autowired private DatabaseMigrationService migrationService;
 
-  @Test
-  void shouldConfirmLegacyDataHasBeenMigrated() {
-    // Given - Migration has been completed and legacy code removed
+    @Test
+    void shouldConfirmLegacyDataHasBeenMigrated() {
+        // Given - Migration has been completed and legacy code removed
 
-    // When - Check if legacy data is present
-    boolean hasLegacyData = migrationService.isLegacyDataPresent();
+        // When - Check if legacy data is present
+        boolean hasLegacyData = migrationService.isLegacyDataPresent();
 
-    // Then - Should return false as legacy data has been migrated and removed
-    assertThat(hasLegacyData).isFalse();
-  }
+        // Then - Should return false as legacy data has been migrated and removed
+        assertThat(hasLegacyData).isFalse();
+    }
 
-  @Test
-  void shouldProvideValidMigrationStatistics() {
-    // Given - Migration has been completed
+    @Test
+    void shouldProvideValidMigrationStatistics() {
+        // Given - Migration has been completed
 
-    // When - Get migration statistics
-    MigrationStatistics stats = migrationService.getMigrationStatistics();
+        // When - Get migration statistics
+        MigrationStatistics stats = migrationService.getMigrationStatistics();
 
-    // Then - Should show no legacy records and current migration status
-    assertThat(stats).isNotNull();
-    assertThat(stats.getLegacyRecordCount()).isEqualTo(0);
-    assertThat(stats.getMigrationStatus()).isEqualTo(MigrationStatus.COMPLETED);
-  }
+        // Then - Should show no legacy records and current migration status
+        assertThat(stats).isNotNull();
+        assertThat(stats.getLegacyRecordCount()).isEqualTo(0);
+        assertThat(stats.getMigrationStatus()).isEqualTo(MigrationStatus.COMPLETED);
+    }
 
-  @Test
-  void shouldValidateDataIntegrity() {
-    // Given - Migration has been completed
+    @Test
+    void shouldValidateDataIntegrity() {
+        // Given - Migration has been completed
 
-    // When - Validate migrated data
-    MigrationResult result = migrationService.validateMigratedData();
+        // When - Validate migrated data
+        MigrationResult result = migrationService.validateMigratedData();
 
-    // Then - Validation should complete successfully
-    assertThat(result).isNotNull();
-    assertThat(result.isSuccess()).isTrue();
-  }
+        // Then - Validation should complete successfully
+        assertThat(result).isNotNull();
+        assertThat(result.isSuccess()).isTrue();
+    }
 
-  @Test
-  void shouldCreateBackupSuccessfully() {
-    // Given - Current data exists
+    @Test
+    void shouldCreateBackupSuccessfully() {
+        // Given - Current data exists
 
-    // When - Create backup
-    boolean backupCreated = migrationService.createBackup();
+        // When - Create backup
+        boolean backupCreated = migrationService.createBackup();
 
-    // Then - Backup should be created successfully
-    assertThat(backupCreated).isTrue();
-  }
+        // Then - Backup should be created successfully
+        assertThat(backupCreated).isTrue();
+    }
 }

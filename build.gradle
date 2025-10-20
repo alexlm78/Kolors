@@ -1,35 +1,40 @@
+import com.diffplug.spotless.extra.wtp.EclipseWtpFormatterStep
+
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.6'
-	id 'io.spring.dependency-management' version '1.1.7'
+   id 'java'
+   id 'org.springframework.boot' version '3.5.6'
+   id 'io.spring.dependency-management' version '1.1.7'
    id 'com.diffplug.spotless' version '6.22.0'
 }
 
 group = 'dev.kreaker.kolors'
 version = '0.6.4'
-sourceCompatibility = '21'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+   sourceCompatibility = JavaVersion.VERSION_21
+
+   toolchain {
+      languageVersion = JavaLanguageVersion.of(21)
+   }
 }
 
 repositories {
-	mavenCentral()
+   mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+   implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
    implementation 'org.springframework.boot:spring-boot-starter-validation'
    implementation 'org.springframework.boot:spring-boot-starter-aop'
    implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
    implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.4.Final'
+
    runtimeOnly 'com.h2database:h2'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+   testImplementation 'org.springframework.boot:spring-boot-starter-test'
+   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
@@ -37,7 +42,7 @@ tasks.named('test') {
 }
 
 spotless {
-    java {
+   java {
       target '**/*.java'
       targetExclude '**/build/**', '**/.gradle/**', 'out/**'
 
@@ -51,7 +56,7 @@ spotless {
          if (it.contains('import .*\\*')) {
             throw new RuntimeException('No use wildcard imports')
          }
-      }
+      } as Closure<String>
 
       custom 'enforceUtf8', {
          return new String(it.getBytes('UTF-8'), 'UTF-8')
@@ -78,8 +83,8 @@ spotless {
             if (trimmed.startsWith('#') || trimmed.isEmpty()) {
                if (!propBlock.isEmpty()) {
                   result.addAll(propBlock.sort { a, b ->
-                     def keyA = a.split('=')[0].trim()
-                     def keyB = b.split('=')[0].trim()
+                     def keyA = a.tokenize('=')?.getAt(0)?.trim() ?: a.trim()
+                     def keyB = b.tokenize('=')?.getAt(0)?.trim() ?: b.trim()
                      return keyA.compareToIgnoreCase(keyB)
                   })
                   propBlock.clear()
@@ -92,8 +97,8 @@ spotless {
 
          if (!propBlock.isEmpty()) {
             result.addAll(propBlock.sort { a, b ->
-               def keyA = a.split('=')[0].trim()
-               def keyB = b.split('=')[0].trim()
+               def keyA = a.tokenize('=')?.getAt(0)?.trim() ?: a.trim()
+               def keyB = b.tokenize('=')?.getAt(0)?.trim() ?: b.trim()
                return keyA.compareToIgnoreCase(keyB)
             })
          }
@@ -117,7 +122,7 @@ spotless {
       target '**/*.xml'
       targetExclude '**/build/**'
 
-      eclipseWtp('xml')
+      eclipseWtp(EclipseWtpFormatterStep.XML)
       trimTrailingWhitespace()
       endWithNewline()
       indentWithSpaces(2)
@@ -133,27 +138,23 @@ spotless {
 }
 
 // Custom tasks for IDE integration
-task formatJava {
+tasks.register('formatJava', Exec) {
    group 'formatting'
    description 'Format only Java files'
    doLast {
-      exec {
-         commandLine './gradlew', 'spotlessJavaApply'
-      }
+      commandLine './gradlew', 'spotlessJavaApply'
    }
 }
 
-task formatProperties {
+tasks.register('formatProperties', Exec) {
    group 'formatting'
    description 'Format only Properties files'
    doLast {
-      exec {
-         commandLine './gradlew', 'spotlessPropertiesApply'
-      }
+      commandLine './gradlew', 'spotlessPropertiesApply'
    }
 }
 
-task formatAll {
+tasks.register('formatAll') {
    group 'formatting'
    description 'Format all supported files'
    dependsOn 'spotlessApply'

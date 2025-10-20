@@ -346,6 +346,57 @@
             padding: 15px;
          }
       }
+
+      /* Copy to clipboard functionality */
+      .combination-color {
+         cursor: pointer;
+         transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .combination-color:hover {
+         transform: scale(1.1);
+         box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+      }
+
+      .combination-color:active {
+         transform: scale(0.95);
+      }
+
+      /* Toast notification */
+      .toast {
+         position: fixed;
+         bottom: 30px;
+         left: 50%;
+         transform: translateX(-50%) translateY(100px);
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+         padding: 12px 24px;
+         border-radius: 25px;
+         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+         z-index: 1000;
+         font-size: 0.95rem;
+         font-weight: 500;
+         opacity: 0;
+         transition: all 0.3s ease;
+         white-space: nowrap;
+      }
+
+      .toast.show {
+         transform: translateX(-50%) translateY(0);
+         opacity: 1;
+      }
+
+      /* Mobile toast adjustments */
+      @media (max-width: 767px) {
+         .toast {
+            bottom: 20px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            max-width: 90%;
+            white-space: normal;
+            text-align: center;
+         }
+      }
    </style>
 </head>
 
@@ -501,7 +552,10 @@
                   </div>
                   <div class="combination-colors">
                      <div class="combination-color" th:each="color : ${combination.colors}"
-                        th:style="'background-color: #' + ${color.hexValue}" th:data-hex="${'#' + color.hexValue}">
+                        th:style="'background-color: #' + ${color.hexValue}"
+                        th:data-hex="${'#' + color.hexValue}"
+                        onclick="copyColorToClipboard(this.dataset.hex)"
+                        title="Haz clic para copiar">
                      </div>
                   </div>
                   <div class="combination-actions">
@@ -556,7 +610,83 @@
       </div>
    </div>
 
+   <!-- Toast Notification -->
+   <div id="toast" class="toast"></div>
+
    <script>
+      // Copy color to clipboard functionality
+      function copyColorToClipboard(hexValue) {
+         const text = hexValue.startsWith('#') ? hexValue : '#' + hexValue;
+
+         // Try modern clipboard API
+         if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+               showToast('Color ' + text + ' copiado!');
+
+               // Haptic feedback if available
+               if (navigator.vibrate) {
+                  navigator.vibrate(50);
+               }
+            }).catch(function(err) {
+               console.error('Error al copiar: ', err);
+               fallbackCopyToClipboard(text);
+            });
+         } else {
+            // Fallback for older browsers
+            fallbackCopyToClipboard(text);
+         }
+      }
+
+      // Fallback copy method for older browsers
+      function fallbackCopyToClipboard(text) {
+         const textArea = document.createElement('textarea');
+         textArea.value = text;
+         textArea.style.position = 'fixed';
+         textArea.style.left = '-9999px';
+         textArea.style.top = '-9999px';
+         document.body.appendChild(textArea);
+         textArea.focus();
+         textArea.select();
+
+         try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+               showToast('Color ' + text + ' copiado!');
+
+               // Haptic feedback if available
+               if (navigator.vibrate) {
+                  navigator.vibrate(50);
+               }
+            } else {
+               showToast('No se pudo copiar el color', 'error');
+            }
+         } catch (err) {
+            console.error('Fallback copy failed: ', err);
+            showToast('No se pudo copiar el color', 'error');
+         }
+
+         document.body.removeChild(textArea);
+      }
+
+      // Show toast notification
+      function showToast(message, type = 'success') {
+         const toast = document.getElementById('toast');
+         toast.textContent = message;
+
+         // Change color based on type
+         if (type === 'error') {
+            toast.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+         } else {
+            toast.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+         }
+
+         toast.classList.add('show');
+
+         setTimeout(() => {
+            toast.classList.remove('show');
+         }, 3000);
+      }
+
       // Dynamic Color Combination Management
       document.addEventListener('DOMContentLoaded', function () {
          const dynamicColorFields = document.getElementById('dynamicColorFields');

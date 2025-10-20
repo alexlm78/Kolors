@@ -6,15 +6,15 @@ package dev.kreaker.kolors.exception;
  */
 public class InvalidColorCountException extends RuntimeException {
 
-  public InvalidColorCountException(String message) {
-    super(message);
-  }
+    public InvalidColorCountException(String message) {
+        super(message);
+    }
 
-  public InvalidColorCountException(String message, Throwable cause) {
-    super(message, cause);
-  }
+    public InvalidColorCountException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-  public InvalidColorCountException(Integer expected, Integer actual) {
-    super("Número de colores inválido. Esperado: " + expected + ", Actual: " + actual);
-  }
+    public InvalidColorCountException(Integer expected, Integer actual) {
+        super("Número de colores inválido. Esperado: " + expected + ", Actual: " + actual);
+    }
 }
