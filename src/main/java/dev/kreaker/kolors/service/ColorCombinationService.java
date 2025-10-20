@@ -294,7 +294,7 @@ public class ColorCombinationService {
             return false;
         }
 
-        if (colorCount < 2 || colorCount > 4) {
+        if (colorCount < 1) {
             return false;
         }
 

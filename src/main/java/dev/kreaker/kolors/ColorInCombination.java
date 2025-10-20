@@ -30,7 +30,7 @@ import java.util.Objects;
 public class ColorInCombination {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "Hexadecimal value is required")

@@ -32,7 +32,7 @@ import org.hibernate.annotations.CreationTimestamp;
 public class ColorCombination {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "Name is required")
