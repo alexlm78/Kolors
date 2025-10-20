@@ -1,0 +1,463 @@
+/* Theme System for Kolors Application */
+/* Light and Dark mode support with CSS custom properties */
+
+/* Default Light Theme */
+:root {
+   /* Background colors */
+   --bg-primary: #ffffff;
+   --bg-secondary: #f8f9fa;
+   --bg-tertiary: #e9ecef;
+   --bg-gradient-start: #667eea;
+   --bg-gradient-end: #764ba2;
+
+   /* Text colors */
+   --text-primary: #495057;
+   --text-secondary: #6c757d;
+   --text-muted: #adb5bd;
+   --text-light: #ffffff;
+
+   /* Border colors */
+   --border-color: #e9ecef;
+   --border-color-dark: #dee2e6;
+
+   /* Component colors */
+   --card-bg: #ffffff;
+   --input-bg: #ffffff;
+   --input-border: #ced4da;
+   --input-focus: rgba(102, 126, 234, 0.25);
+
+   /* Button colors */
+   --btn-primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   --btn-primary-hover: #5a67d8;
+   --btn-secondary-bg: #6c757d;
+   --btn-secondary-hover: #5a6268;
+
+   /* Alert colors */
+   --alert-success-bg: #d4edda;
+   --alert-success-text: #155724;
+   --alert-success-border: #c3e6cb;
+   --alert-error-bg: #f8d7da;
+   --alert-error-text: #721c24;
+   --alert-error-border: #f5c6cb;
+
+   /* Shadow colors */
+   --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.1);
+   --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.1);
+   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+   /* Toast notification */
+   --toast-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   --toast-text: #ffffff;
+
+   /* Modal colors */
+   --modal-bg: #ffffff;
+   --modal-backdrop: rgba(0, 0, 0, 0.5);
+   --modal-header-border: #e9ecef;
+
+   /* Code preview colors (for CSS export) */
+   --code-bg: #282c34;
+   --code-text: #abb2bf;
+   --code-comment: #5c6370;
+   --code-selector: #e06c75;
+   --code-property: #61afef;
+   --code-value: #98c379;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+   /* Background colors */
+   --bg-primary: #1a1a2e;
+   --bg-secondary: #16213e;
+   --bg-tertiary: #0f3460;
+   --bg-gradient-start: #2d3561;
+   --bg-gradient-end: #c05299;
+
+   /* Text colors */
+   --text-primary: #e9ecef;
+   --text-secondary: #adb5bd;
+   --text-muted: #6c757d;
+   --text-light: #ffffff;
+
+   /* Border colors */
+   --border-color: #2d3561;
+   --border-color-dark: #3a4374;
+
+   /* Component colors */
+   --card-bg: #16213e;
+   --input-bg: #0f3460;
+   --input-border: #2d3561;
+   --input-focus: rgba(192, 82, 153, 0.25);
+
+   /* Button colors */
+   --btn-primary-bg: linear-gradient(135deg, #2d3561 0%, #c05299 100%);
+   --btn-primary-hover: #9d4178;
+   --btn-secondary-bg: #3a4374;
+   --btn-secondary-hover: #4a5384;
+
+   /* Alert colors */
+   --alert-success-bg: #1e4620;
+   --alert-success-text: #a3d9a5;
+   --alert-success-border: #2d5f2f;
+   --alert-error-bg: #4a1e1e;
+   --alert-error-text: #f5b7b1;
+   --alert-error-border: #6d2e2e;
+
+   /* Shadow colors (darker shadows for dark mode) */
+   --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.3);
+   --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.4);
+   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+   /* Toast notification */
+   --toast-bg: linear-gradient(135deg, #2d3561 0%, #c05299 100%);
+   --toast-text: #ffffff;
+
+   /* Modal colors */
+   --modal-bg: #16213e;
+   --modal-backdrop: rgba(0, 0, 0, 0.7);
+   --modal-header-border: #2d3561;
+
+   /* Code preview colors (already dark-themed) */
+   --code-bg: #1a1a2e;
+   --code-text: #e9ecef;
+   --code-comment: #6c757d;
+   --code-selector: #ff6b9d;
+   --code-property: #61afef;
+   --code-value: #98c379;
+}
+
+/* Smooth transitions for theme changes */
+body,
+.container,
+.header,
+.content,
+.form-section,
+.combination-card,
+.card,
+.btn,
+.form-control,
+.alert,
+.modal-content,
+.color-detail-item,
+.search-filters,
+.combination-display,
+.palette-preview,
+.color-details {
+   transition: background-color 0.3s ease,
+               color 0.3s ease,
+               border-color 0.3s ease,
+               box-shadow 0.3s ease;
+}
+
+/* Apply theme variables to body */
+body {
+   background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+   color: var(--text-primary);
+}
+
+/* Container theming */
+.container {
+   background: var(--bg-primary);
+   box-shadow: var(--shadow-lg);
+}
+
+/* Header theming */
+.header {
+   background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+   color: var(--text-light);
+}
+
+/* Content theming */
+.content {
+   background: var(--bg-primary);
+   color: var(--text-primary);
+}
+
+/* Form section theming */
+.form-section {
+   background: var(--bg-secondary);
+   border: 1px solid var(--border-color);
+   color: var(--text-primary);
+}
+
+/* Form controls theming */
+.form-control {
+   background: var(--input-bg);
+   border-color: var(--input-border);
+   color: var(--text-primary);
+}
+
+.form-control:focus {
+   background: var(--input-bg);
+   border-color: var(--bg-gradient-start);
+   box-shadow: 0 0 0 3px var(--input-focus);
+   color: var(--text-primary);
+}
+
+/* Labels theming */
+label {
+   color: var(--text-primary);
+}
+
+/* Combination card theming */
+.combination-card {
+   background: var(--card-bg);
+   border: 1px solid var(--border-color);
+   box-shadow: var(--shadow-md);
+}
+
+.combination-card:hover {
+   box-shadow: var(--shadow-lg);
+}
+
+/* Text colors */
+.combination-name,
+.combination-meta,
+h1, h2, h3, h4, h5, h6 {
+   color: var(--text-primary);
+}
+
+.combination-meta,
+.stat-label,
+.color-position {
+   color: var(--text-secondary);
+}
+
+/* Search filters theming */
+.search-filters {
+   background: var(--bg-secondary);
+   border: 1px solid var(--border-color);
+}
+
+/* Search results info theming */
+.search-results-info {
+   background: var(--bg-tertiary);
+}
+
+.results-count {
+   color: var(--text-secondary);
+}
+
+/* Pagination controls theming */
+.pagination-controls {
+   background: var(--bg-secondary);
+   border: 1px solid var(--border-color);
+}
+
+.pagination-info {
+   color: var(--text-secondary);
+}
+
+/* Alert theming */
+.alert-success {
+   background: var(--alert-success-bg);
+   color: var(--alert-success-text);
+   border-color: var(--alert-success-border);
+}
+
+.alert-error {
+   background: var(--alert-error-bg);
+   color: var(--alert-error-text);
+   border-color: var(--alert-error-border);
+}
+
+/* Button theming - keep gradient for primary */
+.btn-primary {
+   background: var(--btn-primary-bg);
+}
+
+.btn-secondary {
+   background: var(--btn-secondary-bg);
+}
+
+.btn-secondary:hover {
+   background: var(--btn-secondary-hover);
+}
+
+/* Toast theming */
+.toast {
+   background: var(--toast-bg);
+   color: var(--toast-text);
+}
+
+/* Modal theming */
+.modal {
+   background-color: var(--modal-backdrop);
+}
+
+.modal-content {
+   background: var(--modal-bg);
+   color: var(--text-primary);
+}
+
+.modal-header {
+   border-bottom-color: var(--modal-header-border);
+}
+
+.close-modal {
+   color: var(--text-secondary);
+}
+
+/* Code preview theming */
+.css-preview {
+   background: var(--code-bg);
+   color: var(--code-text);
+}
+
+.css-comment {
+   color: var(--code-comment);
+}
+
+.css-selector {
+   color: var(--code-selector);
+}
+
+.css-property {
+   color: var(--code-property);
+}
+
+.css-value {
+   color: var(--code-value);
+}
+
+/* Combination display theming */
+.combination-display {
+   background: var(--bg-secondary);
+   border: 1px solid var(--border-color);
+}
+
+/* Palette preview theming */
+.palette-preview {
+   background: var(--card-bg);
+   border: 1px solid var(--border-color);
+}
+
+/* Color details theming */
+.color-details {
+   background: var(--card-bg);
+   border: 1px solid var(--border-color);
+}
+
+.color-detail-item {
+   background: var(--bg-secondary);
+   border: 1px solid var(--border-color);
+}
+
+/* Navigation back theming */
+.nav-back a {
+   color: var(--text-primary);
+}
+
+.nav-back a:hover {
+   color: var(--bg-gradient-start);
+}
+
+/* Statistics theming */
+.stat-card {
+   background: var(--card-bg);
+   border: 1px solid var(--border-color);
+}
+
+.stat-number {
+   color: var(--text-primary);
+}
+
+/* Color field theming */
+.color-field {
+   background: var(--bg-secondary);
+   border: 1px solid var(--border-color);
+}
+
+.color-label {
+   color: var(--text-primary);
+}
+
+/* Live preview theming */
+.live-preview {
+   background: var(--bg-secondary);
+   border: 1px solid var(--border-color);
+}
+
+.live-preview h3 {
+   color: var(--text-primary);
+}
+
+/* Theme Toggle Button Styles */
+.theme-toggle {
+   position: absolute;
+   top: 15px;
+   right: 15px;
+   background: rgba(255, 255, 255, 0.2);
+   border: 2px solid rgba(255, 255, 255, 0.3);
+   color: white;
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   cursor: pointer;
+   font-size: 1.2rem;
+   transition: all 0.3s ease;
+   backdrop-filter: blur(10px);
+   z-index: 100;
+}
+
+.theme-toggle:hover {
+   background: rgba(255, 255, 255, 0.3);
+   transform: scale(1.1) rotate(15deg);
+   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle:active {
+   transform: scale(0.95) rotate(-15deg);
+}
+
+/* Theme toggle icon animation */
+.theme-toggle .icon {
+   transition: transform 0.5s ease;
+}
+
+[data-theme="dark"] .theme-toggle .icon {
+   transform: rotate(180deg);
+}
+
+/* Mobile adjustments for theme toggle */
+@media (max-width: 767px) {
+   .theme-toggle {
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      font-size: 1rem;
+   }
+}
+
+/* Ensure color boxes/previews don't get themed */
+.color-box,
+.color-preview,
+.combination-color,
+.palette-color,
+.color-detail-preview {
+   /* These maintain their own colors */
+   transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Dark mode specific adjustments */
+[data-theme="dark"] .color-box,
+[data-theme="dark"] .combination-color {
+   border-color: var(--border-color-dark);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+   color: var(--text-muted);
+   opacity: 0.7;
+}
+
+/* Ensure links are visible in dark mode */
+[data-theme="dark"] a {
+   color: #61afef;
+}
+
+[data-theme="dark"] a:hover {
+   color: #84c5ff;
+}

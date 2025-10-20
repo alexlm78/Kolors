@@ -6,6 +6,7 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title th:text="${combination.name + ' - Kolors'}">Combinación - Kolors</title>
    <link rel="stylesheet" th:href="@{/css/mobile-responsive.css}">
+   <link rel="stylesheet" th:href="@{/css/theme.css}">
    <style>
       /* View page specific styles */
       .container {
@@ -566,6 +567,9 @@
 <body>
    <div class="container">
       <div class="header">
+         <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema">
+            <span class="icon">🌙</span>
+         </button>
          <h1>Detalles de Combinación</h1>
          <p>Visualiza y gestiona tu combinación de colores</p>
       </div>
@@ -642,6 +646,42 @@
    <div id="toast" class="toast">
       Color copiado al portapapeles
    </div>
+
+   <!-- Theme Initialization Script - Load before everything -->
+   <script>
+      // Theme Management - Load theme before page renders
+      (function() {
+         const savedTheme = localStorage.getItem('kolors-theme') || 'light';
+         document.documentElement.setAttribute('data-theme', savedTheme);
+         updateThemeIcon(savedTheme);
+      })();
+
+      function toggleTheme() {
+         const currentTheme = document.documentElement.getAttribute('data-theme');
+         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+         // Apply theme
+         document.documentElement.setAttribute('data-theme', newTheme);
+
+         // Save to localStorage
+         localStorage.setItem('kolors-theme', newTheme);
+
+         // Update icon
+         updateThemeIcon(newTheme);
+
+         // Haptic feedback if available
+         if (navigator.vibrate) {
+            navigator.vibrate(50);
+         }
+      }
+
+      function updateThemeIcon(theme) {
+         const icon = document.querySelector('.theme-toggle .icon');
+         if (icon) {
+            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+         }
+      }
+   </script>
 
    <!-- Export CSS Modal -->
    <div id="exportModal" class="modal">

@@ -6,6 +6,7 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Kolors - Combinaciones de Colores</title>
    <link rel="stylesheet" th:href="@{/css/mobile-responsive.css}">
+   <link rel="stylesheet" th:href="@{/css/theme.css}">
    <style>
       /* Additional styles specific to index page */
 
@@ -403,6 +404,9 @@
 <body>
    <div class="container">
       <div class="header">
+         <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema">
+            <span class="icon">🌙</span>
+         </button>
          <h1>Kolors</h1>
          <p>Crea y gestiona tus combinaciones de colores perfectas</p>
       </div>
@@ -614,6 +618,39 @@
    <div id="toast" class="toast"></div>
 
    <script>
+      // Theme Management - Load theme before page renders
+      (function() {
+         const savedTheme = localStorage.getItem('kolors-theme') || 'light';
+         document.documentElement.setAttribute('data-theme', savedTheme);
+         updateThemeIcon(savedTheme);
+      })();
+
+      function toggleTheme() {
+         const currentTheme = document.documentElement.getAttribute('data-theme');
+         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+         // Apply theme
+         document.documentElement.setAttribute('data-theme', newTheme);
+
+         // Save to localStorage
+         localStorage.setItem('kolors-theme', newTheme);
+
+         // Update icon
+         updateThemeIcon(newTheme);
+
+         // Haptic feedback if available
+         if (navigator.vibrate) {
+            navigator.vibrate(50);
+         }
+      }
+
+      function updateThemeIcon(theme) {
+         const icon = document.querySelector('.theme-toggle .icon');
+         if (icon) {
+            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+         }
+      }
+
       // Copy color to clipboard functionality
       function copyColorToClipboard(hexValue) {
          const text = hexValue.startsWith('#') ? hexValue : '#' + hexValue;
