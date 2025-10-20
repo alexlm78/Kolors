@@ -362,13 +362,16 @@ function addTouchFeedbackStyles() {
         @media (max-width: 767px) {
             /* Improve touch targets */
             .btn, .remove-color-btn {
-                min-height: 44px;
+                min-height: 28px;
                 min-width: 44px;
             }
 
             /* Better spacing for touch */
             .combination-actions .btn {
-                margin-bottom: 8px;
+                margin-bottom: 4px;
+                padding: 2px 8px;
+                font-size: 12px;
+                line-height: 1.1;
             }
 
             /* Improve form controls */
@@ -386,8 +389,13 @@ function addTouchFeedbackStyles() {
         @media (max-width: 480px) {
             /* Very small screens */
             .btn {
-                font-size: 14px;
-                padding: 12px 16px;
+                font-size: 12px;
+                padding: 2px 8px;
+            }
+
+            .combination-actions .btn {
+                padding: 2px 6px;
+                font-size: 11px;
             }
 
             .color-preview {

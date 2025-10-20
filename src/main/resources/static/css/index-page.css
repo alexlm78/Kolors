@@ -1,0 +1,371 @@
+/* Styles specific to index.html page */
+
+/* Alert color overrides */
+.alert-success {
+   background-color: #d4edda;
+   color: #155724;
+   border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+   background-color: #f8d7da;
+   color: #721c24;
+   border: 1px solid #f5c6cb;
+}
+
+.form-control.error {
+   border-color: #dc3545;
+}
+
+/* Dynamic Color Fields - mobile optimizations */
+#dynamicColorFields {
+   margin-top: 15px;
+}
+
+/* Mobile-specific color field adjustments */
+@media (max-width: 767px) {
+   .color-field {
+      padding: 20px 15px;
+   }
+
+   .color-preview {
+      width: 70px;
+      height: 70px;
+   }
+
+   .color-input {
+      font-size: 18px; /* Prevent zoom on iOS */
+   }
+
+   .remove-color-btn {
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+   }
+}
+
+/* Live Preview mobile optimizations */
+.live-preview h3 {
+   margin-bottom: 15px;
+   color: #495057;
+   text-align: center;
+}
+
+/* Mobile preview adjustments */
+@media (max-width: 767px) {
+   .preview-color {
+      width: 45px;
+      height: 45px;
+   }
+
+   .preview-name {
+      margin-left: 0;
+      margin-top: 10px;
+      font-size: 1.1rem;
+   }
+}
+
+/* Button color overrides */
+.btn-primary {
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   color: white;
+}
+
+.btn-primary:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+   background: #6c757d;
+   color: white;
+}
+
+.btn-danger {
+   background: #dc3545;
+   color: white;
+}
+
+/* Combinations section mobile optimizations */
+.combinations-section {
+   margin-top: 20px;
+   margin-bottom: 15px;
+}
+
+.combinations-section h2 {
+   color: #495057;
+   margin-bottom: 15px;
+   font-size: 1.3rem;
+   text-align: center;
+}
+
+/* Search and filter styles */
+.search-filters {
+   background: #f8f9fa;
+   border-radius: 8px;
+   padding: 20px;
+   margin-bottom: 20px;
+}
+
+.search-row {
+   display: flex;
+   gap: 15px;
+   flex-wrap: wrap;
+   align-items: end;
+}
+
+.search-row .form-group {
+   flex: 1;
+   min-width: 200px;
+}
+
+.advanced-filters {
+   margin-top: 15px;
+   padding-top: 15px;
+   border-top: 1px solid #dee2e6;
+}
+
+.search-actions {
+   display: flex;
+   gap: 10px;
+   margin-top: 15px;
+   flex-wrap: wrap;
+}
+
+.search-results-info {
+   margin-bottom: 15px;
+   padding: 10px 15px;
+   background: #e9ecef;
+   border-radius: 5px;
+}
+
+.results-count {
+   margin: 0;
+   color: #495057;
+   font-size: 0.9rem;
+}
+
+.search-term, .filter-info {
+   color: #007bff;
+}
+
+/* Pagination styles */
+.pagination-controls {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-top: 20px;
+   padding: 15px;
+   background: #f8f9fa;
+   border-radius: 8px;
+}
+
+.pagination-info {
+   color: #6c757d;
+   font-size: 0.9rem;
+}
+
+.pagination-buttons {
+   display: flex;
+   gap: 5px;
+   align-items: center;
+}
+
+.pagination-buttons .current-page {
+   background: #007bff !important;
+   border-color: #007bff !important;
+}
+
+/* Mobile search optimizations */
+@media (max-width: 767px) {
+   .combinations-section h2 {
+      font-size: 1.2rem;
+   }
+
+   .search-filters {
+      padding: 15px;
+   }
+
+   .search-row {
+      flex-direction: column;
+      gap: 10px;
+   }
+
+   .search-row .form-group {
+      min-width: auto;
+   }
+
+   .search-actions {
+      flex-direction: column;
+   }
+
+   .pagination-controls {
+      flex-direction: column;
+      gap: 10px;
+   }
+
+   .pagination-buttons {
+      flex-wrap: wrap;
+      justify-content: center;
+   }
+}
+
+.combination-name {
+   font-size: 1.1rem;
+   font-weight: 600;
+   color: #495057;
+   margin-bottom: 10px;
+   text-align: center;
+}
+
+.combination-meta {
+   font-size: 0.85rem;
+   color: #6c757d;
+   margin-bottom: 10px;
+   text-align: center;
+}
+
+/* Mobile combination card optimizations */
+@media (max-width: 767px) {
+   .combination-name {
+      font-size: 1rem;
+   }
+
+   .combination-meta {
+      font-size: 0.8rem;
+   }
+
+   .combination-colors {
+      justify-content: center;
+      margin-bottom: 20px;
+   }
+
+   .combination-color {
+      width: 32px;
+      height: 32px;
+   }
+
+   .combination-color::after {
+      font-size: 8px;
+      bottom: -16px;
+   }
+}
+
+/* Error Messages */
+.field-error {
+   color: #dc3545;
+   font-size: 0.875rem;
+   margin-top: 5px;
+   text-align: center;
+}
+
+/* Mobile statistics optimizations */
+@media (max-width: 767px) {
+   .stat-number {
+      font-size: 1.5rem;
+   }
+
+   .stat-label {
+      font-size: 0.85rem;
+   }
+}
+
+/* Touch interaction improvements */
+@media (max-width: 767px) {
+   /* Increase touch targets */
+   .form-control {
+      padding: 16px 14px;
+      font-size: 16px; /* Prevent zoom on iOS */
+   }
+
+   /* Improve color field interactions */
+   .color-field {
+      padding: 20px;
+      margin-bottom: 20px;
+   }
+
+   /* Better spacing for mobile */
+   .form-group {
+      margin-bottom: 20px;
+   }
+
+   /* Optimize search form for mobile */
+   .search-row .form-group {
+      margin-bottom: 15px;
+   }
+
+   /* Improve button spacing */
+   .action-buttons {
+      gap: 15px;
+   }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+   .container {
+      margin: 5px;
+   }
+
+   .content {
+      padding: 15px;
+   }
+
+   .form-section {
+      padding: 15px;
+   }
+
+   .combination-card {
+      padding: 15px;
+   }
+}
+
+/* Copy to clipboard functionality */
+.combination-color {
+   cursor: pointer;
+   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.combination-color:hover {
+   transform: scale(1.1);
+   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+}
+
+.combination-color:active {
+   transform: scale(0.95);
+}
+
+/* Toast notification */
+.toast {
+   position: fixed;
+   bottom: 30px;
+   left: 50%;
+   transform: translateX(-50%) translateY(100px);
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   color: white;
+   padding: 12px 24px;
+   border-radius: 25px;
+   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+   z-index: 1000;
+   font-size: 0.95rem;
+   font-weight: 500;
+   opacity: 0;
+   transition: all 0.3s ease;
+   white-space: nowrap;
+}
+
+.toast.show {
+   transform: translateX(-50%) translateY(0);
+   opacity: 1;
+}
+
+/* Mobile toast adjustments */
+@media (max-width: 767px) {
+   .toast {
+      bottom: 20px;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      max-width: 90%;
+      white-space: normal;
+      text-align: center;
+   }
+}

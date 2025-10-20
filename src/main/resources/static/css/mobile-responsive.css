@@ -220,7 +220,7 @@ body {
 .combination-colors {
    display: flex;
    gap: 8px;
-   margin-bottom: 15px;
+   margin-bottom: 25px; /* Increased from 15px to 25px to give more space for hex values */
    flex-wrap: wrap;
    justify-content: center;
 }
@@ -249,14 +249,23 @@ body {
 .combination-actions {
    display: flex;
    flex-direction: column;
-   gap: 8px;
-   margin-top: 15px;
+   gap: 4px; /* Reduced from 6px to 4px for even tighter spacing */
+   margin-top: 20px; /* Reduced from 25px to 20px */
 }
 
 .combination-actions .btn {
    width: 100%;
-   padding: 10px;
-   font-size: 14px;
+   padding: 2px 12px; /* Reduced from 4px to 2px for much less height */
+   font-size: 12px; /* Reduced from 13px to 12px */
+   line-height: 1.1; /* Reduced from 1.2 to 1.1 for tighter line height */
+   min-height: 24px; /* Added minimum height to ensure readability */
+}
+
+.combination-actions .btn-sm {
+   padding: 2px 12px !important; /* Reduced from 4px to 2px for much less height */
+   font-size: 12px; /* Reduced from 13px to 12px */
+   line-height: 1.1; /* Reduced from 1.2 to 1.1 for tighter line height */
+   min-height: 24px; /* Added minimum height to ensure readability */
 }
 
 /* Statistics mobile layout */
@@ -466,7 +475,17 @@ body {
 
    .combination-actions .btn {
       width: auto;
-      padding: 8px 15px;
+      padding: 2px 12px; /* Reduced from 4px to 2px for consistency */
+      font-size: 12px; /* Reduced from 13px to 12px for consistency */
+      line-height: 1.1; /* Reduced from 1.2 to 1.1 for consistency */
+      min-height: 24px; /* Added minimum height to ensure readability */
+   }
+
+   .combination-actions .btn-sm {
+      padding: 2px 12px !important; /* Reduced from 4px to 2px for consistency */
+      font-size: 12px; /* Reduced from 13px to 12px for consistency */
+      line-height: 1.1; /* Reduced from 1.2 to 1.1 for consistency */
+      min-height: 24px; /* Added minimum height to ensure readability */
    }
 
    .statistics {
