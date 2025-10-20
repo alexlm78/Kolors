@@ -434,6 +434,10 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
-### Kiro and others
+# Kreaker specific files
+CLAUDE.md
+WARP.md
+.claude
 .kiro
 .trae
+doxs/
