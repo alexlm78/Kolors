@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Registro - Kolors</title>
+      <style>
+         body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+         }
+         .register-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+         }
+         .register-header {
+            text-align: center;
+            margin-bottom: 2rem;
+         }
+         .register-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2rem;
+         }
+         .form-group {
+            margin-bottom: 1rem;
+         }
+         .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: bold;
+         }
+         .form-group input[type="text"],
+         .form-group input[type="email"],
+         .form-group input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+         }
+         .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+         }
+         .password-requirements {
+            font-size: 0.875rem;
+            color: #666;
+            margin-top: 0.25rem;
+            line-height: 1.4;
+         }
+         .register-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+         }
+         .register-btn:hover {
+            background-color: #218838;
+         }
+         .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+         }
+         .success-message {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+         }
+         .links {
+            text-align: center;
+            margin-top: 1rem;
+         }
+         .links a {
+            color: #007bff;
+            text-decoration: none;
+         }
+         .links a:hover {
+            text-decoration: underline;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="register-container">
+         <div class="register-header">
+            <h1>Kolors</h1>
+            <p>Crear Cuenta</p>
+         </div>
+
+         <!-- Success Message -->
+         <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+
+         <!-- Register Form -->
+         <form th:action="@{/auth/register}" method="post" th:object="${registerForm}">
+            <div class="form-group">
+               <label for="username">Usuario:</label>
+               <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  th:field="*{username}"
+                  required
+                  minlength="3"
+                  maxlength="50"
+                  placeholder="Elige un nombre de usuario"
+               />
+               <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+               <label for="email">Email:</label>
+               <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  th:field="*{email}"
+                  required
+                  placeholder="tu@email.com"
+               />
+               <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+               <label for="password">Contraseña:</label>
+               <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  th:field="*{password}"
+                  required
+                  minlength="8"
+                  placeholder="Crea una contraseña segura"
+               />
+               <div class="password-requirements">
+                  La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y caracteres especiales.
+               </div>
+               <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+               <label for="confirmPassword">Confirmar Contraseña:</label>
+               <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  th:field="*{confirmPassword}"
+                  required
+                  placeholder="Repite tu contraseña"
+               />
+               <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="error-message"></div>
+            </div>
+
+            <button type="submit" class="register-btn">Crear Cuenta</button>
+         </form>
+
+         <div class="links">
+            <p>¿Ya tienes cuenta? <a th:href="@{/auth/login}">Inicia sesión aquí</a></p>
+         </div>
+      </div>
+   </body>
+</html>

@@ -32,6 +32,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
                 .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/favicon.ico").permitAll()
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/api/combinations/search", "/api/combinations/{id}").permitAll()
                 .requestMatchers("/admin/migration-status").permitAll()
                 .requestMatchers("/mobile-test.html").permitAll()
@@ -42,6 +43,12 @@ public class SecurityConfig {
 
                 // All other requests
                 .anyRequest().authenticated()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/auth/logout")
+                .logoutSuccessUrl("/auth/login?logout")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
             );
 
         // Add JWT filter before UsernamePasswordAuthenticationFilter
