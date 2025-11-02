@@ -338,23 +338,25 @@ When using or modifying this software, include attribution such as:
 - About page: "Based on Kolors by Kreaker.dev"
 - Documentation: "Original development by Kreaker.dev"
 
+---
+
 ## 🆘 Support
 
 ### Common Issues
 
-**Application won't start**
+#### Application won't start
 
-- Check Java version (requires Java 17+)
+- Check Java version (requires Java 21+)
 - Verify port 8080 is available
 - Check database permissions
 
-**Search not working**
+#### Search not working
 
 - Verify database indexes are created
 - Check application logs for errors
 - Ensure proper data format
 
-**Mobile interface issues**
+#### Mobile interface issues
 
 - Clear browser cache
 - Check responsive CSS loading
@@ -364,26 +366,7 @@ When using or modifying this software, include attribution such as:
 
 - Check the [documentation](docs/)
 - Review [performance optimizations](docs/PERFORMANCE_OPTIMIZATIONS.md)
-- Check [migration status](docs/MIGRATION_COMPLETION_SUMMARY.md)
 - Open an issue for bugs or feature requests
-
-## 🎯 Roadmap
-
-### Upcoming Features
-
-- [ ] Color palette export (PNG, SVG)
-- [ ] Color harmony suggestions
-- [ ] User accounts and favorites
-- [ ] Advanced color theory tools
-- [ ] API rate limiting
-- [ ] Internationalization (i18n)
-
-### Performance Improvements
-
-- [ ] Redis caching layer
-- [ ] Database connection pooling
-- [ ] CDN integration for static assets
-- [ ] Progressive Web App (PWA) features
 
 ---
 

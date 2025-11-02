@@ -1,18 +1,14 @@
-import com.diffplug.spotless.extra.wtp.EclipseWtpFormatterStep
-
 plugins {
    id 'java'
-   id 'org.springframework.boot' version '3.5.6'
+   id 'org.springframework.boot' version '3.5.7'
    id 'io.spring.dependency-management' version '1.1.7'
-   id 'com.diffplug.spotless' version '6.22.0'
+   id 'com.diffplug.spotless' version '8.0.0'
 }
 
 group = 'dev.kreaker.kolors'
 version = '0.6.4'
 
 java {
-   sourceCompatibility = JavaVersion.VERSION_21
-
    toolchain {
       languageVersion = JavaLanguageVersion.of(21)
    }
@@ -31,8 +27,6 @@ dependencies {
    implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
    implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.4.Final'
 
-   runtimeOnly 'com.h2database:h2'
-
    testImplementation 'org.springframework.boot:spring-boot-starter-test'
    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -42,99 +36,98 @@ tasks.named('test') {
 }
 
 spotless {
-   java {
-      target '**/*.java'
-      targetExclude '**/build/**', '**/.gradle/**', 'out/**'
+    java {
+        target '**/*.java'
+        targetExclude '**/build/**', '**/.gradle/**', 'out/**'
 
-      googleJavaFormat('1.17.0').aosp()
-      removeUnusedImports()
-      trimTrailingWhitespace()
-      endWithNewline()
-      indentWithSpaces(3)
+        googleJavaFormat('1.24.0').aosp()
+        trimTrailingWhitespace()
+        endWithNewline()
+        leadingTabsToSpaces(4)
 
-      custom 'noWildcardImports', {
-         if (it.contains('import .*\\*')) {
-            throw new RuntimeException('No use wildcard imports')
-         }
-      } as Closure<String>
-
-      custom 'enforceUtf8', {
-         return new String(it.getBytes('UTF-8'), 'UTF-8')
-      }
-   }
-
-   format 'properties', {
-      target '**/*.properties'
-      targetExclude '**/build/**', '**/.gradle/**', 'out/**'
-
-      trimTrailingWhitespace()
-      endWithNewline()
-      indentWithSpaces(2)
-
-      // Sort properties alphabetically
-      custom 'sortProperties', { content ->
-         def lines = content.readLines()
-         def result = []
-         def commentBlock = []
-         def propBlock = []
-
-         lines.each { line ->
-            def trimmed = line.trim()
-            if (trimmed.startsWith('#') || trimmed.isEmpty()) {
-               if (!propBlock.isEmpty()) {
-                  result.addAll(propBlock.sort { a, b ->
-                     def keyA = a.tokenize('=')?.getAt(0)?.trim() ?: a.trim()
-                     def keyB = b.tokenize('=')?.getAt(0)?.trim() ?: b.trim()
-                     return keyA.compareToIgnoreCase(keyB)
-                  })
-                  propBlock.clear()
-               }
-               result.add(line)
-            } else {
-               propBlock.add(line)
+        custom 'noWildcardImports', {
+            if (it.contains('import .*\\*')) {
+                throw new RuntimeException('No use wildcard imports')
             }
-         }
+        }
 
-         if (!propBlock.isEmpty()) {
-            result.addAll(propBlock.sort { a, b ->
-               def keyA = a.tokenize('=')?.getAt(0)?.trim() ?: a.trim()
-               def keyB = b.tokenize('=')?.getAt(0)?.trim() ?: b.trim()
-               return keyA.compareToIgnoreCase(keyB)
-            })
-         }
+        custom 'enforceUtf8', {
+            return new String(it.getBytes('UTF-8'), 'UTF-8')
+        }
+    }
 
-         return result.join('\n')
-      }
-   }
+    format 'properties', {
+        target '**/*.properties'
+        targetExclude '**/build/**', '**/.gradle/**', 'out/**'
 
-   // YAML files (Spring Boot configs)
-   format 'yaml', {
-      target '**/*.yml', '**/*.yaml'
-      targetExclude '**/build/**'
+        trimTrailingWhitespace()
+        endWithNewline()
+        leadingTabsToSpaces(2)
 
-      trimTrailingWhitespace()
-      endWithNewline()
-      indentWithSpaces(2)
-   }
+        // Sort properties alphabetically
+        custom 'sortProperties', { content ->
+            def lines = content.readLines()
+            def result = []
+            def commentBlock = []
+            def propBlock = []
 
-   // XML files (Maven, Spring configs)
-   format 'xml', {
-      target '**/*.xml'
-      targetExclude '**/build/**'
+            lines.each { line ->
+                def trimmed = line.trim()
+                if (trimmed.startsWith('#') || trimmed.isEmpty()) {
+                    if (!propBlock.isEmpty()) {
+                        result.addAll(propBlock.sort { a, b ->
+                            def keyA = a.split('=')[0].trim()
+                            def keyB = b.split('=')[0].trim()
+                            return keyA.compareToIgnoreCase(keyB)
+                        })
+                        propBlock.clear()
+                    }
+                    result.add(line)
+                } else {
+                    propBlock.add(line)
+                }
+            }
 
-      eclipseWtp(EclipseWtpFormatterStep.XML)
-      trimTrailingWhitespace()
-      endWithNewline()
-      indentWithSpaces(2)
-   }
+            if (!propBlock.isEmpty()) {
+                result.addAll(propBlock.sort { a, b ->
+                def keyA = a.split('=')[0].trim()
+                def keyB = b.split('=')[0].trim()
+                return keyA.compareToIgnoreCase(keyB)
+                })
+            }
 
-   // Additional formats
-   format 'misc', {
-      target '**/*.md', '**/*.gitignore'
-      trimTrailingWhitespace()
-      endWithNewline()
-      indentWithSpaces(3)
-   }
+            return result.join('\n')
+        }
+    }
+
+    // YAML files (Spring Boot configs)
+    format 'yaml', {
+        target '**/*.yml', '**/*.yaml'
+        targetExclude '**/build/**'
+
+        trimTrailingWhitespace()
+        endWithNewline()
+        leadingTabsToSpaces(2)
+    }
+
+    // XML files (Maven, Spring configs)
+    format 'xml', {
+        target '**/*.xml'
+        targetExclude '**/build/**'
+
+        eclipseWtp('xml')
+        trimTrailingWhitespace()
+        endWithNewline()
+        leadingTabsToSpaces(2)
+    }
+
+    // Additional formats
+    format 'misc', {
+        target '**/*.md', '**/*.gitignore'
+        trimTrailingWhitespace()
+        endWithNewline()
+        leadingTabsToSpaces(3)
+    }
 }
 
 // Custom tasks for IDE integration
