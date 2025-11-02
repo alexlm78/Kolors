@@ -17,17 +17,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/auth")
 public class AuthController {
 
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
 
     @Autowired
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, PasswordResetService passwordResetService) {
         this.userService = userService;
+        this.passwordResetService = passwordResetService;
     }
 
     /**
@@ -117,6 +122,103 @@ public class AuthController {
     }
 
     /**
+     * Show forgot password form
+     */
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm(Model model) {
+        model.addAttribute("forgotPasswordForm", new ForgotPasswordForm());
+        return "auth/forgot-password";
+    }
+
+    /**
+     * Process forgot password form
+     */
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@Valid @ModelAttribute("forgotPasswordForm") ForgotPasswordForm form,
+                                       BindingResult result,
+                                       RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            return "auth/forgot-password";
+        }
+
+        try {
+            passwordResetService.initiatePasswordReset(form.getEmail());
+            redirectAttributes.addFlashAttribute("successMessage",
+                "Si existe una cuenta con ese email, recibirás instrucciones para restablecer tu contraseña.");
+            return "redirect:/auth/login";
+        } catch (Exception e) {
+            result.reject("error.forgotPasswordForm", "Error al procesar la solicitud: " + e.getMessage());
+            return "auth/forgot-password";
+        }
+    }
+
+    /**
+     * Show reset password form
+     */
+    @GetMapping("/reset-password")
+    public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+        if (!passwordResetService.validateToken(token)) {
+            model.addAttribute("errorMessage", "El enlace de restablecimiento es inválido o ha expirado.");
+            return "auth/reset-password";
+        }
+
+        Optional<User> userOpt = passwordResetService.getUserByToken(token);
+        if (userOpt.isEmpty()) {
+            model.addAttribute("errorMessage", "Usuario no encontrado.");
+            return "auth/reset-password";
+        }
+
+        ResetPasswordForm form = new ResetPasswordForm();
+        form.setToken(token);
+        model.addAttribute("resetPasswordForm", form);
+        model.addAttribute("username", userOpt.get().getUsername());
+
+        return "auth/reset-password";
+    }
+
+    /**
+     * Process reset password form
+     */
+    @PostMapping("/reset-password")
+    public String processResetPassword(@Valid @ModelAttribute("resetPasswordForm") ResetPasswordForm form,
+                                      BindingResult result,
+                                      RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            return "auth/reset-password";
+        }
+
+        // Validate password strength
+        if (!isPasswordStrong(form.getPassword())) {
+            result.rejectValue("password", "error.resetPasswordForm",
+                "La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y caracteres especiales");
+            return "auth/reset-password";
+        }
+
+        // Check password confirmation
+        if (!form.getPassword().equals(form.getConfirmPassword())) {
+            result.rejectValue("confirmPassword", "error.resetPasswordForm", "Las contraseñas no coinciden");
+            return "auth/reset-password";
+        }
+
+        try {
+            boolean success = passwordResetService.resetPassword(form.getToken(), form.getPassword());
+            if (success) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                    "Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión.");
+                return "redirect:/auth/login";
+            } else {
+                result.reject("error.resetPasswordForm", "El enlace de restablecimiento es inválido o ha expirado.");
+                return "auth/reset-password";
+            }
+        } catch (Exception e) {
+            result.reject("error.resetPasswordForm", "Error al restablecer la contraseña: " + e.getMessage());
+            return "auth/reset-password";
+        }
+    }
+
+    /**
      * Logout user
      */
     @PostMapping("/logout")
@@ -179,6 +281,35 @@ public class AuthController {
         public void setUsername(String username) { this.username = username; }
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        public String getConfirmPassword() { return confirmPassword; }
+        public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
+    }
+
+    public static class ForgotPasswordForm {
+        @NotBlank(message = "El email es obligatorio")
+        @Email(message = "El email debe tener un formato válido")
+        private String email;
+
+        // Getters and setters
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+    }
+
+    public static class ResetPasswordForm {
+        private String token;
+
+        @NotBlank(message = "La contraseña es obligatoria")
+        @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
+        private String password;
+
+        @NotBlank(message = "La confirmación de contraseña es obligatoria")
+        private String confirmPassword;
+
+        // Getters and setters
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
         public String getConfirmPassword() { return confirmPassword; }
