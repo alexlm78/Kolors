@@ -50,8 +50,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public String processLogin(@Valid @ModelAttribute("loginForm") LoginForm loginForm,
-                              BindingResult result,
-                              RedirectAttributes redirectAttributes) {
+                              BindingResult result) {
         if (result.hasErrors()) {
             return "auth/login";
         }
