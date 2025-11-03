@@ -46,6 +46,9 @@ public class ColorCombinationService {
 
     /** Creates a new color combination */
     public ColorCombination createCombination(ColorCombinationForm form) {
+        if (form == null) {
+            throw new IllegalArgumentException("Form cannot be null");
+        }
         logger.info("Creating new color combination: {}", form.getName());
 
         // Validate the form
@@ -89,6 +92,9 @@ public class ColorCombinationService {
     /** Searches combinations by specific criteria */
     @Transactional(readOnly = true)
     public List<ColorCombination> searchCombinations(String searchTerm, Integer colorCount) {
+        if (colorCount != null && colorCount < 1) {
+            throw new IllegalArgumentException("Color count must be positive");
+        }
         logger.debug(
                 "Searching combinations - term: '{}', color count: {}", searchTerm, colorCount);
 
@@ -107,6 +113,9 @@ public class ColorCombinationService {
     /** Searches combinations containing a specific color */
     @Transactional(readOnly = true)
     public List<ColorCombination> findByHexValue(String hexValue) {
+        if (hexValue == null) {
+            throw new IllegalArgumentException("Hex value cannot be null");
+        }
         logger.debug("Searching combinations containing color: {}", hexValue);
 
         if (!isValidHexColor(hexValue)) {
@@ -120,6 +129,15 @@ public class ColorCombinationService {
     @Transactional(readOnly = true)
     public List<ColorCombination> searchWithFilters(
             String name, Integer minColors, Integer maxColors, String hexValue) {
+        if (minColors != null && minColors < 1) {
+            throw new IllegalArgumentException("Minimum colors must be positive");
+        }
+        if (maxColors != null && maxColors < 1) {
+            throw new IllegalArgumentException("Maximum colors must be positive");
+        }
+        if (minColors != null && maxColors != null && minColors > maxColors) {
+            throw new IllegalArgumentException("Minimum colors cannot be greater than maximum colors");
+        }
         logger.debug(
                 "Advanced search - name: '{}', minColors: {}, maxColors: {}, hexValue: '{}'",
                 name,
@@ -160,6 +178,18 @@ public class ColorCombinationService {
     @Transactional(readOnly = true)
     public Page<ColorCombination> searchWithFilters(
             String name, Integer minColors, Integer maxColors, String hexValue, Pageable pageable) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable cannot be null");
+        }
+        if (minColors != null && minColors < 1) {
+            throw new IllegalArgumentException("Minimum colors must be positive");
+        }
+        if (maxColors != null && maxColors < 1) {
+            throw new IllegalArgumentException("Maximum colors must be positive");
+        }
+        if (minColors != null && maxColors != null && minColors > maxColors) {
+            throw new IllegalArgumentException("Minimum colors cannot be greater than maximum colors");
+        }
         logger.debug(
                 "Advanced search with pagination - name: '{}', minColors: {}, maxColors: {}, hexValue: '{}', page: {}",
                 name,
@@ -188,16 +218,23 @@ public class ColorCombinationService {
     /** Search combinations by color count range */
     @Transactional(readOnly = true)
     public List<ColorCombination> findByColorCountRange(Integer minColors, Integer maxColors) {
+        if (minColors == null) {
+            throw new IllegalArgumentException("Minimum colors cannot be null");
+        }
+        if (maxColors == null) {
+            throw new IllegalArgumentException("Maximum colors cannot be null");
+        }
+        if (minColors < 1) {
+            throw new IllegalArgumentException("Minimum colors must be positive");
+        }
+        if (maxColors < 1) {
+            throw new IllegalArgumentException("Maximum colors must be positive");
+        }
+        if (minColors > maxColors) {
+            throw new IllegalArgumentException("Minimum colors cannot be greater than maximum colors");
+        }
         logger.debug(
                 "Searching combinations with color count between {} and {}", minColors, maxColors);
-
-        if (minColors == null || maxColors == null) {
-            throw new IllegalArgumentException("Both minColors and maxColors must be specified");
-        }
-
-        if (minColors < 1 || maxColors < minColors) {
-            throw new IllegalArgumentException("Invalid color count range");
-        }
 
         return colorCombinationRepository.findByColorCountBetweenOrderByCreatedAtDesc(
                 minColors, maxColors);
@@ -206,6 +243,9 @@ public class ColorCombinationService {
     /** Gets a combination by ID with optimized loading */
     @Transactional(readOnly = true)
     public Optional<ColorCombination> findById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Combination ID cannot be null");
+        }
         logger.debug("Searching combination by ID with optimized loading: {}", id);
         return colorCombinationRepository.findByIdWithColors(id);
     }
@@ -216,6 +256,9 @@ public class ColorCombinationService {
      */
     @Transactional(readOnly = true)
     public ColorCombination getById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Combination ID cannot be null");
+        }
         logger.debug("Getting combination by ID with optimized loading: {}", id);
         return colorCombinationRepository
                 .findByIdWithColors(id)
@@ -225,6 +268,12 @@ public class ColorCombinationService {
     /** Updates an existing combination */
     @Transactional
     public ColorCombination updateCombination(Long id, ColorCombinationForm form) {
+        if (id == null) {
+            throw new IllegalArgumentException("Combination ID cannot be null");
+        }
+        if (form == null) {
+            throw new IllegalArgumentException("Form cannot be null");
+        }
         logger.info("Updating combination ID: {} with data: {}", id, form.getName());
 
         // Validate the form
@@ -264,6 +313,11 @@ public class ColorCombinationService {
     public void deleteCombination(Long id) {
         logger.info("Deleting combination ID: {}", id);
 
+        // Validate input
+        if (id == null) {
+            throw new IllegalArgumentException("Combination ID cannot be null");
+        }
+
         // Verify it exists
         if (!colorCombinationRepository.existsById(id)) {
             throw new ColorCombinationNotFoundException(id);
@@ -276,44 +330,49 @@ public class ColorCombinationService {
 
     /** Validates if a hexadecimal color is valid */
     public boolean isValidHexColor(String hexValue) {
-        return hexValue != null && HEX_COLOR_PATTERN.matcher(hexValue).matches();
+        if (hexValue == null) {
+            return false;
+        }
+        return HEX_COLOR_PATTERN.matcher(hexValue).matches();
     }
 
     /** Validates a list of hexadecimal colors */
     public boolean validateHexColors(List<String> hexValues) {
-        if (hexValues == null || hexValues.isEmpty()) {
+        if (hexValues == null) {
             return false;
         }
-
+        if (hexValues.isEmpty()) {
+            return false;
+        }
         return hexValues.stream().allMatch(this::isValidHexColor);
     }
 
     /** Validates that the number of colors matches the color list */
     public boolean validateColorCount(Integer colorCount, List<ColorForm> colors) {
-        if (colorCount == null || colors == null) {
+        if (colorCount == null) {
             return false;
         }
-
+        if (colors == null) {
+            return false;
+        }
         if (colorCount < 1) {
             return false;
         }
-
         return colors.size() == colorCount;
     }
 
     /** Converts an entity to form */
     @Transactional(readOnly = true)
     public ColorCombinationForm convertToForm(ColorCombination combination) {
-        if (combination == null) {
-            return null;
-        }
-
         return ColorCombinationForm.fromEntity(combination);
     }
 
     /** Checks if a combination with the same name exists */
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
         return colorCombinationRepository.existsByNameIgnoreCase(name);
     }
 
@@ -337,6 +396,9 @@ public class ColorCombinationService {
     /** Gets the most recent combinations */
     @Transactional(readOnly = true)
     public List<ColorCombination> getRecentCombinations(int limit) {
+        if (limit < 1) {
+            throw new IllegalArgumentException("Limit must be positive");
+        }
         logger.debug("Getting {} most recent combinations", limit);
         return colorCombinationRepository.findMostRecent(
                 org.springframework.data.domain.PageRequest.of(0, limit));
@@ -483,12 +545,21 @@ public class ColorCombinationService {
 
     /** Reorders color positions after a color removal to ensure sequential positions */
     public void reorderColorsAfterRemoval(Long combinationId, Integer removedPosition) {
+        if (combinationId == null) {
+            throw new IllegalArgumentException("Combination ID cannot be null");
+        }
+        if (removedPosition == null || removedPosition < 1) {
+            throw new IllegalArgumentException("Removed position must be a positive integer");
+        }
         colorPositionService.reorderPositionsAfterRemoval(combinationId, removedPosition);
     }
 
     /** Validates that a combination has at least the minimum required colors */
     public boolean validateMinimumColors(List<ColorForm> colors) {
-        return colors != null && !colors.isEmpty();
+        if (colors == null) {
+            return false;
+        }
+        return !colors.isEmpty();
     }
 
     /** Inner class for statistics */
