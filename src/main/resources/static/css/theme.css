@@ -432,6 +432,69 @@ h1, h2, h3, h4, h5, h6 {
    }
 }
 
+/* User bar styles */
+.user-bar {
+   display: flex;
+   align-items: center;
+   justify-content: flex-end;
+   gap: 12px;
+   padding: 8px 20px;
+   background: var(--bg-secondary);
+   border-bottom: 1px solid var(--border-color);
+   font-size: 0.85rem;
+   color: var(--text-secondary);
+}
+
+.user-bar .user-info {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+}
+
+.user-bar .user-name {
+   font-weight: 600;
+   color: var(--text-primary);
+}
+
+.user-bar a {
+   color: var(--text-secondary);
+   text-decoration: none;
+   padding: 4px 10px;
+   border-radius: 6px;
+   transition: background-color 0.2s ease, color 0.2s ease;
+   font-size: 0.85rem;
+}
+
+.user-bar a:hover {
+   background: var(--bg-tertiary);
+   color: var(--text-primary);
+}
+
+.user-bar .btn-logout {
+   background: none;
+   border: 1px solid var(--border-color);
+   color: var(--text-secondary);
+   padding: 4px 12px;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 0.85rem;
+   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.user-bar .btn-logout:hover {
+   background: var(--alert-error-bg);
+   color: var(--alert-error-text);
+   border-color: var(--alert-error-border);
+}
+
+@media (max-width: 767px) {
+   .user-bar {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      gap: 8px;
+   }
+}
+
 /* Ensure color boxes/previews don't get themed */
 .color-box,
 .color-preview,

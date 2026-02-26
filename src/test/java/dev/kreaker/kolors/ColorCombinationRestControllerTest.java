@@ -3,6 +3,7 @@ package dev.kreaker.kolors;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;
+import dev.kreaker.kolors.security.repository.UserRepository;
 import dev.kreaker.kolors.service.ColorCombinationService;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,15 +23,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ColorCombinationRestController.class)
+@WithMockUser
 @DisplayName("ColorCombinationRestController Tests")
 class ColorCombinationRestControllerTest {
 
     @Autowired private MockMvc mockMvc;
 
     @MockBean private ColorCombinationService colorCombinationService;
+
+    @MockBean private UserRepository userRepository;
 
     @Autowired private ObjectMapper objectMapper;
 
@@ -60,6 +66,7 @@ class ColorCombinationRestControllerTest {
         // When & Then
         mockMvc.perform(
                         post("/api/combinations/1/colors")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(testColorForm)))
                 .andExpect(status().isOk())
@@ -80,6 +87,7 @@ class ColorCombinationRestControllerTest {
         // When & Then
         mockMvc.perform(
                         post("/api/combinations/1/colors")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidColorForm)))
                 .andExpect(status().isBadRequest())
@@ -98,6 +106,7 @@ class ColorCombinationRestControllerTest {
         // When & Then
         mockMvc.perform(
                         post("/api/combinations/999/colors")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(testColorForm)))
                 .andExpect(status().isNotFound());
@@ -110,7 +119,7 @@ class ColorCombinationRestControllerTest {
         when(colorCombinationService.removeColorFromCombination(1L, 2)).thenReturn(testCombination);
 
         // When & Then
-        mockMvc.perform(delete("/api/combinations/1/colors/2"))
+        mockMvc.perform(delete("/api/combinations/1/colors/2").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(true))
@@ -127,7 +136,7 @@ class ColorCombinationRestControllerTest {
                 .thenThrow(new ColorCombinationValidationException("Cannot remove the last color"));
 
         // When & Then
-        mockMvc.perform(delete("/api/combinations/1/colors/1"))
+        mockMvc.perform(delete("/api/combinations/1/colors/1").with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(false))
@@ -142,7 +151,8 @@ class ColorCombinationRestControllerTest {
                 .thenThrow(new ColorCombinationNotFoundException("Combination not found"));
 
         // When & Then
-        mockMvc.perform(delete("/api/combinations/999/colors/1")).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/api/combinations/999/colors/1").with(csrf()))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -156,6 +166,7 @@ class ColorCombinationRestControllerTest {
         // When & Then
         mockMvc.perform(
                         post("/api/combinations/validate-color")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(validColorForm)))
                 .andExpect(status().isOk())
@@ -173,6 +184,7 @@ class ColorCombinationRestControllerTest {
         // When & Then
         mockMvc.perform(
                         post("/api/combinations/validate-color")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidColorForm)))
                 .andExpect(status().isOk())
@@ -188,7 +200,7 @@ class ColorCombinationRestControllerTest {
         when(colorCombinationService.getById(1L)).thenReturn(testCombination);
 
         // When & Then
-        mockMvc.perform(post("/api/combinations/1"))
+        mockMvc.perform(post("/api/combinations/1").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(true))
@@ -207,6 +219,7 @@ class ColorCombinationRestControllerTest {
                 .thenThrow(new ColorCombinationNotFoundException("Combination not found"));
 
         // When & Then
-        mockMvc.perform(post("/api/combinations/999")).andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/combinations/999").with(csrf()))
+                .andExpect(status().isNotFound());
     }
 }

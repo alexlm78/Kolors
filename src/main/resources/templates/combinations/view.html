@@ -574,6 +574,15 @@
          <p>Visualiza y gestiona tu combinación de colores</p>
       </div>
 
+      <div class="user-bar" th:if="${currentUser}">
+         <div class="user-info">
+            <span class="user-name" th:text="${currentUser.displayName}">Usuario</span>
+         </div>
+         <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+            <button type="submit" class="btn-logout">Cerrar Sesion</button>
+         </form>
+      </div>
+
       <div class="content">
          <!-- Navigation -->
          <div class="nav-back">

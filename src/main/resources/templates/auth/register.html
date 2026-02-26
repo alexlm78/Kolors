@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
+<<<<<<< HEAD
    <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -184,4 +185,227 @@
          </div>
       </div>
    </body>
+=======
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Kolors - Registrar Usuario</title>
+   <link rel="stylesheet" th:href="@{/css/mobile-responsive.css}">
+   <link rel="stylesheet" th:href="@{/css/theme.css}">
+   <style>
+      .auth-container {
+         max-width: 480px;
+         margin: 0 auto;
+         padding: 20px;
+      }
+
+      .auth-card {
+         background: var(--card-bg);
+         border-radius: 12px;
+         padding: 40px 30px;
+         box-shadow: var(--shadow-lg);
+         border: 1px solid var(--border-color);
+      }
+
+      .auth-card h2 {
+         text-align: center;
+         color: var(--text-primary);
+         margin-bottom: 8px;
+         font-size: 1.5rem;
+      }
+
+      .auth-card .auth-subtitle {
+         text-align: center;
+         color: var(--text-secondary);
+         margin-bottom: 30px;
+         font-size: 0.9rem;
+      }
+
+      .auth-card .form-group {
+         margin-bottom: 20px;
+      }
+
+      .auth-card label {
+         display: block;
+         color: var(--text-primary);
+         font-weight: 600;
+         margin-bottom: 6px;
+         font-size: 0.9rem;
+      }
+
+      .auth-card .form-control {
+         width: 100%;
+         padding: 12px 14px;
+         border: 2px solid var(--border-color);
+         border-radius: 8px;
+         font-size: 16px;
+         background: var(--input-bg);
+         color: var(--text-primary);
+         transition: border-color 0.3s ease, box-shadow 0.3s ease;
+         box-sizing: border-box;
+      }
+
+      .auth-card .form-control:focus {
+         outline: none;
+         border-color: #667eea;
+         box-shadow: 0 0 0 3px var(--input-focus);
+      }
+
+      .auth-card .form-control.error {
+         border-color: #dc3545;
+      }
+
+      .field-error {
+         color: #dc3545;
+         font-size: 0.85rem;
+         margin-top: 4px;
+      }
+
+      .auth-card .btn-primary {
+         width: 100%;
+         padding: 14px;
+         background: var(--btn-primary-bg);
+         color: #fff;
+         border: none;
+         border-radius: 8px;
+         font-size: 1rem;
+         font-weight: 600;
+         cursor: pointer;
+         transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .auth-card .btn-primary:hover {
+         transform: translateY(-2px);
+         box-shadow: var(--shadow-md);
+      }
+
+      .auth-card .btn-primary:active {
+         transform: scale(0.98);
+      }
+
+      .nav-back {
+         text-align: center;
+         margin-top: 20px;
+      }
+
+      .nav-back a {
+         color: var(--text-secondary);
+         text-decoration: none;
+         font-size: 0.9rem;
+      }
+
+      .nav-back a:hover {
+         color: #667eea;
+      }
+
+      .alert {
+         padding: 12px 15px;
+         border-radius: 8px;
+         margin-bottom: 20px;
+         font-size: 0.9rem;
+      }
+
+      .alert-error {
+         background: var(--alert-error-bg);
+         color: var(--alert-error-text);
+         border: 1px solid var(--alert-error-border);
+      }
+   </style>
+</head>
+
+<body>
+   <div class="container">
+      <div class="header">
+         <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema">
+            <span class="icon">&#127769;</span>
+         </button>
+         <h1>Kolors</h1>
+         <p>Registrar nuevo usuario</p>
+      </div>
+
+      <div class="auth-container">
+         <div class="auth-card">
+            <h2>Nuevo Usuario</h2>
+            <p class="auth-subtitle">Solo usuarios autenticados pueden registrar nuevas cuentas</p>
+
+            <form th:action="@{/register}" method="post" th:object="${registerDTO}">
+
+               <div class="form-group">
+                  <label for="username">Usuario *</label>
+                  <input type="text" id="username" th:field="*{username}" class="form-control"
+                     th:classappend="${#fields.hasErrors('username')} ? 'error' : ''"
+                     placeholder="Nombre de usuario" required>
+                  <div th:if="${#fields.hasErrors('username')}" class="field-error"
+                     th:errors="*{username}"></div>
+               </div>
+
+               <div class="form-group">
+                  <label for="email">Email *</label>
+                  <input type="email" id="email" th:field="*{email}" class="form-control"
+                     th:classappend="${#fields.hasErrors('email')} ? 'error' : ''"
+                     placeholder="correo@ejemplo.com" required>
+                  <div th:if="${#fields.hasErrors('email')}" class="field-error"
+                     th:errors="*{email}"></div>
+               </div>
+
+               <div class="form-group">
+                  <label for="displayName">Nombre para mostrar</label>
+                  <input type="text" id="displayName" th:field="*{displayName}" class="form-control"
+                     placeholder="Nombre visible en la app">
+               </div>
+
+               <div class="form-group">
+                  <label for="password">Contrasena *</label>
+                  <input type="password" id="password" th:field="*{password}" class="form-control"
+                     th:classappend="${#fields.hasErrors('password')} ? 'error' : ''"
+                     placeholder="Minimo 6 caracteres" required>
+                  <div th:if="${#fields.hasErrors('password')}" class="field-error"
+                     th:errors="*{password}"></div>
+               </div>
+
+               <div class="form-group">
+                  <label for="confirmPassword">Confirmar Contrasena *</label>
+                  <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="form-control"
+                     th:classappend="${#fields.hasErrors('confirmPassword')} ? 'error' : ''"
+                     placeholder="Repite la contrasena" required>
+                  <div th:if="${#fields.hasErrors('confirmPassword')}" class="field-error"
+                     th:errors="*{confirmPassword}"></div>
+               </div>
+
+               <button type="submit" class="btn-primary">Registrar Usuario</button>
+            </form>
+
+            <div class="nav-back">
+               <a th:href="@{/combinations/}">&larr; Volver a combinaciones</a>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <script>
+      (function() {
+         const savedTheme = localStorage.getItem('kolors-theme') || 'light';
+         document.documentElement.setAttribute('data-theme', savedTheme);
+         updateThemeIcon(savedTheme);
+      })();
+
+      function toggleTheme() {
+         const currentTheme = document.documentElement.getAttribute('data-theme');
+         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+         document.documentElement.setAttribute('data-theme', newTheme);
+         localStorage.setItem('kolors-theme', newTheme);
+         updateThemeIcon(newTheme);
+      }
+
+      function updateThemeIcon(theme) {
+         const icon = document.querySelector('.theme-toggle .icon');
+         if (icon) {
+            icon.textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+         }
+      }
+   </script>
+</body>
+
+>>>>>>> 12ab209 (feat(security): add local authentication with Spring Security)
 </html>

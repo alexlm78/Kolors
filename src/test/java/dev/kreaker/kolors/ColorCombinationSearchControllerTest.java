@@ -19,22 +19,27 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import dev.kreaker.kolors.security.repository.UserRepository;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /** Tests for search and filtering functionality in ColorCombinationController */
 @WebMvcTest(ColorCombinationController.class)
+@WithMockUser
 @ActiveProfiles("test")
 class ColorCombinationSearchControllerTest {
 
     @Autowired private MockMvc mockMvc;
 
     @MockBean private ColorCombinationService colorCombinationService;
+
+    @MockBean private UserRepository userRepository;
 
     private ColorCombination testCombination1;
     private ColorCombination testCombination2;
