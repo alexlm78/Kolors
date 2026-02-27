@@ -1,5 +1,7 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.dto;
 
+import dev.kreaker.kolors.ColorCombination;
+import dev.kreaker.kolors.ColorInCombination;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

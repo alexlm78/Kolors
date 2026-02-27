@@ -1,11 +1,11 @@
 package dev.kreaker.kolors.service;
 
 import dev.kreaker.kolors.ColorCombination;
-import dev.kreaker.kolors.ColorCombinationForm;
 import dev.kreaker.kolors.ColorCombinationRepository;
-import dev.kreaker.kolors.ColorForm;
 import dev.kreaker.kolors.ColorInCombination;
 import dev.kreaker.kolors.ColorInCombinationRepository;
+import dev.kreaker.kolors.dto.ColorCombinationForm;
+import dev.kreaker.kolors.dto.ColorForm;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;
 import dev.kreaker.kolors.exception.InvalidColorFormatException;

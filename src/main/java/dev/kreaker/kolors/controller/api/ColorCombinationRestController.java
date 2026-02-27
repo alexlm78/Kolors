@@ -1,9 +1,17 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.controller.api;
 
+import dev.kreaker.kolors.ColorCombination;
+import dev.kreaker.kolors.dto.ColorForm;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;
 import dev.kreaker.kolors.exception.InvalidColorFormatException;
 import dev.kreaker.kolors.service.ColorCombinationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/combinations")
+@Tag(name = "Color Combinations", description = "API for managing color combinations and their colors")
 public class ColorCombinationRestController {
 
     private static final Logger logger =
@@ -37,6 +46,14 @@ public class ColorCombinationRestController {
     }
 
     /** Add color to combination via AJAX */
+    @Operation(summary = "Add a color to a combination", description = "Adds a new color to an existing combination")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Color added successfully",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid color format or validation error"),
+        @ApiResponse(responseCode = "404", description = "Combination not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/{id}/colors")
     public ResponseEntity<Map<String, Object>> addColor(
             @PathVariable Long id, @Valid @RequestBody ColorForm colorForm, BindingResult result) {
@@ -91,6 +108,12 @@ public class ColorCombinationRestController {
     }
 
     /** Remove color from combination via AJAX */
+    @Operation(summary = "Remove a color from a combination", description = "Removes a color at a specific position from a combination")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Color removed successfully"),
+        @ApiResponse(responseCode = "404", description = "Combination not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @DeleteMapping("/{id}/colors/{position}")
     public ResponseEntity<Map<String, Object>> removeColor(
             @PathVariable Long id, @PathVariable Integer position) {

@@ -39,6 +39,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/combinations/search", "/api/combinations/{id}").permitAll()
                 .requestMatchers("/admin/migration-status").permitAll()
                 .requestMatchers("/mobile-test.html").permitAll()
+                // Swagger UI and API Docs
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                 // Protected endpoints (require authentication)
                 .requestMatchers("/api/combinations/**").authenticated()

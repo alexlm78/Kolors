@@ -1,5 +1,7 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.controller.web;
 
+import dev.kreaker.kolors.ColorCombination;
+import dev.kreaker.kolors.dto.ColorCombinationForm;
 import dev.kreaker.kolors.exception.ColorAdditionException;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;
