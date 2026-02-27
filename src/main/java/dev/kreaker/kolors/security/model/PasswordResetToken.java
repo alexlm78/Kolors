@@ -1,4 +1,4 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.security.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -95,17 +95,5 @@ public class PasswordResetToken {
     // Utility methods
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.expiryDate);
-    }
-
-    @Override
-    public String toString() {
-        return "PasswordResetToken{" +
-                "id=" + id +
-                ", token='" + token + '\'' +
-                ", user=" + (user != null ? user.getUsername() : null) +
-                ", expiryDate=" + expiryDate +
-                ", used=" + used +
-                ", createdAt=" + createdAt +
-                '}';
     }
 }

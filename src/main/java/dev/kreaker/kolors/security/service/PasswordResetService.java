@@ -1,7 +1,10 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.security.service;
 
+import dev.kreaker.kolors.security.model.PasswordResetToken;
+import dev.kreaker.kolors.security.model.User;
+import dev.kreaker.kolors.security.repository.PasswordResetTokenRepository;
+import dev.kreaker.kolors.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,35 +103,14 @@ public class PasswordResetService {
      * Get user associated with token (for display purposes)
      */
     public Optional<User> getUserByToken(String token) {
-        Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(token);
-
-        if (tokenOpt.isPresent()) {
-            PasswordResetToken resetToken = tokenOpt.get();
-            if (!resetToken.isUsed() && !resetToken.isExpired()) {
-                return Optional.of(resetToken.getUser());
-            }
-        }
-
-        return Optional.empty();
+        return tokenRepository.findByToken(token)
+                .map(PasswordResetToken::getUser);
     }
 
     /**
-     * Generate secure random token
+     * Generate a unique token
      */
     private String generateToken() {
         return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Scheduled task to clean up expired tokens (runs daily at 2 AM)
-     */
-    @Scheduled(cron = "0 0 2 * * ?")
-    public void cleanupExpiredTokens() {
-        LocalDateTime now = LocalDateTime.now();
-        int deletedCount = tokenRepository.deleteExpiredTokens(now);
-
-        if (deletedCount > 0) {
-            System.out.println("Cleaned up " + deletedCount + " expired password reset tokens");
-        }
     }
 }

@@ -1,6 +1,6 @@
 package dev.kreaker.kolors.security.config;
 
-import dev.kreaker.kolors.security.model.KolorsUser;
+import dev.kreaker.kolors.security.model.User;
 import dev.kreaker.kolors.security.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +24,15 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (!userRepository.existsByUsername("kreaker")) {
-            KolorsUser seedUser =
-                    new KolorsUser(
+            User seedUser =
+                    new User(
                             "kreaker",
                             "alejandro@kreaker.dev",
                             passwordEncoder.encode("kreaker123"),
                             "Kreaker");
+            
+            seedUser.addRole("ADMIN");
+            seedUser.addRole("USER");
 
             userRepository.save(seedUser);
             logger.info("Seed user 'kreaker' created successfully");

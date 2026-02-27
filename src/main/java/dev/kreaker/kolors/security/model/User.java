@@ -1,4 +1,4 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.security.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -35,6 +35,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Size(max = 100)
+    @Column(name = "display_name")
+    private String displayName;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
@@ -58,6 +62,11 @@ public class User {
         this.password = password;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public User(String username, String email, String password, String displayName) {
+        this(username, email, password);
+        this.displayName = displayName;
     }
 
     // Lifecycle callbacks
@@ -105,6 +114,14 @@ public class User {
         this.password = password;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     public Set<String> getRoles() {
         return roles;
     }
@@ -139,15 +156,20 @@ public class User {
 
     // Utility methods
     public void addRole(String role) {
+        if (this.roles == null) {
+            this.roles = new HashSet<>();
+        }
         this.roles.add(role);
     }
 
     public void removeRole(String role) {
-        this.roles.remove(role);
+        if (this.roles != null) {
+            this.roles.remove(role);
+        }
     }
 
     public boolean hasRole(String role) {
-        return this.roles.contains(role);
+        return this.roles != null && this.roles.contains(role);
     }
 
     @Override
@@ -156,6 +178,7 @@ public class User {
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
+                ", displayName='" + displayName + '\'' +
                 ", roles=" + roles +
                 ", createdAt=" + createdAt +
                 ", enabled=" + enabled +

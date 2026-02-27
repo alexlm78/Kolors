@@ -1,16 +1,27 @@
 package dev.kreaker.kolors.security.repository;
 
-import dev.kreaker.kolors.security.model.KolorsUser;
-import java.util.Optional;
+import dev.kreaker.kolors.security.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-public interface UserRepository extends JpaRepository<KolorsUser, Long> {
+import java.util.Optional;
 
-    Optional<KolorsUser> findByUsername(String username);
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<KolorsUser> findByEmail(String email);
+    Optional<User> findByUsername(String username);
+
+    Optional<User> findByEmail(String email);
 
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    @Query("SELECT u FROM User u WHERE u.username = :usernameOrEmail OR u.email = :usernameOrEmail")
+    Optional<User> findByUsernameOrEmail(@Param("usernameOrEmail") String usernameOrEmail);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.enabled = true")
+    long countEnabledUsers();
 }

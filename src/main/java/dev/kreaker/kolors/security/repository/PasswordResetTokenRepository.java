@@ -1,5 +1,7 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.security.repository;
 
+import dev.kreaker.kolors.security.model.PasswordResetToken;
+import dev.kreaker.kolors.security.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

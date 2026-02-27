@@ -1,13 +1,13 @@
-package dev.kreaker.kolors;
+package dev.kreaker.kolors.security.service;
 
+import dev.kreaker.kolors.security.model.User;
+import dev.kreaker.kolors.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @Transactional
@@ -97,58 +97,8 @@ public class UserService {
     public void setUserEnabled(Long userId, boolean enabled) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-
+        
         user.setEnabled(enabled);
         userRepository.save(user);
-    }
-
-    /**
-     * Add role to user
-     */
-    public void addRoleToUser(Long userId, String role) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-
-        user.addRole(role);
-        userRepository.save(user);
-    }
-
-    /**
-     * Remove role from user
-     */
-    public void removeRoleFromUser(Long userId, String role) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-
-        user.removeRole(role);
-        userRepository.save(user);
-    }
-
-    /**
-     * Check if user has specific role
-     */
-    public boolean hasRole(Long userId, String role) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-
-        return user.hasRole(role);
-    }
-
-    /**
-     * Get user roles
-     */
-    public Set<String> getUserRoles(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-
-        return new HashSet<>(user.getRoles());
-    }
-
-    /**
-     * Get total count of enabled users
-     */
-    @Transactional(readOnly = true)
-    public long getEnabledUsersCount() {
-        return userRepository.countEnabledUsers();
     }
 }

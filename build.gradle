@@ -2,21 +2,12 @@ plugins {
    id 'java'
    id 'org.springframework.boot' version '3.5.7'
    id 'io.spring.dependency-management' version '1.1.7'
-<<<<<<< HEAD
-   id 'com.diffplug.spotless' version '8.0.0'
-=======
->>>>>>> 12ab209 (feat(security): add local authentication with Spring Security)
 }
 
 group = 'dev.kreaker.kolors'
-version = '0.6.8'
+version = '0.6.9'
 
 java {
-<<<<<<< HEAD
-=======
-   sourceCompatibility = JavaVersion.VERSION_25
-
->>>>>>> 12ab209 (feat(security): add local authentication with Spring Security)
    toolchain {
       languageVersion = JavaLanguageVersion.of(25)
    }
@@ -27,7 +18,6 @@ repositories {
 }
 
 dependencies {
-<<<<<<< HEAD
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -44,143 +34,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-=======
-   implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-   implementation 'org.springframework.boot:spring-boot-starter-web'
-   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-   implementation 'org.springframework.boot:spring-boot-starter-validation'
-   implementation 'org.springframework.boot:spring-boot-starter-aop'
-   implementation 'org.springframework.boot:spring-boot-starter-security'
-   implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
-   implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.4.Final'
-
-   testImplementation 'org.springframework.boot:spring-boot-starter-test'
-   testImplementation 'org.springframework.security:spring-security-test'
-   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
->>>>>>> 12ab209 (feat(security): add local authentication with Spring Security)
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
-<<<<<<< HEAD
-spotless {
-    java {
-        target '**/*.java'
-        targetExclude '**/build/**', '**/.gradle/**', 'out/**'
-
-        googleJavaFormat('1.24.0').aosp()
-        trimTrailingWhitespace()
-        endWithNewline()
-        leadingTabsToSpaces(4)
-
-        custom 'noWildcardImports', {
-            if (it.contains('import .*\\*')) {
-                throw new RuntimeException('No use wildcard imports')
-            }
-        }
-
-        custom 'enforceUtf8', {
-            return new String(it.getBytes('UTF-8'), 'UTF-8')
-        }
-    }
-
-    format 'properties', {
-        target '**/*.properties'
-        targetExclude '**/build/**', '**/.gradle/**', 'out/**'
-
-        trimTrailingWhitespace()
-        endWithNewline()
-        leadingTabsToSpaces(2)
-
-        // Sort properties alphabetically
-        custom 'sortProperties', { content ->
-            def lines = content.readLines()
-            def result = []
-            def commentBlock = []
-            def propBlock = []
-
-            lines.each { line ->
-                def trimmed = line.trim()
-                if (trimmed.startsWith('#') || trimmed.isEmpty()) {
-                    if (!propBlock.isEmpty()) {
-                        result.addAll(propBlock.sort { a, b ->
-                            def keyA = a.split('=')[0].trim()
-                            def keyB = b.split('=')[0].trim()
-                            return keyA.compareToIgnoreCase(keyB)
-                        })
-                        propBlock.clear()
-                    }
-                    result.add(line)
-                } else {
-                    propBlock.add(line)
-                }
-            }
-
-            if (!propBlock.isEmpty()) {
-                result.addAll(propBlock.sort { a, b ->
-                def keyA = a.split('=')[0].trim()
-                def keyB = b.split('=')[0].trim()
-                return keyA.compareToIgnoreCase(keyB)
-                })
-            }
-
-            return result.join('\n')
-        }
-    }
-
-    // YAML files (Spring Boot configs)
-    format 'yaml', {
-        target '**/*.yml', '**/*.yaml'
-        targetExclude '**/build/**'
-
-        trimTrailingWhitespace()
-        endWithNewline()
-        leadingTabsToSpaces(2)
-    }
-
-    // XML files (Maven, Spring configs)
-    format 'xml', {
-        target '**/*.xml'
-        targetExclude '**/build/**'
-
-        eclipseWtp('xml')
-        trimTrailingWhitespace()
-        endWithNewline()
-        leadingTabsToSpaces(2)
-    }
-
-    // Additional formats
-    format 'misc', {
-        target '**/*.md', '**/*.gitignore'
-        trimTrailingWhitespace()
-        endWithNewline()
-        leadingTabsToSpaces(3)
-    }
-}
-
-// Custom tasks for IDE integration
-tasks.register('formatJava', Exec) {
-   group 'formatting'
-   description 'Format only Java files'
-   doLast {
-      commandLine './gradlew', 'spotlessJavaApply'
-   }
-}
-
-tasks.register('formatProperties', Exec) {
-   group 'formatting'
-   description 'Format only Properties files'
-   doLast {
-      commandLine './gradlew', 'spotlessPropertiesApply'
-   }
-}
-
-tasks.register('formatAll') {
-   group 'formatting'
-   description 'Format all supported files'
-   dependsOn 'spotlessApply'
-}
-=======
->>>>>>> 12ab209 (feat(security): add local authentication with Spring Security)
