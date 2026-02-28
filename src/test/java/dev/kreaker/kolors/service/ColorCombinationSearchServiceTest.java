@@ -308,11 +308,11 @@ class ColorCombinationSearchServiceTest {
         // When & Then
         assertThatThrownBy(() -> colorCombinationService.findByColorCountRange(null, 3))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Both minColors and maxColors must be specified");
+                .hasMessageContaining("Minimum colors cannot be null");
 
         assertThatThrownBy(() -> colorCombinationService.findByColorCountRange(2, null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Both minColors and maxColors must be specified");
+                .hasMessageContaining("Maximum colors cannot be null");
     }
 
     @Test
@@ -320,11 +320,11 @@ class ColorCombinationSearchServiceTest {
         // When & Then
         assertThatThrownBy(() -> colorCombinationService.findByColorCountRange(0, 3))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid color count range");
+                .hasMessageContaining("Minimum colors must be positive");
 
         assertThatThrownBy(() -> colorCombinationService.findByColorCountRange(5, 3))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid color count range");
+                .hasMessageContaining("Minimum colors cannot be greater than maximum colors");
     }
 
     @Test

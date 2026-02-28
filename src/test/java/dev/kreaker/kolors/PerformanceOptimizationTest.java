@@ -2,6 +2,7 @@ package dev.kreaker.kolors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.kreaker.kolors.config.TestConfig;
 import dev.kreaker.kolors.service.ColorCombinationService;
 import dev.kreaker.kolors.service.PerformanceMonitoringService;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(TestConfig.class)
 public class PerformanceOptimizationTest {
 
     @Autowired private ColorCombinationService colorCombinationService;

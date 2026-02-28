@@ -11,11 +11,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.kreaker.kolors.ColorCombination;
-import dev.kreaker.kolors.ColorCombinationForm;
 import dev.kreaker.kolors.ColorCombinationRepository;
-import dev.kreaker.kolors.ColorForm;
 import dev.kreaker.kolors.ColorInCombination;
 import dev.kreaker.kolors.ColorInCombinationRepository;
+import dev.kreaker.kolors.dto.ColorCombinationForm;
+import dev.kreaker.kolors.dto.ColorForm;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;
 import dev.kreaker.kolors.exception.InvalidColorFormatException;
@@ -568,7 +568,7 @@ class ColorCombinationServiceTest {
 
             // Then
             assertThat(result).isNotNull();
-            verify(colorCombinationRepository).findById(combinationId);
+            verify(colorCombinationRepository, org.mockito.Mockito.atLeastOnce()).findById(combinationId);
             verify(colorCombinationRepository).save(any(ColorCombination.class));
         }
 
@@ -627,7 +627,7 @@ class ColorCombinationServiceTest {
 
             when(colorCombinationRepository.findById(combinationId))
                     .thenReturn(Optional.of(combinationWithMultipleColors));
-            when(colorCombinationRepository.save(any(ColorCombination.class)))
+            when(colorCombinationRepository.saveAndFlush(any(ColorCombination.class)))
                     .thenReturn(combinationWithMultipleColors);
 
             // When
@@ -636,8 +636,9 @@ class ColorCombinationServiceTest {
 
             // Then
             assertThat(result).isNotNull();
-            verify(colorCombinationRepository).findById(combinationId);
-            verify(colorCombinationRepository).save(any(ColorCombination.class));
+            verify(colorCombinationRepository, org.mockito.Mockito.times(2)).findById(combinationId);
+            verify(colorCombinationRepository).saveAndFlush(any(ColorCombination.class));
+            verify(colorPositionService).reorderPositionsAfterRemoval(combinationId, position);
         }
 
         @Test
@@ -659,8 +660,8 @@ class ColorCombinationServiceTest {
                             () ->
                                     colorCombinationService.removeColorFromCombination(
                                             combinationId, position))
-                    .isInstanceOf(ColorCombinationValidationException.class)
-                    .hasMessageContaining("Cannot remove the last color from a combination");
+                    .isInstanceOf(dev.kreaker.kolors.exception.EmptyCombinationException.class)
+                    .hasMessageContaining("No se puede remover todos los colores");
 
             verify(colorCombinationRepository).findById(combinationId);
             verify(colorCombinationRepository, never()).save(any());

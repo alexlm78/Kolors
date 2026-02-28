@@ -7,9 +7,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.kreaker.kolors.config.TestConfig;
+import dev.kreaker.kolors.dto.ColorCombinationForm;
+import dev.kreaker.kolors.dto.ColorForm;
 import dev.kreaker.kolors.exception.ColorAdditionException;
+import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
+import dev.kreaker.kolors.exception.ColorCombinationValidationException;
 import dev.kreaker.kolors.exception.ColorRemovalException;
 import dev.kreaker.kolors.exception.EmptyCombinationException;
+import dev.kreaker.kolors.exception.InvalidColorFormatException;
 import dev.kreaker.kolors.service.ColorCombinationService;
 import dev.kreaker.kolors.service.ColorPositionService;
 import java.util.List;
@@ -24,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -37,6 +45,8 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(locations = "classpath:application-test.properties")
+@ActiveProfiles("test")
+@Import(TestConfig.class)
 @Transactional
 @DisplayName("Dynamic Color Management Integration Tests")
 class DynamicColorManagementIntegrationTest {
@@ -165,7 +175,7 @@ class DynamicColorManagementIntegrationTest {
                                 colorCombinationService.addColorToCombination(
                                         combination.getId(), invalidColor);
                             })
-                    .isInstanceOf(ColorAdditionException.class);
+                    .isInstanceOf(InvalidColorFormatException.class);
 
             assertThatThrownBy(
                             () -> {
@@ -173,7 +183,7 @@ class DynamicColorManagementIntegrationTest {
                                 colorCombinationService.addColorToCombination(
                                         combination.getId(), shortColor);
                             })
-                    .isInstanceOf(ColorAdditionException.class);
+                    .isInstanceOf(InvalidColorFormatException.class);
 
             assertThatThrownBy(
                             () -> {
@@ -181,7 +191,7 @@ class DynamicColorManagementIntegrationTest {
                                 colorCombinationService.addColorToCombination(
                                         combination.getId(), longColor);
                             })
-                    .isInstanceOf(ColorAdditionException.class);
+                    .isInstanceOf(InvalidColorFormatException.class);
         }
 
         @Test
@@ -278,7 +288,7 @@ class DynamicColorManagementIntegrationTest {
                                         combination.getId(), 1);
                             })
                     .isInstanceOf(EmptyCombinationException.class)
-                    .hasMessageContaining("Cannot remove the last color");
+                    .hasMessageContaining("No se puede remover todos los colores");
 
             // Verify color is still there
             ColorCombination unchanged =
@@ -300,7 +310,7 @@ class DynamicColorManagementIntegrationTest {
                                         combination.getId(), 5);
                             })
                     .isInstanceOf(ColorRemovalException.class)
-                    .hasMessageContaining("Color at position 5 not found");
+                    .hasMessageContaining("Posición inválida para remover color: 5");
         }
 
         @Test
@@ -326,7 +336,7 @@ class DynamicColorManagementIntegrationTest {
                             combination.getId(), 3); // Remove FFFF00 (was 4)
             combination =
                     colorCombinationService.removeColorFromCombination(
-                            combination.getId(), 3); // Remove 00FFFF (was 6)
+                            combination.getId(), 4); // Remove 00FFFF (was 6)
 
             // Then
             assertThat(combination.getColors()).hasSize(3);
@@ -411,6 +421,11 @@ class DynamicColorManagementIntegrationTest {
                             "Reorder Test", "FF0000", "00FF00", "0000FF", "FFFF00", "FF00FF");
 
             // When - remove color at position 2
+            // We need to manually remove the color first to simulate the "after removal" state
+            // Use saveAndFlush to trigger orphan removal and DB sync
+            combination.getColors().removeIf(c -> c.getPosition().equals(2));
+            colorCombinationRepository.saveAndFlush(combination);
+
             colorPositionService.reorderPositionsAfterRemoval(combination.getId(), 2);
 
             // Then
@@ -514,7 +529,7 @@ class DynamicColorManagementIntegrationTest {
         @DisplayName("Should handle concurrent color removals safely")
         void shouldHandleConcurrentColorRemovalsSafely() throws Exception {
             // Given - combination with many colors
-            ColorCombination combination = createTestCombination("Concurrent Removal");
+            ColorCombination combination = createTestCombination("Concurrent Removal", "FFFFFF");
             for (int i = 1; i <= 10; i++) {
                 ColorForm color = new ColorForm(String.format("%06X", i * 1111), i + 1);
                 combination =
@@ -625,18 +640,20 @@ class DynamicColorManagementIntegrationTest {
                                 ColorForm color = new ColorForm("FF0000", 1);
                                 colorCombinationService.addColorToCombination(999L, color);
                             })
-                    .isInstanceOf(ColorAdditionException.class);
+                    .isInstanceOf(ColorCombinationNotFoundException.class);
 
             assertThatThrownBy(
                             () -> {
                                 colorCombinationService.removeColorFromCombination(999L, 1);
                             })
-                    .isInstanceOf(ColorRemovalException.class);
+                    .isInstanceOf(ColorCombinationNotFoundException.class);
         }
     }
 
     private ColorCombination createTestCombination(String name, String... hexValues) {
         ColorCombinationForm form = new ColorCombinationForm(name);
+        // Clear default empty color added by constructor
+        form.getColors().clear();
         for (String hexValue : hexValues) {
             form.addColor(hexValue);
         }

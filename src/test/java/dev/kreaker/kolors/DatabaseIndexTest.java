@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@org.springframework.context.annotation.Import(dev.kreaker.kolors.config.TestConfig.class)
 @Transactional
 public class DatabaseIndexTest {
 

@@ -12,7 +12,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import dev.kreaker.kolors.controller.web.ColorCombinationController;
+import dev.kreaker.kolors.dto.ColorCombinationForm;
 import dev.kreaker.kolors.service.ColorCombinationService;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +28,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -69,17 +73,20 @@ class ColorCombinationSearchControllerTest {
         // Given
         List<ColorCombination> allCombinations =
                 Arrays.asList(testCombination1, testCombination2, testCombination3);
-        when(colorCombinationService.searchWithFilters(isNull(), isNull(), isNull(), isNull()))
-                .thenReturn(allCombinations);
+        Page<ColorCombination> page = new PageImpl<>(allCombinations);
+        when(colorCombinationService.searchWithFilters(
+                        isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/combinations/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("combinations/index"))
                 .andExpect(model().attribute("combinations", hasSize(3)))
-                .andExpect(model().attribute("totalCombinations", 3));
+                .andExpect(model().attribute("totalCombinations", 3L));
 
-        verify(colorCombinationService).searchWithFilters(isNull(), isNull(), isNull(), isNull());
+        verify(colorCombinationService)
+                .searchWithFilters(isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -87,9 +94,10 @@ class ColorCombinationSearchControllerTest {
         // Given
         String searchTerm = "Ocean";
         List<ColorCombination> filteredCombinations = Arrays.asList(testCombination2);
+        Page<ColorCombination> page = new PageImpl<>(filteredCombinations);
         when(colorCombinationService.searchWithFilters(
-                        eq(searchTerm), isNull(), isNull(), isNull()))
-                .thenReturn(filteredCombinations);
+                        eq(searchTerm), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/combinations/").param("search", searchTerm))
@@ -97,10 +105,10 @@ class ColorCombinationSearchControllerTest {
                 .andExpect(view().name("combinations/index"))
                 .andExpect(model().attribute("combinations", hasSize(1)))
                 .andExpect(model().attribute("search", searchTerm))
-                .andExpect(model().attribute("totalCombinations", 1));
+                .andExpect(model().attribute("totalCombinations", 1L));
 
         verify(colorCombinationService)
-                .searchWithFilters(eq(searchTerm), isNull(), isNull(), isNull());
+                .searchWithFilters(eq(searchTerm), isNull(), isNull(), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -108,9 +116,10 @@ class ColorCombinationSearchControllerTest {
         // Given
         Integer colorCount = 3;
         List<ColorCombination> filteredCombinations = Arrays.asList(testCombination1);
+        Page<ColorCombination> page = new PageImpl<>(filteredCombinations);
         when(colorCombinationService.searchWithFilters(
-                        isNull(), eq(colorCount), eq(colorCount), isNull()))
-                .thenReturn(filteredCombinations);
+                        isNull(), eq(colorCount), eq(colorCount), isNull(), any(Pageable.class)))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/combinations/").param("colorCount", colorCount.toString()))
@@ -118,10 +127,10 @@ class ColorCombinationSearchControllerTest {
                 .andExpect(view().name("combinations/index"))
                 .andExpect(model().attribute("combinations", hasSize(1)))
                 .andExpect(model().attribute("colorCount", colorCount))
-                .andExpect(model().attribute("totalCombinations", 1));
+                .andExpect(model().attribute("totalCombinations", 1L));
 
         verify(colorCombinationService)
-                .searchWithFilters(isNull(), eq(colorCount), eq(colorCount), isNull());
+                .searchWithFilters(isNull(), eq(colorCount), eq(colorCount), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -129,8 +138,10 @@ class ColorCombinationSearchControllerTest {
         // Given
         String hexValue = "FF5733";
         List<ColorCombination> filteredCombinations = Arrays.asList(testCombination1);
-        when(colorCombinationService.searchWithFilters(isNull(), isNull(), isNull(), eq(hexValue)))
-                .thenReturn(filteredCombinations);
+        Page<ColorCombination> page = new PageImpl<>(filteredCombinations);
+        when(colorCombinationService.searchWithFilters(
+                        isNull(), isNull(), isNull(), eq(hexValue), any(Pageable.class)))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/combinations/").param("hexValue", hexValue))
@@ -138,10 +149,10 @@ class ColorCombinationSearchControllerTest {
                 .andExpect(view().name("combinations/index"))
                 .andExpect(model().attribute("combinations", hasSize(1)))
                 .andExpect(model().attribute("hexValue", hexValue))
-                .andExpect(model().attribute("totalCombinations", 1));
+                .andExpect(model().attribute("totalCombinations", 1L));
 
         verify(colorCombinationService)
-                .searchWithFilters(isNull(), isNull(), isNull(), eq(hexValue));
+                .searchWithFilters(isNull(), isNull(), isNull(), eq(hexValue), any(Pageable.class));
     }
 
     @Test
@@ -151,9 +162,10 @@ class ColorCombinationSearchControllerTest {
         Integer maxColors = 3;
         List<ColorCombination> filteredCombinations =
                 Arrays.asList(testCombination1, testCombination2);
+        Page<ColorCombination> page = new PageImpl<>(filteredCombinations);
         when(colorCombinationService.searchWithFilters(
-                        isNull(), eq(minColors), eq(maxColors), isNull()))
-                .thenReturn(filteredCombinations);
+                        isNull(), eq(minColors), eq(maxColors), isNull(), any(Pageable.class)))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(
@@ -165,10 +177,10 @@ class ColorCombinationSearchControllerTest {
                 .andExpect(model().attribute("combinations", hasSize(2)))
                 .andExpect(model().attribute("minColors", minColors))
                 .andExpect(model().attribute("maxColors", maxColors))
-                .andExpect(model().attribute("totalCombinations", 2));
+                .andExpect(model().attribute("totalCombinations", 2L));
 
         verify(colorCombinationService)
-                .searchWithFilters(isNull(), eq(minColors), eq(maxColors), isNull());
+                .searchWithFilters(isNull(), eq(minColors), eq(maxColors), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -178,9 +190,10 @@ class ColorCombinationSearchControllerTest {
         Integer minColors = 2;
         Integer maxColors = 4;
         List<ColorCombination> filteredCombinations = Arrays.asList(testCombination1);
+        Page<ColorCombination> page = new PageImpl<>(filteredCombinations);
         when(colorCombinationService.searchWithFilters(
-                        eq(searchTerm), eq(minColors), eq(maxColors), isNull()))
-                .thenReturn(filteredCombinations);
+                        eq(searchTerm), eq(minColors), eq(maxColors), isNull(), any(Pageable.class)))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(
@@ -194,10 +207,10 @@ class ColorCombinationSearchControllerTest {
                 .andExpect(model().attribute("search", searchTerm))
                 .andExpect(model().attribute("minColors", minColors))
                 .andExpect(model().attribute("maxColors", maxColors))
-                .andExpect(model().attribute("totalCombinations", 1));
+                .andExpect(model().attribute("totalCombinations", 1L));
 
         verify(colorCombinationService)
-                .searchWithFilters(eq(searchTerm), eq(minColors), eq(maxColors), isNull());
+                .searchWithFilters(eq(searchTerm), eq(minColors), eq(maxColors), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -272,22 +285,22 @@ class ColorCombinationSearchControllerTest {
     void testPaginatedSearch() throws Exception {
         // Given
         String searchTerm = "Test";
-        Integer page = 0;
-        Integer size = 5;
+        int page = 0;
+        int size = 5;
         List<ColorCombination> combinations = Arrays.asList(testCombination1, testCombination2);
         Page<ColorCombination> combinationPage =
                 new PageImpl<>(combinations, PageRequest.of(page, size), 10);
 
         when(colorCombinationService.searchWithFilters(
-                        eq(searchTerm), isNull(), isNull(), isNull(), any()))
+                        eq(searchTerm), isNull(), isNull(), isNull(), any(PageRequest.class)))
                 .thenReturn(combinationPage);
 
         // When & Then
         mockMvc.perform(
                         get("/combinations/paginated")
                                 .param("search", searchTerm)
-                                .param("page", page.toString())
-                                .param("size", size.toString()))
+                                .param("page", String.valueOf(page))
+                                .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("combinations/index"))
                 .andExpect(model().attribute("combinations", hasSize(2)))
@@ -300,7 +313,7 @@ class ColorCombinationSearchControllerTest {
                 .andExpect(model().attribute("hasPrevious", false));
 
         verify(colorCombinationService)
-                .searchWithFilters(eq(searchTerm), isNull(), isNull(), isNull(), any());
+                .searchWithFilters(eq(searchTerm), isNull(), isNull(), isNull(), any(PageRequest.class));
     }
 
     @Test
@@ -309,14 +322,14 @@ class ColorCombinationSearchControllerTest {
         String searchTerm = "Colors";
         Integer colorCount = 3;
         String hexValue = "FF5733";
-        Integer page = 1;
+        Integer page = 0;
         Integer size = 10;
         List<ColorCombination> combinations = Arrays.asList(testCombination1);
         Page<ColorCombination> combinationPage =
                 new PageImpl<>(combinations, PageRequest.of(page, size), 1);
 
         when(colorCombinationService.searchWithFilters(
-                        isNull(), isNull(), isNull(), eq(hexValue), any()))
+                        eq(searchTerm), eq(colorCount), eq(colorCount), eq(hexValue), any()))
                 .thenReturn(combinationPage);
 
         // When & Then
@@ -341,23 +354,20 @@ class ColorCombinationSearchControllerTest {
 
         // Should search by hex value when provided (takes precedence)
         verify(colorCombinationService)
-                .searchWithFilters(isNull(), isNull(), isNull(), eq(hexValue), any());
+                .searchWithFilters(eq(searchTerm), eq(colorCount), eq(colorCount), eq(hexValue), any());
     }
 
     @Test
     void testIndex_ErrorHandling() throws Exception {
         // Given
-        when(colorCombinationService.searchWithFilters(isNull(), isNull(), isNull(), isNull()))
+        when(colorCombinationService.searchWithFilters(isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenThrow(new RuntimeException("Database error"));
 
         // When & Then
         mockMvc.perform(get("/combinations/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("combinations/index"))
-                .andExpect(
-                        model().attribute(
-                                        "error",
-                                        containsString("Error loading color combinations")))
+                .andExpect(model().attribute("error", containsString("Error loading color combinations")))
                 .andExpect(model().attributeExists("combinations"))
                 .andExpect(model().attributeExists("combinationForm"));
     }

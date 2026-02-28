@@ -12,11 +12,13 @@
 
 <body>
    <div class="container">
-      <div class="header">
+      <div class="header" role="banner">
          <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema">
             <span class="icon">🌙</span>
          </button>
-         <h1>Kolors</h1>
+         <nav aria-label="Navegación principal">
+            <h1>Kolors</h1>
+         </nav>
          <p>Crea y gestiona tus combinaciones de colores perfectas</p>
       </div>
 
@@ -30,31 +32,58 @@
          </form>
       </div>
 
-      <div class="content">
+      <main class="content">
          <!-- Success/Error Messages -->
          <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
          <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
          <!-- Create New Combination Form -->
-         <div class="form-section">
+         <section class="form-section">
             <h2>Crear Nueva Combinación</h2>
-            <form th:action="@{/combinations/create}" method="post" id="combinationForm">
+            <form th:action="@{/combinations/create}" method="post" id="combinationForm" th:object="${combinationForm}">
 
                <!-- Name Field -->
                <div class="form-group">
                   <label for="name">Nombre de la Combinación</label>
-                  <input type="text" name="name" class="form-control" id="name"
-                     placeholder="Ej: Atardecer tropical, Océano profundo..." maxlength="100" required>
+                  <input type="text" th:field="*{name}" class="form-control" id="name"
+                     th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''"
+                     placeholder="Ej: Atardecer tropical, Océano profundo..." maxlength="100" required
+                     minlength="3" pattern=".{3,100}" title="El nombre debe tener entre 3 y 100 caracteres"
+                     aria-label="Nombre de la Combinación">
+                  <div th:if="${#fields.hasErrors('name')}" class="field-error" th:errors="*{name}"></div>
                </div>
 
                <!-- Dynamic Color Fields -->
                <div class="form-group">
                   <label>Colores de la Combinación</label>
                   <div id="dynamicColorFields">
-                     <!-- Colors will be added dynamically here -->
+                     <!-- Existing colors will be loaded here -->
+                     <div class="color-field" th:each="color, iterStat : *{colors}" th:data-position="${color.position}">
+                        <span class="color-label" th:text="'Color ' + ${color.position} + ':'">Color 1:</span>
+                        <div class="color-preview" th:id="'preview-' + ${iterStat.index}"></div>
+                        <input type="text"
+                               th:field="*{colors[__${iterStat.index}__].hexValue}"
+                               class="form-control color-input"
+                               placeholder="FF5733"
+                               maxlength="6"
+                               th:data-position="${color.position}"
+                               th:data-index="${iterStat.index}"
+                               pattern="[0-9A-Fa-f]{6}"
+                               title="Hexadecimal color code (6 characters)">
+                        <input type="hidden" th:field="*{colors[__${iterStat.index}__].position}">
+                        <button type="button"
+                                class="remove-color-btn"
+                                onclick="removeColor(this)"
+                                aria-label="Eliminar color"
+                                th:disabled="${combinationForm.colorCount == 1}">×</button>
+                        <div th:if="${#fields.hasErrors('colors[' + iterStat.index + '].hexValue')}"
+                             class="field-error" th:errors="*{colors[__${iterStat.index}__].hexValue}"></div>
+                     </div>
                   </div>
                   <div class="color-actions">
-                     <button type="button" class="btn btn-secondary btn-sm" id="addColorBtn">
+                     <button type="button" class="btn btn-secondary btn-sm" id="addColorBtn"
+                        aria-label="Agregar Color" role="button" tabindex="0"
+                        onkeydown="if(event.key === 'Enter' || event.key === ' ') this.click()">
                         + Agregar Color
                      </button>
                      <span class="color-count-info">
@@ -78,7 +107,7 @@
          </div>
 
          <!-- Search and Filter Section -->
-         <div class="combinations-section">
+         <section class="combinations-section">
             <h2>Combinaciones Guardadas</h2>
 
             <!-- Statistics -->
@@ -96,11 +125,11 @@
                      <div class="form-group">
                         <label for="search">Buscar por nombre</label>
                         <input type="text" name="search" th:value="${search}" class="form-control" id="search"
-                           placeholder="Buscar combinaciones...">
+                           placeholder="Buscar combinaciones..." aria-label="Buscar combinaciones">
                      </div>
                      <div class="form-group">
                         <label for="colorCountFilter">Filtrar por número de colores</label>
-                        <select name="colorCount" class="form-control" id="colorCountFilter">
+                        <select name="colorCount" class="form-control" id="colorCountFilter" aria-label="Filtrar por número de colores">
                            <option value="">Todos</option>
                            <option value="1" th:selected="${colorCount == 1}">1 Color</option>
                            <option value="2" th:selected="${colorCount == 2}">2 Colores</option>
@@ -167,18 +196,16 @@
 
             <!-- Combinations Grid -->
             <div class="combinations-grid" th:if="${combinations != null and !combinations.empty}">
-               <div class="combination-card" th:each="combination : ${combinations}">
+               <article class="combination-card" th:each="combination : ${combinations}">
                   <div class="combination-name" th:text="${combination.name}">Nombre</div>
                   <div class="combination-meta">
                      <span th:text="${combination.colorCount}">2</span> colores •
-                     <span th:text="${#temporals.format(combination.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                     Creada el <span
+                        th:text="${combination.formattedCreatedAt}">01/01/2024</span>
                   </div>
                   <div class="combination-colors">
                      <div class="combination-color" th:each="color : ${combination.colors}"
-                        th:style="'background-color: #' + ${color.hexValue}"
-                        th:data-hex="${'#' + color.hexValue}"
-                        onclick="copyColorToClipboard(this.dataset.hex)"
-                        title="Haz clic para copiar">
+                        th:style="'background-color: #' + ${color.hexValue}" th:data-hex="${'#' + color.hexValue}">
                      </div>
                   </div>
                   <div class="combination-actions">
@@ -219,23 +246,16 @@
             </div>
 
             <!-- Empty State -->
-            <div th:if="${combinations == null or combinations.empty}" class="text-center" style="padding: 40px;">
-               <h3 style="color: #6c757d; margin-bottom: 10px;">No hay combinaciones guardadas</h3>
-               <p style="color: #6c757d;" th:if="${search == null and colorCount == null and hexValue == null}">
-                  Crea tu primera combinación de colores usando el formulario de arriba.
-               </p>
-               <p style="color: #6c757d;" th:if="${search != null or colorCount != null or hexValue != null}">
-                  No se encontraron combinaciones que coincidan con los criterios de búsqueda.
-                  <a href="/combinations/" class="btn btn-secondary btn-sm" style="margin-left: 10px;">Ver todas</a>
-               </p>
+            <div class="empty-state" th:if="${combinations == null or combinations.empty}" style="text-align: center; padding: 40px; color: #6c757d;">
+               <div style="font-size: 48px; margin-bottom: 20px;">🎨</div>
+               <h3>No hay combinaciones guardadas</h3>
+               <p>¡Sé el primero en crear una paleta de colores increíble!</p>
             </div>
          </div>
-      </div>
+      </main>
    </div>
 
-   <!-- Toast Notification -->
-   <div id="toast" class="toast"></div>
-
+   <script th:src="@{/js/mobile-enhancements.js}"></script>
    <script>
       // Theme Management - Load theme before page renders
       (function() {
@@ -389,6 +409,7 @@
                <button type="button"
                        class="remove-color-btn"
                        onclick="removeColor(this)"
+                       aria-label="Eliminar color"
                        ${colorCount === 1 ? 'disabled' : ''}>×</button>
             `;
 

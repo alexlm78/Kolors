@@ -2,6 +2,7 @@ package dev.kreaker.kolors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -13,6 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.kreaker.kolors.config.TestConfig;
+import dev.kreaker.kolors.dto.ColorCombinationForm;
+import dev.kreaker.kolors.dto.ColorForm;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;
 import dev.kreaker.kolors.service.ColorCombinationService;
@@ -27,7 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -38,9 +46,8 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @SpringBootTest
 @AutoConfigureWebMvc
-@TestPropertySource(
-        locations = "classpath:application-test.properties",
-        properties = {"spring.thymeleaf.enabled=false", "spring.main.web-application-type=servlet"})
+@ActiveProfiles("test")
+@Import(TestConfig.class)
 @DisplayName("ColorCombinationController Integration Tests")
 class ColorCombinationControllerIntegrationTest {
 
@@ -88,8 +95,10 @@ class ColorCombinationControllerIntegrationTest {
         @DisplayName("Should respond correctly to the main page")
         void shouldRespondToIndexPage() throws Exception {
             // Given
-            when(colorCombinationService.searchCombinations(null, null))
-                    .thenReturn(testCombinations);
+            Page<ColorCombination> page = new PageImpl<>(testCombinations);
+            when(colorCombinationService.searchWithFilters(
+                            isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
 
             // When & Then
             mockMvc.perform(get("/combinations/"))
@@ -97,7 +106,8 @@ class ColorCombinationControllerIntegrationTest {
                     .andExpect(model().attributeExists("combinations"))
                     .andExpect(model().attributeExists("combinationForm"));
 
-            verify(colorCombinationService).searchCombinations(null, null);
+            verify(colorCombinationService)
+                    .searchWithFilters(isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
         }
 
         @Test
@@ -105,15 +115,18 @@ class ColorCombinationControllerIntegrationTest {
         void shouldHandleSearchParameters() throws Exception {
             // Given
             String searchTerm = "Sunset";
-            when(colorCombinationService.searchCombinations(searchTerm, null))
-                    .thenReturn(testCombinations);
+            Page<ColorCombination> page = new PageImpl<>(testCombinations);
+            when(colorCombinationService.searchWithFilters(
+                            eq(searchTerm), isNull(), isNull(), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
 
             // When & Then
             mockMvc.perform(get("/combinations/").param("search", searchTerm))
                     .andExpect(status().isOk())
                     .andExpect(model().attribute("search", searchTerm));
 
-            verify(colorCombinationService).searchCombinations(searchTerm, null);
+            verify(colorCombinationService)
+                    .searchWithFilters(eq(searchTerm), isNull(), isNull(), isNull(), any(Pageable.class));
         }
 
         @Test
@@ -121,14 +134,18 @@ class ColorCombinationControllerIntegrationTest {
         void shouldHandleHexValueSearch() throws Exception {
             // Given
             String hexValue = "FF6B35";
-            when(colorCombinationService.findByHexValue(hexValue)).thenReturn(testCombinations);
+            Page<ColorCombination> page = new PageImpl<>(testCombinations);
+            when(colorCombinationService.searchWithFilters(
+                            isNull(), isNull(), isNull(), eq(hexValue), any(Pageable.class)))
+                    .thenReturn(page);
 
             // When & Then
             mockMvc.perform(get("/combinations/").param("hexValue", hexValue))
                     .andExpect(status().isOk())
                     .andExpect(model().attribute("hexValue", hexValue));
 
-            verify(colorCombinationService).findByHexValue(hexValue);
+            verify(colorCombinationService)
+                    .searchWithFilters(isNull(), isNull(), isNull(), eq(hexValue), any(Pageable.class));
         }
     }
 
@@ -334,7 +351,7 @@ class ColorCombinationControllerIntegrationTest {
         @DisplayName("Should handle AJAX search by term")
         void shouldHandleAjaxSearchByTerm() throws Exception {
             // Given
-            when(colorCombinationService.searchCombinations("Ocean", null))
+            when(colorCombinationService.searchWithFilters(eq("Ocean"), isNull(), isNull(), isNull()))
                     .thenReturn(testCombinations);
 
             // When & Then
@@ -342,21 +359,22 @@ class ColorCombinationControllerIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(model().attributeExists("combinations"));
 
-            verify(colorCombinationService).searchCombinations("Ocean", null);
+            verify(colorCombinationService).searchWithFilters(eq("Ocean"), isNull(), isNull(), isNull());
         }
 
         @Test
         @DisplayName("Should handle AJAX search by hexadecimal value")
         void shouldHandleAjaxSearchByHexValue() throws Exception {
             // Given
-            when(colorCombinationService.findByHexValue("FF6B35")).thenReturn(testCombinations);
+            when(colorCombinationService.searchWithFilters(isNull(), isNull(), isNull(), eq("FF6B35")))
+                    .thenReturn(testCombinations);
 
             // When & Then
             mockMvc.perform(get("/combinations/search").param("hexValue", "FF6B35"))
                     .andExpect(status().isOk())
                     .andExpect(model().attributeExists("combinations"));
 
-            verify(colorCombinationService).findByHexValue("FF6B35");
+            verify(colorCombinationService).searchWithFilters(isNull(), isNull(), isNull(), eq("FF6B35"));
         }
     }
 

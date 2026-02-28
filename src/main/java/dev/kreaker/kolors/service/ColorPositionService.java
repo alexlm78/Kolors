@@ -24,6 +24,51 @@ public class ColorPositionService {
         this.colorInCombinationRepository = colorInCombinationRepository;
     }
 
+    /** Shifts positions to make space for insertion */
+    public void shiftPositionsForInsertion(Long combinationId, Integer insertionPosition) {
+        logger.debug(
+                "Shifting positions for insertion at position {} for combination ID: {}",
+                insertionPosition,
+                combinationId);
+
+        if (combinationId == null || insertionPosition == null) {
+            logger.warn("Cannot shift positions: combinationId or insertionPosition is null");
+            return;
+        }
+
+        // Get all colors that need shifting (position >= insertionPosition)
+        // We need to process them in reverse order to avoid unique constraint violations
+        List<ColorInCombination> colorsToShift =
+                colorInCombinationRepository
+                        .findByCombinationIdAndPositionGreaterThanOrderByPosition(
+                                combinationId, insertionPosition - 1);
+
+        // Sort in reverse order (highest position first)
+        colorsToShift.sort((c1, c2) -> c2.getPosition().compareTo(c1.getPosition()));
+
+        for (ColorInCombination color : colorsToShift) {
+            Integer oldPosition = color.getPosition();
+            color.setPosition(oldPosition + 1);
+            colorInCombinationRepository.save(color);
+            // Flush each update to avoid unique constraint violations
+            colorInCombinationRepository.flush();
+            logger.debug(
+                    "Shifted color position from {} to {} for color ID: {}",
+                    oldPosition,
+                    color.getPosition(),
+                    color.getId());
+        }
+        
+        // Flush to ensure shifts are committed before inserting the new color
+        colorInCombinationRepository.flush();
+
+        logger.info(
+                "Shifted {} colors for insertion at position {} for combination ID: {}",
+                colorsToShift.size(),
+                insertionPosition,
+                combinationId);
+    }
+
     /** Reorders positions after a color removal to ensure sequential positions */
     public void reorderPositionsAfterRemoval(Long combinationId, Integer removedPosition) {
         logger.debug(
@@ -47,6 +92,8 @@ public class ColorPositionService {
             Integer oldPosition = color.getPosition();
             color.setPosition(oldPosition - 1);
             colorInCombinationRepository.save(color);
+            // Flush each update to avoid unique constraint violations
+            colorInCombinationRepository.flush();
             logger.debug(
                     "Updated color position from {} to {} for color ID: {}",
                     oldPosition,

@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
  */
 @Aspect
 @Component
-@Profile("!test")
 public class PerformanceMonitoringAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(PerformanceMonitoringAspect.class);

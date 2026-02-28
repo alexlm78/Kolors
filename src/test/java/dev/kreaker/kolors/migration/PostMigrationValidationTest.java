@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 
 /** Test to validate that migration cleanup was successful and legacy code has been removed. */
@@ -13,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 class PostMigrationValidationTest {
 
     @Autowired private DatabaseMigrationService migrationService;
+    @MockBean private JavaMailSender javaMailSender;
 
     @Test
     void shouldConfirmLegacyDataHasBeenMigrated() {

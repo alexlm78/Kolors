@@ -7,12 +7,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
+import dev.kreaker.kolors.config.TestConfig;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 /** Test class to verify mobile responsiveness implementation */
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
+@Import(TestConfig.class)
 public class MobileResponsivenessTest {
 
     @Test
@@ -182,8 +185,10 @@ public class MobileResponsivenessTest {
 
     @Test
     public void shouldHaveMobileTestPage() throws IOException {
-        Path testPath = Paths.get("src/main/resources/static/mobile-test.html");
-        assertTrue(Files.exists(testPath), "Mobile test page should exist");
+        Path testPath = Paths.get("src/main/resources/templates/mobile-test.html");
+        System.out.println("Current working directory: " + System.getProperty("user.dir"));
+        System.out.println("Checking file at: " + testPath.toAbsolutePath());
+        assertTrue(Files.exists(testPath), "Mobile test page should exist at " + testPath.toAbsolutePath());
 
         String content = Files.readString(testPath);
         assertTrue(content.contains("Mobile Responsiveness Test"), "Should be a mobile test page");

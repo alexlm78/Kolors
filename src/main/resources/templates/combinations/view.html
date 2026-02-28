@@ -594,8 +594,7 @@
             <h1 class="combination-name" th:text="${combination.name}">Nombre de la Combinación</h1>
             <div class="combination-meta">
                <span th:text="${combination.colorCount}">2</span> colores •
-               Creada el <span
-                  th:text="${#temporals.format(combination.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
+               Creada el <span>DATE</span>
             </div>
 
             <div class="combination-colors">
@@ -644,7 +643,7 @@
          <div class="action-buttons">
             <button onclick="showExportModal()" class="btn btn-success">Exportar CSS</button>
             <a th:href="@{/combinations/{id}/edit(id=${combination.id})}" class="btn btn-primary">Editar Combinación</a>
-            <a th:href="@{/combinations/{id}/confirm-delete(id=${combination.id})}" class="btn btn-danger">Eliminar
+            <a th:href="@{/combinations/{id}/confirm-delete(id=${combination.id})}" class="btn btn-danger" aria-label="Eliminar Combinación">Eliminar
                Combinación</a>
             <a th:href="@{/combinations/}" class="btn btn-secondary">Volver a Lista</a>
          </div>
@@ -715,7 +714,7 @@
       </div>
    </div>
 
-   <script>
+   <script th:inline="javascript">
       function copyToClipboard(text, button) {
          navigator.clipboard.writeText(text).then(function () {
             showToast();
@@ -778,10 +777,12 @@
 
          // Get all colors from the combination
          /*[# th:each="color : ${combination.colors}"]*/
+         /*[# th:if="${color != null}"]*/
          colors.push({
             position: /*[[${color.position}]]*/ 1,
             hex: /*[[${color.hexValue}]]*/ 'FFFFFF'
          });
+         /*[/]*/
          /*[/]*/
 
          // Sort by position

@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import dev.kreaker.kolors.config.TestConfig;
 import dev.kreaker.kolors.service.ColorCombinationService;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,6 +35,8 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(locations = "classpath:application-test.properties")
+@ActiveProfiles("test")
+@Import(TestConfig.class)
 @Transactional
 @DisplayName("End-to-End Integration Tests")
 class EndToEndIntegrationTest {
@@ -211,6 +216,15 @@ class EndToEndIntegrationTest {
             assertThat(colors.get(1).getPosition()).isEqualTo(2);
             assertThat(colors.get(1).getHexValue()).isEqualTo("0000FF");
 
+            // Remove the second color so we are down to 1
+            mockMvc.perform(post("/combinations/" + combinationId + "/remove-color/2"))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(flash().attributeExists("success"));
+
+            // Verify size is 1
+            combination = colorCombinationRepository.findById(combinationId).orElseThrow();
+            assertThat(combination.getColors()).hasSize(1);
+
             // Step 5: Try to remove last color (should fail)
             mockMvc.perform(post("/combinations/" + combinationId + "/remove-color/1"))
                     .andExpect(status().is3xxRedirection())
@@ -219,7 +233,7 @@ class EndToEndIntegrationTest {
 
             // Verify last color wasn't removed
             combination = colorCombinationRepository.findById(combinationId).orElseThrow();
-            assertThat(combination.getColors()).hasSize(2);
+            assertThat(combination.getColors()).hasSize(1);
         }
 
         @Test

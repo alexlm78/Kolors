@@ -2,6 +2,8 @@ package dev.kreaker.kolors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.kreaker.kolors.dto.ColorCombinationForm;
+import dev.kreaker.kolors.dto.ColorForm;
 import dev.kreaker.kolors.service.ColorCombinationService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
  * the end-to-end tests are properly implemented
  */
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
+@org.springframework.test.context.ActiveProfiles("test")
+@org.springframework.context.annotation.Import(dev.kreaker.kolors.config.TestConfig.class)
 @Transactional
 @DisplayName("Comprehensive Test Suite")
 class ComprehensiveTestSuite {
@@ -125,7 +128,7 @@ class ComprehensiveTestSuite {
             assertThat(unchanged.getColors()).hasSize(1);
         } catch (Exception e) {
             // Exception is expected and acceptable
-            assertThat(e.getMessage()).contains("Cannot remove the last color");
+            assertThat(e.getMessage()).contains("No se puede remover todos los colores");
         }
 
         // Test operations on non-existent combination

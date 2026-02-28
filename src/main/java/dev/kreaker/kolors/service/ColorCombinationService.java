@@ -6,8 +6,11 @@ import dev.kreaker.kolors.ColorInCombination;
 import dev.kreaker.kolors.ColorInCombinationRepository;
 import dev.kreaker.kolors.dto.ColorCombinationForm;
 import dev.kreaker.kolors.dto.ColorForm;
+import dev.kreaker.kolors.exception.ColorAdditionException;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;
+import dev.kreaker.kolors.exception.ColorRemovalException;
+import dev.kreaker.kolors.exception.EmptyCombinationException;
 import dev.kreaker.kolors.exception.InvalidColorFormatException;
 import java.util.ArrayList;
 import java.util.List;
@@ -286,11 +289,10 @@ public class ColorCombinationService {
         existingCombination.setName(form.getName());
         existingCombination.setColorCount(form.getColorCount());
 
-        // Delete existing colors from database first
-        colorInCombinationRepository.deleteByCombinationId(existingCombination.getId());
-
-        // Clear the in-memory collection
+        // Clear the in-memory collection - orphanRemoval=true will handle deletions
         existingCombination.getColors().clear();
+        // Flush to ensure deletions happen before insertions to avoid unique constraint violations
+        colorCombinationRepository.saveAndFlush(existingCombination);
 
         // Add new colors
         if (form.getColors() != null) {
@@ -471,8 +473,27 @@ public class ColorCombinationService {
                                         new ColorCombinationNotFoundException(
                                                 "Combination not found with ID: " + combinationId));
 
-        // Get the next available position
-        Integer nextPosition = combination.getNextAvailablePosition();
+        // Determine the position for the new color
+        Integer nextPosition;
+        if (colorForm.getPosition() != null && colorForm.getPosition() > 0) {
+            // If a specific position is requested, use it and shift subsequent colors
+            nextPosition = colorForm.getPosition();
+            
+            // Check if position is within bounds (can be max existing position + 1)
+            Integer maxPosition = combination.getNextAvailablePosition();
+            if (nextPosition > maxPosition) {
+                // If requested position is beyond the next available, just append to the end
+                nextPosition = maxPosition;
+            } else {
+                // Shift existing colors to make room
+                colorPositionService.shiftPositionsForInsertion(combinationId, nextPosition);
+                // Refresh combination from DB to get updated positions
+                combination = colorCombinationRepository.findById(combinationId).orElseThrow();
+            }
+        } else {
+            // Get the next available position
+            nextPosition = combination.getNextAvailablePosition();
+        }
 
         // Create and add the new color
         ColorInCombination newColor =
@@ -513,34 +534,29 @@ public class ColorCombinationService {
 
         // Check if combination has more than one color (cannot remove the last color)
         if (combination.getColors().size() <= 1) {
-            throw new ColorCombinationValidationException(
-                    "Cannot remove the last color from a combination");
+            throw EmptyCombinationException.forRemoval(combinationId);
         }
 
-        // Find and remove the color at the specified position
-        boolean colorRemoved =
-                combination.getColors().removeIf(color -> color.getPosition().equals(position));
+        // Find the color to remove
+        ColorInCombination colorToRemove =
+                combination.getColors().stream()
+                        .filter(color -> color.getPosition().equals(position))
+                        .findFirst()
+                        .orElseThrow(() -> ColorRemovalException.forInvalidPosition(position));
 
-        if (!colorRemoved) {
-            throw new ColorCombinationNotFoundException(
-                    "No color found at position " + position + " in combination " + combinationId);
-        }
-
-        // Reorder positions and update color count
-        combination.getColors().sort((c1, c2) -> c1.getPosition().compareTo(c2.getPosition()));
-        for (int i = 0; i < combination.getColors().size(); i++) {
-            combination.getColors().get(i).setPosition(i + 1);
-        }
+        // Remove from list
+        combination.getColors().remove(colorToRemove);
+        // Update color count to ensure data consistency
         combination.setColorCount(combination.getColors().size());
 
-        // Save and return
-        ColorCombination savedCombination = colorCombinationRepository.save(combination);
-        logger.info(
-                "Color removed successfully from combination ID: {}, new color count: {}",
-                combinationId,
-                savedCombination.getColorCount());
+        // Save and flush to ensure the color is deleted from the database before reordering
+        colorCombinationRepository.saveAndFlush(combination);
 
-        return savedCombination;
+        // Reorder positions using the service which handles sequential updates safely
+        colorPositionService.reorderPositionsAfterRemoval(combinationId, position);
+
+        // Refresh combination to get updated positions
+        return colorCombinationRepository.findById(combinationId).orElseThrow();
     }
 
     /** Reorders color positions after a color removal to ensure sequential positions */

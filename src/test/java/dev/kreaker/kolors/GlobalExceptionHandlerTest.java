@@ -8,6 +8,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.kreaker.kolors.controller.web.GlobalExceptionHandler;
+import dev.kreaker.kolors.dto.ColorCombinationForm;
 import dev.kreaker.kolors.exception.ColorAdditionException;
 import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
 import dev.kreaker.kolors.exception.ColorCombinationValidationException;

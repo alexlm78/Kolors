@@ -11,6 +11,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -39,7 +40,7 @@ public class ColorCombinationController {
     }
 
     /** Main page - lists all combinations with search and filtering */
-    @GetMapping({"", "/"})
+    @GetMapping({"", "/", "/paginated"})
     public String index(
             Model model,
             @RequestParam(required = false) String search,
@@ -60,7 +61,7 @@ public class ColorCombinationController {
                 page);
 
         try {
-            List<ColorCombination> combinations;
+            Page<ColorCombination> combinationsPage;
 
             // Determine color range from colorCount or explicit min/max
             Integer effectiveMinColors = minColors;
@@ -71,21 +72,28 @@ public class ColorCombinationController {
                 effectiveMaxColors = colorCount;
             }
 
-            // Apply advanced search filters
-            combinations =
+            // Apply advanced search filters with pagination
+            combinationsPage =
                     colorCombinationService.searchWithFilters(
-                            search, effectiveMinColors, effectiveMaxColors, hexValue);
+                            search,
+                            effectiveMinColors,
+                            effectiveMaxColors,
+                            hexValue,
+                            PageRequest.of(page, size));
 
             // Add data to model
-            model.addAttribute("combinations", combinations);
+            model.addAttribute("combinations", combinationsPage.getContent());
             model.addAttribute("search", search);
             model.addAttribute("colorCount", colorCount);
             model.addAttribute("minColors", minColors);
             model.addAttribute("maxColors", maxColors);
             model.addAttribute("hexValue", hexValue);
-            model.addAttribute("totalCombinations", combinations.size());
+            model.addAttribute("totalCombinations", combinationsPage.getTotalElements());
+            model.addAttribute("totalPages", combinationsPage.getTotalPages());
             model.addAttribute("currentPage", page);
             model.addAttribute("pageSize", size);
+            model.addAttribute("hasNext", combinationsPage.hasNext());
+            model.addAttribute("hasPrevious", combinationsPage.hasPrevious());
 
             // Add empty form to create new combination
             if (!model.containsAttribute("combinationForm")) {
@@ -522,75 +530,6 @@ public class ColorCombinationController {
         }
     }
 
-    /** Paginated search endpoint */
-    @GetMapping("/paginated")
-    public String paginatedSearch(
-            Model model,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) Integer colorCount,
-            @RequestParam(required = false) Integer minColors,
-            @RequestParam(required = false) Integer maxColors,
-            @RequestParam(required = false) String hexValue,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        logger.debug(
-                "Paginated search - search: '{}', colors: {}, minColors: {}, maxColors: {}, hex: '{}', page: {}, size: {}",
-                search,
-                colorCount,
-                minColors,
-                maxColors,
-                hexValue,
-                page,
-                size);
-
-        try {
-            // Determine color range from colorCount or explicit min/max
-            Integer effectiveMinColors = minColors;
-            Integer effectiveMaxColors = maxColors;
-
-            if (colorCount != null) {
-                effectiveMinColors = colorCount;
-                effectiveMaxColors = colorCount;
-            }
-
-            // Create pageable
-            Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
-
-            // Apply advanced search filters with pagination
-            Page<ColorCombination> combinationPage =
-                    colorCombinationService.searchWithFilters(
-                            search, effectiveMinColors, effectiveMaxColors, hexValue, pageable);
-
-            // Add data to model
-            model.addAttribute("combinations", combinationPage.getContent());
-            model.addAttribute("search", search);
-            model.addAttribute("colorCount", colorCount);
-            model.addAttribute("minColors", minColors);
-            model.addAttribute("maxColors", maxColors);
-            model.addAttribute("hexValue", hexValue);
-            model.addAttribute("totalCombinations", combinationPage.getTotalElements());
-            model.addAttribute("currentPage", page);
-            model.addAttribute("totalPages", combinationPage.getTotalPages());
-            model.addAttribute("pageSize", size);
-            model.addAttribute("hasNext", combinationPage.hasNext());
-            model.addAttribute("hasPrevious", combinationPage.hasPrevious());
-
-            // Add empty form to create new combination
-            if (!model.containsAttribute("combinationForm")) {
-                model.addAttribute("combinationForm", new ColorCombinationForm());
-            }
-
-            return "combinations/index";
-
-        } catch (Exception e) {
-            logger.error("Error in paginated search", e);
-            model.addAttribute("error", "Error loading color combinations");
-            model.addAttribute("combinations", List.of());
-            model.addAttribute("combinationForm", new ColorCombinationForm());
-            return "combinations/index";
-        }
-    }
 
     /** Controller-specific error handling */
     @ModelAttribute
