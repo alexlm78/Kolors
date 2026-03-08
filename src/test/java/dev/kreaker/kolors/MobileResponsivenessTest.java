@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
@@ -20,6 +22,8 @@ import dev.kreaker.kolors.config.TestConfig;
 @TestPropertySource(locations = "classpath:application-test.properties")
 @Import(TestConfig.class)
 public class MobileResponsivenessTest {
+
+   private static final Logger log = LoggerFactory.getLogger(MobileResponsivenessTest.class);
 
    @Test
    public void shouldHaveMobileResponsiveCssFile() throws IOException {

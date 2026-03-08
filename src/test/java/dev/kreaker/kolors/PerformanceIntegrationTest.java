@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -20,6 +22,8 @@ import dev.kreaker.kolors.service.PerformanceMonitoringService;
 @ActiveProfiles("test")
 @Import(TestConfig.class)
 public class PerformanceIntegrationTest {
+
+   private static final Logger log = LoggerFactory.getLogger(PerformanceIntegrationTest.class);
 
    @Autowired
    private ColorCombinationService colorCombinationService;
