@@ -1,0 +1,24 @@
+#!/bin/sh
+# Situación: Detener el commit si algo sale mal o formatear antes de confirmar.
+
+echo " Executing Spotless before commit..."
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(java|json|yml|yaml)$')
+
+if [ -z "$STAGED_FILES" ]; then
+   echo "✅ No hay archivos relevantes para formatear."
+   exit 0
+fi
+
+FILES_COMMA_SEPARATED=$(echo "$STAGED_FILES" | paste -sd "," -)
+
+# Ejecutar spotlessApply para corregir antes de guardar
+./gradlew spotlessApply -PspotlessFiles="$FILES_COMMA_SEPARATED"
+
+# Re-agregar los archivos corregidos al commit actual
+echo "$STAGED_FILES" | xargs git add
+
+echo "Format applied and ready to commit!"
+
+# Opcional: Ejecutar un check final para asegurar que todo está perfecto
+# ./gradlew spotlessCheck

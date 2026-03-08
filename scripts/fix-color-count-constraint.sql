@@ -4,10 +4,10 @@
 
 -- Step 1: Create temporary table with the new schema (no CHECK constraint on color_count)
 CREATE TABLE IF NOT EXISTS color_combination_new (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    color_count INTEGER NOT NULL CHECK (color_count >= 1)
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+   name VARCHAR(100) NOT NULL,
+   created_at TIMESTAMP NOT NULL,
+   color_count INTEGER NOT NULL CHECK (color_count >= 1)
 );
 
 -- Step 2: Copy data from old table to new table

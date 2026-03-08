@@ -1,7 +1,18 @@
+buildscript {
+   repositories {
+      mavenCentral()
+   }
+   dependencies {
+      classpath "com.fasterxml.jackson.core:jackson-databind:2.17.0"
+      classpath "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.0"
+   }
+}
+
 plugins {
    id 'java'
    id 'org.springframework.boot' version '3.5.7'
    id 'io.spring.dependency-management' version '1.1.7'
+   id 'com.diffplug.spotless' version '8.3.0'
 }
 
 group = 'dev.kreaker.kolors'
@@ -13,32 +24,146 @@ java {
    }
 }
 
+configurations {
+   compileOnly {
+      extendsFrom annotationProcessor
+   }
+}
+
 repositories {
    mavenCentral()
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
-    implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.4.Final'
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+   implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+   implementation 'org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE'
+   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+   implementation 'org.springframework.boot:spring-boot-starter-validation'
+   implementation 'org.springframework.boot:spring-boot-starter-aop'
+   implementation 'org.springframework.boot:spring-boot-starter-security'
+   implementation 'org.springframework.boot:spring-boot-starter-mail'
+   implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
+   implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.4.Final'
+   implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+   implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
+   implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 
-    runtimeOnly 'com.h2database:h2'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+   runtimeOnly 'com.h2database:h2'
+   testImplementation 'org.springframework.boot:spring-boot-starter-test'
+   testImplementation 'org.springframework.security:spring-security-test'
+   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+   useJUnitPlatform()
 }
+
+// Situation: Java 25 blocks native access for security reasons.
+// SQLite needs it to load its database engine.
+/* SQLitePERM*/
+tasks.withType(JavaExec).configureEach {
+   jvmArgs += '--enable-native-access=ALL-UNNAMED'
+}
+
+tasks.withType(Test).configureEach {
+   jvmArgs += '--enable-native-access=ALL-UNNAMED'
+}
+/* SQLitePERM END*/
+
+tasks.withType(JavaCompile).configureEach {
+   // Situation: See which exact Spring or Java methods are deprecated in Java 25
+   options.compilerArgs << "-Xlint:deprecation"
+   options.encoding = 'UTF-8'
+}
+
+/* spotlessTASKS*/
+tasks.withType(JavaCompile).configureEach {
+   dependsOn 'spotlessApply'
+}
+
+// Make sure to get  the hook on build
+tasks.named('build') {
+   dependsOn 'installGitHooks'
+}
+
+// Task to install the Git Hook
+tasks.register('installGitHooks', Copy as Class<Task>) {
+   from new File(rootProject.rootDir, 'scripts/pre-commit')
+   into { new File(rootProject.rootDir, '.git/hooks') }
+
+   // with Gradle 9+, we use the new permission API
+   filePermissions {
+      user {
+         read = true
+         write = true
+         execute = true
+      }
+      group {
+         read = true
+         execute = true
+      }
+      other {
+         read = true
+         execute = true
+      }
+   }
+}
+
+// Situación: Asegurar que el hook se instale al compilar por primera vez
+tasks.named('build') {
+   dependsOn 'installGitHooks'
+}
+/* spotlessTASKS END*/
+
+/* spotlessCONFIG */
+spotless {
+   def getTargetFiles = { extension ->
+      if (project.hasProperty('spotlessFiles')) {
+         return project.getProperty('spotlessFiles')
+               .split(',')
+               .findAll { it.endsWith(extension) || (extension == '.yml' && it.endsWith('.yaml')) }
+      }
+      return null
+   }
+
+   java {
+      def files = getTargetFiles('.java')
+      if (files) target files else target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+
+      eclipse().configFile('eclipse-java-google-style.xml')
+      leadingTabsToSpaces(3)
+      removeUnusedImports() // delete the unused imports
+      importOrder('java', 'javax', 'org', 'com', 'dev')
+      trimTrailingWhitespace()
+      endWithNewline()
+      licenseHeader('/* (c) 2026 Alejandro Lopez Monzon <alejandro@kreaker.dev> for Kreaker Developments */')
+      replaceRegex 'Don\'t use System.out', 'System\\.out\\.println', 'log.info' // Situation: avoid 'System.out.println' use and abuse
+   }
+
+   json {
+      def files = getTargetFiles('.json')
+      if (files) target files else target 'src/**/*.json'
+
+      jackson()
+      leadingSpacesToTabs(2)
+   }
+
+   format 'yaml', {
+      def files = getTargetFiles('.yml')
+      if (files) target files else target 'src/**/*.yaml', 'src/**/*.yml'
+
+      leadingTabsToSpaces(2)
+      trimTrailingWhitespace()
+      endWithNewline()
+   }
+
+   format 'misc', { // Configuration files not java files
+      target '*.gradle', '.gitattributes', '.gitignore'
+      trimTrailingWhitespace()
+      leadingTabsToSpaces(3)
+      endWithNewline()
+   }
+}
+/* spotlessCONFIG END*/

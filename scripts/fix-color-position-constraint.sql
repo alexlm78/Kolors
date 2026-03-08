@@ -4,10 +4,10 @@
 
 -- Step 1: Create temporary table with the new schema (no upper limit on position)
 CREATE TABLE IF NOT EXISTS color_in_combination_new (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    hex_value VARCHAR(6) NOT NULL,
-    position INTEGER NOT NULL CHECK (position >= 1),
-    combination_id BIGINT NOT NULL
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+   hex_value VARCHAR(6) NOT NULL,
+   position INTEGER NOT NULL CHECK (position >= 1),
+   combination_id BIGINT NOT NULL
 );
 
 -- Step 2: Copy data from old table to new table

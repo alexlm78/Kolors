@@ -1,20 +1,9 @@
+/* (c) 2026 Alejandro Lopez Monzon <alejandro@kreaker.dev> for Kreaker Developments */
 package dev.kreaker.kolors.controller.api;
 
-import dev.kreaker.kolors.ColorCombination;
-import dev.kreaker.kolors.dto.ColorForm;
-import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
-import dev.kreaker.kolors.exception.ColorCombinationValidationException;
-import dev.kreaker.kolors.exception.InvalidColorFormatException;
-import dev.kreaker.kolors.service.ColorCombinationService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -27,225 +16,234 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.kreaker.kolors.ColorCombination;
+import dev.kreaker.kolors.dto.ColorForm;
+import dev.kreaker.kolors.exception.ColorCombinationNotFoundException;
+import dev.kreaker.kolors.exception.ColorCombinationValidationException;
+import dev.kreaker.kolors.exception.InvalidColorFormatException;
+import dev.kreaker.kolors.service.ColorCombinationService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 /**
  * REST API controller for dynamic color combination operations Provides AJAX endpoints for
  * real-time color management
  */
 @RestController
 @RequestMapping("/api/combinations")
-@Tag(name = "Color Combinations", description = "API for managing color combinations and their colors")
+@Tag(name = "Color Combinations",
+         description = "API for managing color combinations and their colors")
 public class ColorCombinationRestController {
 
-    private static final Logger logger =
+   private static final Logger logger =
             LoggerFactory.getLogger(ColorCombinationRestController.class);
 
-    private final ColorCombinationService colorCombinationService;
+   private final ColorCombinationService colorCombinationService;
 
-    public ColorCombinationRestController(ColorCombinationService colorCombinationService) {
-        this.colorCombinationService = colorCombinationService;
-    }
+   public ColorCombinationRestController(ColorCombinationService colorCombinationService) {
+      this.colorCombinationService = colorCombinationService;
+   }
 
-    /** Add color to combination via AJAX */
-    @Operation(summary = "Add a color to a combination", description = "Adds a new color to an existing combination")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Color added successfully",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid color format or validation error"),
-        @ApiResponse(responseCode = "404", description = "Combination not found"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    @PostMapping("/{id}/colors")
-    public ResponseEntity<Map<String, Object>> addColor(
-            @PathVariable Long id, @Valid @RequestBody ColorForm colorForm, BindingResult result) {
-
-        logger.info(
-                "AJAX request to add color {} to combination ID: {}", colorForm.getHexValue(), id);
-
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            // Validate input
-            if (result.hasErrors()) {
-                logger.warn(
-                        "Validation errors when adding color via AJAX: {}", result.getAllErrors());
-                response.put("success", false);
-                response.put(
-                        "message",
-                        "Invalid color format. Please use 6-character hexadecimal format.");
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            // Add the color
-            ColorCombination updatedCombination =
-                    colorCombinationService.addColorToCombination(id, colorForm);
-
-            // Success response
-            response.put("success", true);
-            response.put("message", "Color added successfully");
-            response.put("combination", createCombinationResponse(updatedCombination));
-
-            logger.info("Color added successfully via AJAX to combination ID: {}", id);
-            return ResponseEntity.ok(response);
-
-        } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combination not found when adding color via AJAX: {}", id);
-            response.put("success", false);
-            response.put("message", "Combination not found");
-            return ResponseEntity.notFound().build();
-
-        } catch (InvalidColorFormatException e) {
-            logger.warn("Invalid color format when adding color via AJAX: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "Invalid color format: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-
-        } catch (Exception e) {
-            logger.error("Error adding color via AJAX to combination ID: " + id, e);
-            response.put("success", false);
-            response.put("message", "Internal server error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
-    /** Remove color from combination via AJAX */
-    @Operation(summary = "Remove a color from a combination", description = "Removes a color at a specific position from a combination")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Color removed successfully"),
-        @ApiResponse(responseCode = "404", description = "Combination not found"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    @DeleteMapping("/{id}/colors/{position}")
-    public ResponseEntity<Map<String, Object>> removeColor(
-            @PathVariable Long id, @PathVariable Integer position) {
-
-        logger.info(
-                "AJAX request to remove color at position {} from combination ID: {}",
-                position,
-                id);
-
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            // Remove the color
-            ColorCombination updatedCombination =
-                    colorCombinationService.removeColorFromCombination(id, position);
-
-            // Success response
-            response.put("success", true);
-            response.put("message", "Color removed successfully");
-            response.put("combination", createCombinationResponse(updatedCombination));
-
-            logger.info("Color removed successfully via AJAX from combination ID: {}", id);
-            return ResponseEntity.ok(response);
-
-        } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combination not found when removing color via AJAX: {}", id);
-            response.put("success", false);
-            response.put("message", "Combination not found");
-            return ResponseEntity.notFound().build();
-
-        } catch (ColorCombinationValidationException e) {
-            logger.warn("Validation error when removing color via AJAX: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-
-        } catch (Exception e) {
-            logger.error("Error removing color via AJAX from combination ID: " + id, e);
-            response.put("success", false);
-            response.put("message", "Internal server error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
-    /** Validate color format via AJAX */
-    @PostMapping("/validate-color")
-    public ResponseEntity<Map<String, Object>> validateColor(
+   /** Add color to combination via AJAX */
+   @Operation(summary = "Add a color to a combination",
+            description = "Adds a new color to an existing combination")
+   @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Color added successfully",
+                     content = @Content(mediaType = "application/json",
+                              schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "400",
+                     description = "Invalid color format or validation error"),
+            @ApiResponse(responseCode = "404", description = "Combination not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
+   @PostMapping("/{id}/colors")
+   public ResponseEntity<Map<String, Object>> addColor(@PathVariable Long id,
             @Valid @RequestBody ColorForm colorForm, BindingResult result) {
 
-        logger.debug("AJAX request to validate color: {}", colorForm.getHexValue());
+      logger.info("AJAX request to add color {} to combination ID: {}", colorForm.getHexValue(),
+               id);
 
-        Map<String, Object> response = new HashMap<>();
+      Map<String, Object> response = new HashMap<>();
 
-        try {
-            if (result.hasErrors()) {
-                response.put("valid", false);
-                response.put("message", "Invalid hexadecimal format");
-                return ResponseEntity.ok(response);
-            }
+      try {
+         // Validate input
+         if (result.hasErrors()) {
+            logger.warn("Validation errors when adding color via AJAX: {}", result.getAllErrors());
+            response.put("success", false);
+            response.put("message",
+                     "Invalid color format. Please use 6-character hexadecimal format.");
+            return ResponseEntity.badRequest().body(response);
+         }
 
-            // Additional validation using service
-            boolean isValid = colorCombinationService.isValidHexColor(colorForm.getHexValue());
+         // Add the color
+         ColorCombination updatedCombination =
+                  colorCombinationService.addColorToCombination(id, colorForm);
 
-            response.put("valid", isValid);
-            response.put("message", isValid ? "Valid color" : "Invalid hexadecimal format");
+         // Success response
+         response.put("success", true);
+         response.put("message", "Color added successfully");
+         response.put("combination", createCombinationResponse(updatedCombination));
 
-            return ResponseEntity.ok(response);
+         logger.info("Color added successfully via AJAX to combination ID: {}", id);
+         return ResponseEntity.ok(response);
 
-        } catch (Exception e) {
-            logger.error("Error validating color via AJAX", e);
+      } catch (ColorCombinationNotFoundException e) {
+         logger.warn("Combination not found when adding color via AJAX: {}", id);
+         response.put("success", false);
+         response.put("message", "Combination not found");
+         return ResponseEntity.notFound().build();
+
+      } catch (InvalidColorFormatException e) {
+         logger.warn("Invalid color format when adding color via AJAX: {}", e.getMessage());
+         response.put("success", false);
+         response.put("message", "Invalid color format: " + e.getMessage());
+         return ResponseEntity.badRequest().body(response);
+
+      } catch (Exception e) {
+         logger.error("Error adding color via AJAX to combination ID: " + id, e);
+         response.put("success", false);
+         response.put("message", "Internal server error");
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+      }
+   }
+
+   /** Remove color from combination via AJAX */
+   @Operation(summary = "Remove a color from a combination",
+            description = "Removes a color at a specific position from a combination")
+   @ApiResponses(
+            value = {@ApiResponse(responseCode = "200", description = "Color removed successfully"),
+                     @ApiResponse(responseCode = "404", description = "Combination not found"),
+                     @ApiResponse(responseCode = "500", description = "Internal server error")})
+   @DeleteMapping("/{id}/colors/{position}")
+   public ResponseEntity<Map<String, Object>> removeColor(@PathVariable Long id,
+            @PathVariable Integer position) {
+
+      logger.info("AJAX request to remove color at position {} from combination ID: {}", position,
+               id);
+
+      Map<String, Object> response = new HashMap<>();
+
+      try {
+         // Remove the color
+         ColorCombination updatedCombination =
+                  colorCombinationService.removeColorFromCombination(id, position);
+
+         // Success response
+         response.put("success", true);
+         response.put("message", "Color removed successfully");
+         response.put("combination", createCombinationResponse(updatedCombination));
+
+         logger.info("Color removed successfully via AJAX from combination ID: {}", id);
+         return ResponseEntity.ok(response);
+
+      } catch (ColorCombinationNotFoundException e) {
+         logger.warn("Combination not found when removing color via AJAX: {}", id);
+         response.put("success", false);
+         response.put("message", "Combination not found");
+         return ResponseEntity.notFound().build();
+
+      } catch (ColorCombinationValidationException e) {
+         logger.warn("Validation error when removing color via AJAX: {}", e.getMessage());
+         response.put("success", false);
+         response.put("message", e.getMessage());
+         return ResponseEntity.badRequest().body(response);
+
+      } catch (Exception e) {
+         logger.error("Error removing color via AJAX from combination ID: " + id, e);
+         response.put("success", false);
+         response.put("message", "Internal server error");
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+      }
+   }
+
+   /** Validate color format via AJAX */
+   @PostMapping("/validate-color")
+   public ResponseEntity<Map<String, Object>> validateColor(@Valid @RequestBody ColorForm colorForm,
+            BindingResult result) {
+
+      logger.debug("AJAX request to validate color: {}", colorForm.getHexValue());
+
+      Map<String, Object> response = new HashMap<>();
+
+      try {
+         if (result.hasErrors()) {
             response.put("valid", false);
-            response.put("message", "Validation error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
-    /** Get combination details via AJAX */
-    @PostMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getCombination(@PathVariable Long id) {
-
-        logger.debug("AJAX request to get combination ID: {}", id);
-
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            ColorCombination combination = colorCombinationService.getById(id);
-
-            response.put("success", true);
-            response.put("combination", createCombinationResponse(combination));
-
+            response.put("message", "Invalid hexadecimal format");
             return ResponseEntity.ok(response);
+         }
 
-        } catch (ColorCombinationNotFoundException e) {
-            logger.warn("Combination not found via AJAX: {}", id);
-            response.put("success", false);
-            response.put("message", "Combination not found");
-            return ResponseEntity.notFound().build();
+         // Additional validation using service
+         boolean isValid = colorCombinationService.isValidHexColor(colorForm.getHexValue());
 
-        } catch (Exception e) {
-            logger.error("Error getting combination via AJAX: " + id, e);
-            response.put("success", false);
-            response.put("message", "Internal server error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+         response.put("valid", isValid);
+         response.put("message", isValid ? "Valid color" : "Invalid hexadecimal format");
 
-    /** Helper method to create combination response object */
-    private Map<String, Object> createCombinationResponse(ColorCombination combination) {
-        Map<String, Object> combinationData = new HashMap<>();
-        combinationData.put("id", combination.getId());
-        combinationData.put("name", combination.getName());
-        combinationData.put("colorCount", combination.getColorCount());
-        combinationData.put("createdAt", combination.getCreatedAt());
+         return ResponseEntity.ok(response);
 
-        // Add colors data
-        if (combination.getColors() != null) {
-            combinationData.put(
-                    "colors",
-                    combination.getColors().stream()
-                            .sorted((c1, c2) -> c1.getPosition().compareTo(c2.getPosition()))
-                            .map(
-                                    color -> {
-                                        Map<String, Object> colorData = new HashMap<>();
-                                        colorData.put("id", color.getId());
-                                        colorData.put("hexValue", color.getHexValue());
-                                        colorData.put("position", color.getPosition());
-                                        colorData.put("formattedHex", color.getFormattedHex());
-                                        return colorData;
-                                    })
-                            .toList());
-        }
+      } catch (Exception e) {
+         logger.error("Error validating color via AJAX", e);
+         response.put("valid", false);
+         response.put("message", "Validation error");
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+      }
+   }
 
-        return combinationData;
-    }
+   /** Get combination details via AJAX */
+   @PostMapping("/{id}")
+   public ResponseEntity<Map<String, Object>> getCombination(@PathVariable Long id) {
+
+      logger.debug("AJAX request to get combination ID: {}", id);
+
+      Map<String, Object> response = new HashMap<>();
+
+      try {
+         ColorCombination combination = colorCombinationService.getById(id);
+
+         response.put("success", true);
+         response.put("combination", createCombinationResponse(combination));
+
+         return ResponseEntity.ok(response);
+
+      } catch (ColorCombinationNotFoundException e) {
+         logger.warn("Combination not found via AJAX: {}", id);
+         response.put("success", false);
+         response.put("message", "Combination not found");
+         return ResponseEntity.notFound().build();
+
+      } catch (Exception e) {
+         logger.error("Error getting combination via AJAX: " + id, e);
+         response.put("success", false);
+         response.put("message", "Internal server error");
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+      }
+   }
+
+   /** Helper method to create combination response object */
+   private Map<String, Object> createCombinationResponse(ColorCombination combination) {
+      Map<String, Object> combinationData = new HashMap<>();
+      combinationData.put("id", combination.getId());
+      combinationData.put("name", combination.getName());
+      combinationData.put("colorCount", combination.getColorCount());
+      combinationData.put("createdAt", combination.getCreatedAt());
+
+      // Add colors data
+      if (combination.getColors() != null) {
+         combinationData.put("colors", combination.getColors().stream()
+                  .sorted((c1, c2) -> c1.getPosition().compareTo(c2.getPosition())).map(color -> {
+                     Map<String, Object> colorData = new HashMap<>();
+                     colorData.put("id", color.getId());
+                     colorData.put("hexValue", color.getHexValue());
+                     colorData.put("position", color.getPosition());
+                     colorData.put("formattedHex", color.getFormattedHex());
+                     return colorData;
+                  }).toList());
+      }
+
+      return combinationData;
+   }
 }

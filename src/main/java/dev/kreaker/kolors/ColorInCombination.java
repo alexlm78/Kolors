@@ -1,4 +1,7 @@
+/* (c) 2026 Alejandro Lopez Monzon <alejandro@kreaker.dev> for Kreaker Developments */
 package dev.kreaker.kolors;
+
+import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,130 +18,118 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import java.util.Objects;
 
 @Entity
-@Table(
-        name = "color_in_combination",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"combination_id", "position"}),
-        indexes = {
-            @Index(name = "idx_color_hex", columnList = "hex_value"),
-            @Index(name = "idx_color_comb", columnList = "combination_id"),
-            @Index(name = "idx_color_pos", columnList = "position"),
-            @Index(name = "idx_color_comb_pos", columnList = "combination_id, position")
-        })
+@Table(name = "color_in_combination",
+         uniqueConstraints = @UniqueConstraint(columnNames = {"combination_id", "position"}),
+         indexes = {@Index(name = "idx_color_hex", columnList = "hex_value"),
+                  @Index(name = "idx_color_comb", columnList = "combination_id"),
+                  @Index(name = "idx_color_pos", columnList = "position"),
+                  @Index(name = "idx_color_comb_pos", columnList = "combination_id, position")})
 public class ColorInCombination {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+   @Id
+   @GeneratedValue(strategy = GenerationType.IDENTITY)
+   private Long id;
 
-    @NotBlank(message = "Hexadecimal value is required")
-    @Pattern(
-            regexp = "^[0-9A-Fa-f]{6}$",
+   @NotBlank(message = "Hexadecimal value is required")
+   @Pattern(regexp = "^[0-9A-Fa-f]{6}$",
             message = "Invalid hexadecimal format: must be 6 characters (0-9, A-F)")
-    @Column(nullable = false, length = 6, name = "hex_value")
-    private String hexValue;
+   @Column(nullable = false, length = 6, name = "hex_value")
+   private String hexValue;
 
-    @NotNull(message = "Position is required")
-    @Min(value = 1, message = "Minimum position is 1")
-    @Column(nullable = false)
-    private Integer position;
+   @NotNull(message = "Position is required")
+   @Min(value = 1, message = "Minimum position is 1")
+   @Column(nullable = false)
+   private Integer position;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "combination_id", nullable = false)
-    private ColorCombination combination;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "combination_id", nullable = false)
+   private ColorCombination combination;
 
-    // Constructors
-    public ColorInCombination() {}
+   // Constructors
+   public ColorInCombination() {}
 
-    public ColorInCombination(String hexValue, Integer position) {
-        this.hexValue = hexValue;
-        this.position = position;
-    }
+   public ColorInCombination(String hexValue, Integer position) {
+      this.hexValue = hexValue;
+      this.position = position;
+   }
 
-    public ColorInCombination(String hexValue, Integer position, ColorCombination combination) {
-        this.hexValue = hexValue;
-        this.position = position;
-        this.combination = combination;
-    }
+   public ColorInCombination(String hexValue, Integer position, ColorCombination combination) {
+      this.hexValue = hexValue;
+      this.position = position;
+      this.combination = combination;
+   }
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+   // Getters and Setters
+   public Long getId() {
+      return id;
+   }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+   public void setId(Long id) {
+      this.id = id;
+   }
 
-    public String getHexValue() {
-        return hexValue;
-    }
+   public String getHexValue() {
+      return hexValue;
+   }
 
-    public void setHexValue(String hexValue) {
-        this.hexValue = hexValue;
-    }
+   public void setHexValue(String hexValue) {
+      this.hexValue = hexValue;
+   }
 
-    public Integer getPosition() {
-        return position;
-    }
+   public Integer getPosition() {
+      return position;
+   }
 
-    public void setPosition(Integer position) {
-        this.position = position;
-    }
+   public void setPosition(Integer position) {
+      this.position = position;
+   }
 
-    public ColorCombination getCombination() {
-        return combination;
-    }
+   public ColorCombination getCombination() {
+      return combination;
+   }
 
-    public void setCombination(ColorCombination combination) {
-        this.combination = combination;
-    }
+   public void setCombination(ColorCombination combination) {
+      this.combination = combination;
+   }
 
-    // Helper methods
-    public String getFormattedHex() {
-        return "#" + hexValue;
-    }
+   // Helper methods
+   public String getFormattedHex() {
+      return "#" + hexValue;
+   }
 
-    public boolean isValidHex() {
-        return hexValue != null && hexValue.matches("^[0-9A-Fa-f]{6}$");
-    }
+   public boolean isValidHex() {
+      return hexValue != null && hexValue.matches("^[0-9A-Fa-f]{6}$");
+   }
 
-    @Override
-    public String toString() {
-        return "ColorInCombination{"
-                + "id="
-                + id
-                + ", hexValue='"
-                + hexValue
-                + '\''
-                + ", position="
-                + position
-                + '}';
-    }
+   @Override
+   public String toString() {
+      return "ColorInCombination{" + "id=" + id + ", hexValue='" + hexValue + '\'' + ", position="
+               + position + '}';
+   }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ColorInCombination)) {
-            return false;
-        }
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) {
+         return true;
+      }
+      if (!(o instanceof ColorInCombination)) {
+         return false;
+      }
 
-        ColorInCombination that = (ColorInCombination) o;
+      ColorInCombination that = (ColorInCombination) o;
 
-        if (id != null && that.id != null) {
-            return id.equals(that.id);
-        }
+      if (id != null && that.id != null) {
+         return id.equals(that.id);
+      }
 
-        // Both hexValue and position must match for equality
-        return Objects.equals(hexValue, that.hexValue) && Objects.equals(position, that.position);
-    }
+      // Both hexValue and position must match for equality
+      return Objects.equals(hexValue, that.hexValue) && Objects.equals(position, that.position);
+   }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(hexValue, position);
-    }
+   @Override
+   public int hashCode() {
+      return Objects.hash(hexValue, position);
+   }
 }

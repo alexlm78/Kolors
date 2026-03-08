@@ -1,3 +1,4 @@
+/* (c) 2026 Alejandro Lopez Monzon <alejandro@kreaker.dev> for Kreaker Developments */
 package dev.kreaker.kolors.service;
 
 import org.slf4j.Logger;
@@ -13,32 +14,32 @@ import org.springframework.stereotype.Service;
 @Profile("!test")
 public class PerformanceScheduledService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PerformanceScheduledService.class);
+   private static final Logger logger = LoggerFactory.getLogger(PerformanceScheduledService.class);
 
-    private final PerformanceMonitoringService performanceMonitoringService;
+   private final PerformanceMonitoringService performanceMonitoringService;
 
-    public PerformanceScheduledService(PerformanceMonitoringService performanceMonitoringService) {
-        this.performanceMonitoringService = performanceMonitoringService;
-    }
+   public PerformanceScheduledService(PerformanceMonitoringService performanceMonitoringService) {
+      this.performanceMonitoringService = performanceMonitoringService;
+   }
 
-    /** Logs performance summary every 5 minutes */
-    // @Scheduled(fixedRate = 300000) // 5 minutes - Disabled for testing
-    public void logPerformanceSummary() {
-        try {
-            performanceMonitoringService.logPerformanceSummary();
-        } catch (Exception e) {
-            logger.error("Error logging performance summary", e);
-        }
-    }
+   /** Logs performance summary every 5 minutes */
+   // @Scheduled(fixedRate = 300000) // 5 minutes - Disabled for testing
+   public void logPerformanceSummary() {
+      try {
+         performanceMonitoringService.logPerformanceSummary();
+      } catch (Exception e) {
+         logger.error("Error logging performance summary", e);
+      }
+   }
 
-    /** Resets performance metrics daily at midnight */
-    // @Scheduled(cron = "0 0 0 * * *") // Daily at midnight - Disabled for testing
-    public void resetDailyMetrics() {
-        try {
-            logger.info("Resetting daily performance metrics");
-            performanceMonitoringService.resetMetrics();
-        } catch (Exception e) {
-            logger.error("Error resetting daily metrics", e);
-        }
-    }
+   /** Resets performance metrics daily at midnight */
+   // @Scheduled(cron = "0 0 0 * * *") // Daily at midnight - Disabled for testing
+   public void resetDailyMetrics() {
+      try {
+         logger.info("Resetting daily performance metrics");
+         performanceMonitoringService.resetMetrics();
+      } catch (Exception e) {
+         logger.error("Error resetting daily metrics", e);
+      }
+   }
 }

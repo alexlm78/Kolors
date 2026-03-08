@@ -1,3 +1,4 @@
+/* (c) 2026 Alejandro Lopez Monzon <alejandro@kreaker.dev> for Kreaker Developments */
 package dev.kreaker.kolors.exception;
 
 import java.util.List;
@@ -5,24 +6,24 @@ import java.util.List;
 /** Exception thrown when color combination validation fails */
 public class ColorCombinationValidationException extends RuntimeException {
 
-    private final List<String> validationErrors;
+   private final List<String> validationErrors;
 
-    public ColorCombinationValidationException(String message) {
-        super(message);
-        this.validationErrors = List.of(message);
-    }
+   public ColorCombinationValidationException(String message) {
+      super(message);
+      this.validationErrors = List.of(message);
+   }
 
-    public ColorCombinationValidationException(String message, Throwable cause) {
-        super(message, cause);
-        this.validationErrors = List.of(message);
-    }
+   public ColorCombinationValidationException(String message, Throwable cause) {
+      super(message, cause);
+      this.validationErrors = List.of(message);
+   }
 
-    public ColorCombinationValidationException(List<String> validationErrors) {
-        super("Validation errors: " + String.join(", ", validationErrors));
-        this.validationErrors = validationErrors;
-    }
+   public ColorCombinationValidationException(List<String> validationErrors) {
+      super("Validation errors: " + String.join(", ", validationErrors));
+      this.validationErrors = validationErrors;
+   }
 
-    public List<String> getValidationErrors() {
-        return validationErrors;
-    }
+   public List<String> getValidationErrors() {
+      return validationErrors;
+   }
 }

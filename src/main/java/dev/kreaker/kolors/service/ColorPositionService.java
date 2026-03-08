@@ -1,12 +1,15 @@
+/* (c) 2026 Alejandro Lopez Monzon <alejandro@kreaker.dev> for Kreaker Developments */
 package dev.kreaker.kolors.service;
 
-import dev.kreaker.kolors.ColorInCombination;
-import dev.kreaker.kolors.ColorInCombinationRepository;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import dev.kreaker.kolors.ColorInCombination;
+import dev.kreaker.kolors.ColorInCombinationRepository;
 
 /**
  * Service for managing color positions in combinations Handles dynamic position management and
@@ -16,185 +19,156 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ColorPositionService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ColorPositionService.class);
+   private static final Logger logger = LoggerFactory.getLogger(ColorPositionService.class);
 
-    private final ColorInCombinationRepository colorInCombinationRepository;
+   private final ColorInCombinationRepository colorInCombinationRepository;
 
-    public ColorPositionService(ColorInCombinationRepository colorInCombinationRepository) {
-        this.colorInCombinationRepository = colorInCombinationRepository;
-    }
+   public ColorPositionService(ColorInCombinationRepository colorInCombinationRepository) {
+      this.colorInCombinationRepository = colorInCombinationRepository;
+   }
 
-    /** Shifts positions to make space for insertion */
-    public void shiftPositionsForInsertion(Long combinationId, Integer insertionPosition) {
-        logger.debug(
-                "Shifting positions for insertion at position {} for combination ID: {}",
-                insertionPosition,
-                combinationId);
+   /** Shifts positions to make space for insertion */
+   public void shiftPositionsForInsertion(Long combinationId, Integer insertionPosition) {
+      logger.debug("Shifting positions for insertion at position {} for combination ID: {}",
+               insertionPosition, combinationId);
 
-        if (combinationId == null || insertionPosition == null) {
-            logger.warn("Cannot shift positions: combinationId or insertionPosition is null");
-            return;
-        }
+      if (combinationId == null || insertionPosition == null) {
+         logger.warn("Cannot shift positions: combinationId or insertionPosition is null");
+         return;
+      }
 
-        // Get all colors that need shifting (position >= insertionPosition)
-        // We need to process them in reverse order to avoid unique constraint violations
-        List<ColorInCombination> colorsToShift =
-                colorInCombinationRepository
-                        .findByCombinationIdAndPositionGreaterThanOrderByPosition(
-                                combinationId, insertionPosition - 1);
+      // Get all colors that need shifting (position >= insertionPosition)
+      // We need to process them in reverse order to avoid unique constraint violations
+      List<ColorInCombination> colorsToShift = colorInCombinationRepository
+               .findByCombinationIdAndPositionGreaterThanOrderByPosition(combinationId,
+                        insertionPosition - 1);
 
-        // Sort in reverse order (highest position first)
-        colorsToShift.sort((c1, c2) -> c2.getPosition().compareTo(c1.getPosition()));
+      // Sort in reverse order (highest position first)
+      colorsToShift.sort((c1, c2) -> c2.getPosition().compareTo(c1.getPosition()));
 
-        for (ColorInCombination color : colorsToShift) {
-            Integer oldPosition = color.getPosition();
-            color.setPosition(oldPosition + 1);
-            colorInCombinationRepository.save(color);
-            // Flush each update to avoid unique constraint violations
-            colorInCombinationRepository.flush();
-            logger.debug(
-                    "Shifted color position from {} to {} for color ID: {}",
-                    oldPosition,
-                    color.getPosition(),
-                    color.getId());
-        }
-        
-        // Flush to ensure shifts are committed before inserting the new color
-        colorInCombinationRepository.flush();
+      for (ColorInCombination color : colorsToShift) {
+         Integer oldPosition = color.getPosition();
+         color.setPosition(oldPosition + 1);
+         colorInCombinationRepository.save(color);
+         // Flush each update to avoid unique constraint violations
+         colorInCombinationRepository.flush();
+         logger.debug("Shifted color position from {} to {} for color ID: {}", oldPosition,
+                  color.getPosition(), color.getId());
+      }
 
-        logger.info(
-                "Shifted {} colors for insertion at position {} for combination ID: {}",
-                colorsToShift.size(),
-                insertionPosition,
-                combinationId);
-    }
+      // Flush to ensure shifts are committed before inserting the new color
+      colorInCombinationRepository.flush();
 
-    /** Reorders positions after a color removal to ensure sequential positions */
-    public void reorderPositionsAfterRemoval(Long combinationId, Integer removedPosition) {
-        logger.debug(
-                "Reordering positions after removal at position {} for combination ID: {}",
-                removedPosition,
-                combinationId);
+      logger.info("Shifted {} colors for insertion at position {} for combination ID: {}",
+               colorsToShift.size(), insertionPosition, combinationId);
+   }
 
-        if (combinationId == null || removedPosition == null) {
-            logger.warn("Cannot reorder positions: combinationId or removedPosition is null");
-            return;
-        }
+   /** Reorders positions after a color removal to ensure sequential positions */
+   public void reorderPositionsAfterRemoval(Long combinationId, Integer removedPosition) {
+      logger.debug("Reordering positions after removal at position {} for combination ID: {}",
+               removedPosition, combinationId);
 
-        // Get all colors that need position adjustment
-        List<ColorInCombination> colorsToReorder =
-                colorInCombinationRepository
-                        .findByCombinationIdAndPositionGreaterThanOrderByPosition(
-                                combinationId, removedPosition);
+      if (combinationId == null || removedPosition == null) {
+         logger.warn("Cannot reorder positions: combinationId or removedPosition is null");
+         return;
+      }
 
-        // Decrease position by 1 for each color
-        for (ColorInCombination color : colorsToReorder) {
-            Integer oldPosition = color.getPosition();
-            color.setPosition(oldPosition - 1);
-            colorInCombinationRepository.save(color);
-            // Flush each update to avoid unique constraint violations
-            colorInCombinationRepository.flush();
-            logger.debug(
-                    "Updated color position from {} to {} for color ID: {}",
-                    oldPosition,
-                    color.getPosition(),
-                    color.getId());
-        }
+      // Get all colors that need position adjustment
+      List<ColorInCombination> colorsToReorder = colorInCombinationRepository
+               .findByCombinationIdAndPositionGreaterThanOrderByPosition(combinationId,
+                        removedPosition);
 
-        logger.info(
-                "Reordered {} colors after removal at position {} for combination ID: {}",
-                colorsToReorder.size(),
-                removedPosition,
-                combinationId);
-    }
+      // Decrease position by 1 for each color
+      for (ColorInCombination color : colorsToReorder) {
+         Integer oldPosition = color.getPosition();
+         color.setPosition(oldPosition - 1);
+         colorInCombinationRepository.save(color);
+         // Flush each update to avoid unique constraint violations
+         colorInCombinationRepository.flush();
+         logger.debug("Updated color position from {} to {} for color ID: {}", oldPosition,
+                  color.getPosition(), color.getId());
+      }
 
-    /** Gets the next available position for a combination */
-    public Integer getNextAvailablePosition(Long combinationId) {
-        if (combinationId == null) {
-            throw new IllegalArgumentException("Combination ID cannot be null");
-        }
+      logger.info("Reordered {} colors after removal at position {} for combination ID: {}",
+               colorsToReorder.size(), removedPosition, combinationId);
+   }
 
-        return colorInCombinationRepository
-                .findMaxPositionByCombinationId(combinationId)
-                .map(maxPosition -> maxPosition + 1)
-                .orElse(1); // If no colors exist, start with position 1
-    }
+   /** Gets the next available position for a combination */
+   public Integer getNextAvailablePosition(Long combinationId) {
+      if (combinationId == null) {
+         throw new IllegalArgumentException("Combination ID cannot be null");
+      }
 
-    /** Validates that positions are sequential starting from 1 */
-    public boolean validateSequentialPositions(List<ColorInCombination> colors) {
-        if (colors == null || colors.isEmpty()) {
-            return true; // Empty list is valid
-        }
+      return colorInCombinationRepository.findMaxPositionByCombinationId(combinationId)
+               .map(maxPosition -> maxPosition + 1).orElse(1); // If no colors exist, start with
+                                                               // position 1
+   }
 
-        // Sort by position to check sequence
-        colors.sort((c1, c2) -> c1.getPosition().compareTo(c2.getPosition()));
+   /** Validates that positions are sequential starting from 1 */
+   public boolean validateSequentialPositions(List<ColorInCombination> colors) {
+      if (colors == null || colors.isEmpty()) {
+         return true; // Empty list is valid
+      }
 
-        for (int i = 0; i < colors.size(); i++) {
-            if (colors.get(i).getPosition() != i + 1) {
-                logger.warn(
-                        "Non-sequential position found: expected {}, got {}",
-                        i + 1,
-                        colors.get(i).getPosition());
-                return false;
-            }
-        }
+      // Sort by position to check sequence
+      colors.sort((c1, c2) -> c1.getPosition().compareTo(c2.getPosition()));
 
-        return true;
-    }
-
-    /** Fixes non-sequential positions by reordering them */
-    public void fixSequentialPositions(Long combinationId) {
-        logger.info("Fixing sequential positions for combination ID: {}", combinationId);
-
-        if (combinationId == null) {
-            throw new IllegalArgumentException("Combination ID cannot be null");
-        }
-
-        List<ColorInCombination> colors =
-                colorInCombinationRepository.findByCombinationIdOrderByPosition(combinationId);
-
-        // Reorder positions to be sequential
-        for (int i = 0; i < colors.size(); i++) {
-            ColorInCombination color = colors.get(i);
-            Integer expectedPosition = i + 1;
-
-            if (!color.getPosition().equals(expectedPosition)) {
-                logger.debug(
-                        "Fixing position for color ID {}: {} -> {}",
-                        color.getId(),
-                        color.getPosition(),
-                        expectedPosition);
-                color.setPosition(expectedPosition);
-                colorInCombinationRepository.save(color);
-            }
-        }
-
-        logger.info(
-                "Fixed positions for {} colors in combination ID: {}",
-                colors.size(),
-                combinationId);
-    }
-
-    /** Checks if a position is available in a combination */
-    public boolean isPositionAvailable(Long combinationId, Integer position) {
-        if (combinationId == null || position == null || position < 1) {
+      for (int i = 0; i < colors.size(); i++) {
+         if (colors.get(i).getPosition() != i + 1) {
+            logger.warn("Non-sequential position found: expected {}, got {}", i + 1,
+                     colors.get(i).getPosition());
             return false;
-        }
+         }
+      }
 
-        return !colorInCombinationRepository.existsByCombinationIdAndPosition(
-                combinationId, position);
-    }
+      return true;
+   }
 
-    /** Gets all used positions in a combination */
-    public List<Integer> getUsedPositions(Long combinationId) {
-        if (combinationId == null) {
-            throw new IllegalArgumentException("Combination ID cannot be null");
-        }
+   /** Fixes non-sequential positions by reordering them */
+   public void fixSequentialPositions(Long combinationId) {
+      logger.info("Fixing sequential positions for combination ID: {}", combinationId);
 
-        return colorInCombinationRepository
-                .findByCombinationIdOrderByPosition(combinationId)
-                .stream()
-                .map(ColorInCombination::getPosition)
-                .toList();
-    }
+      if (combinationId == null) {
+         throw new IllegalArgumentException("Combination ID cannot be null");
+      }
+
+      List<ColorInCombination> colors =
+               colorInCombinationRepository.findByCombinationIdOrderByPosition(combinationId);
+
+      // Reorder positions to be sequential
+      for (int i = 0; i < colors.size(); i++) {
+         ColorInCombination color = colors.get(i);
+         Integer expectedPosition = i + 1;
+
+         if (!color.getPosition().equals(expectedPosition)) {
+            logger.debug("Fixing position for color ID {}: {} -> {}", color.getId(),
+                     color.getPosition(), expectedPosition);
+            color.setPosition(expectedPosition);
+            colorInCombinationRepository.save(color);
+         }
+      }
+
+      logger.info("Fixed positions for {} colors in combination ID: {}", colors.size(),
+               combinationId);
+   }
+
+   /** Checks if a position is available in a combination */
+   public boolean isPositionAvailable(Long combinationId, Integer position) {
+      if (combinationId == null || position == null || position < 1) {
+         return false;
+      }
+
+      return !colorInCombinationRepository.existsByCombinationIdAndPosition(combinationId,
+               position);
+   }
+
+   /** Gets all used positions in a combination */
+   public List<Integer> getUsedPositions(Long combinationId) {
+      if (combinationId == null) {
+         throw new IllegalArgumentException("Combination ID cannot be null");
+      }
+
+      return colorInCombinationRepository.findByCombinationIdOrderByPosition(combinationId).stream()
+               .map(ColorInCombination::getPosition).toList();
+   }
 }
