@@ -374,8 +374,41 @@
          let colorCount = 0;
          let colorIndex = 0;
 
-         // Initialize with one color
-         addColor();
+         // Initialize from existing Thymeleaf-rendered color fields
+         const existingFields = dynamicColorFields.querySelectorAll('.color-field');
+         if (existingFields.length > 0) {
+            // Set up existing fields rendered by Thymeleaf
+            existingFields.forEach((field, index) => {
+               colorCount++;
+               const colorInput = field.querySelector('.color-input');
+               if (colorInput) {
+                  // Assign a unique data-index for preview tracking
+                  colorInput.dataset.index = colorIndex;
+                  // Set the preview element id to match
+                  const preview = field.querySelector('.color-preview');
+                  if (preview) {
+                     preview.id = `preview-${colorIndex}`;
+                  }
+                  colorIndex++;
+                  setupColorInput(colorInput);
+                  // Initialize preview if value already set
+                  const value = colorInput.value;
+                  if (value && value.length === 6) {
+                     updateColorPreview(colorInput.dataset.index, value);
+                  }
+               }
+               // Update remove button state
+               const removeBtn = field.querySelector('.remove-color-btn');
+               if (removeBtn) {
+                  removeBtn.disabled = colorCount === 1;
+               }
+            });
+            updateColorCountDisplay();
+            updateLivePreview();
+         } else {
+            // No existing fields, add the initial one
+            addColor();
+         }
 
          // Add color button event
          addColorBtn.addEventListener('click', function(e) {
