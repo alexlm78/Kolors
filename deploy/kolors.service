@@ -1,0 +1,39 @@
+[Unit]
+Description=Kolors Application
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/kolors
+
+# Environment variables
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="SERVER_PORT=9085"
+Environment="JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64"
+
+# If using environment file
+EnvironmentFile=/opt/kolors/.env
+
+ExecStart=/usr/bin/java -jar /opt/kolors/build/libs/kolors-0.6.12.jar
+
+# Restart configuration
+Restart=always
+RestartSec=10
+
+# Resource limits
+MemoryMax=1G
+MemoryHigh=512M
+
+# Logging
+StandardOutput=append:/var/log/kolors/kolors.log
+StandardError=append:/var/log/kolors/kolors-error.log
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/kolors /var/log/kolors
+
+[Install]
+WantedBy=multi-user.target
