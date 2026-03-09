@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,7 +32,7 @@ public class SecurityConfig {
    @Bean
    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
       http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-               .csrf(csrf -> csrf.disable()).authorizeHttpRequests(authz -> authz
+               .csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(authz -> authz
                         // Public endpoints
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**",
                                  "/favicon.ico")
@@ -42,11 +43,9 @@ public class SecurityConfig {
                         // Swagger UI and API Docs
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()
-
                         // Protected endpoints (require authentication)
                         .requestMatchers("/api/combinations/**").authenticated()
                         .requestMatchers("/admin/**").authenticated()
-
                         // All other requests
                         .anyRequest().authenticated())
                .formLogin(form -> form.loginPage("/auth/login").loginProcessingUrl("/auth/login")
