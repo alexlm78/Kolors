@@ -88,8 +88,10 @@
 
 /* Combinations section mobile optimizations */
 .combinations-section {
-   margin-top: 20px;
+   margin-top: 30px;
    margin-bottom: 15px;
+   padding-top: 10px;
+   border-top: 1px solid var(--border-color, #e9ecef);
 }
 
 .combinations-section h2 {
