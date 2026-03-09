@@ -16,7 +16,7 @@ plugins {
 }
 
 group = 'dev.kreaker.kolors'
-version = '0.6.21'
+version = '0.6.23'
 
 java {
    toolchain {
